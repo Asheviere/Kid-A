@@ -1,6 +1,6 @@
 var profanityList = [
-    'fuck', 'shit', 'cock', 'dick', 'pussy', 'roastie', 'cunt',
-    'autist', 'aspie', 'retard', 'cuck', 'cuckold',
+    'fuck', 'fucking', 'motherfucking', 'motherfucker', 'bitch', 'shit', 'shitting', 'cock', 'dick', 'pussy', 'roastie', 'cunt',
+    'autist', 'aspie', 'retard', 'cuck', 'cuckold', 'whore',
     'nigger', 'fag', 'faggot', 'meanie', 'poopyhead', 'kike', 'spic', 'sandnigger', 'pinoy', 'nigga', 'mexican',
     'tymp', 'tympy', 'tympani'
 ];
