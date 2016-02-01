@@ -57,7 +57,7 @@ module.exports = {
                 break;
             case 'c':
             case 'c:':
-                if (!split[0]) split[0] = 'lobby'; // Zarel can't code
+                if (!split[0]) split[0] = '>lobby'; // Zarel can't code
                 Analyzer.analyze(split[0].substr(1).trim(), split[4]);
                 break;
         }
