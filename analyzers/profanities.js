@@ -14,7 +14,7 @@ module.exports = {
 
         var profanities = 0;
         for (var i = 0; i < words.length; i++) {
-            if (profanityList.indexOf(words[i].toLowerCase()) > -1) {
+            if (profanityList.indexOf(toId(words[i])) > -1) {
                 profanities++;
             }
         }
