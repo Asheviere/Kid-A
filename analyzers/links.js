@@ -19,7 +19,7 @@ module.exports = {
                     split.shift();
                 }
 
-                console.log("Someone linked " + split[0] + " in room " + room + ".");
+                consoleMsg("Someone linked " + split[0] + " in room " + room + ".");
 
                 if (!Data[room]) Data[room] = {};
                 if (!Data[room].links) Data[room].links = {};
