@@ -1,9 +1,49 @@
 var request = require('request');
+var fs = require('fs');
 
 var actionUrl = 'http://play.pokemonshowdown.com/action.php';
 
+// Load the data file.
+var data;
+try {
+    data = JSON.parse(fs.readFileSync('./data/data.json'));
+} catch (e) {}
+
+if (!Object.isObject(data)) data = {};
+
+global.Data = data;
+
+// Load the analyzers.
+var analyzers = {};
+var files = fs.readdirSync('./analyzers');
+
+for (var i = 0; i < files.length; i++) {
+    analyzers[files[i].split('.')[0]] = require('./analyzers/' + files[i]);
+}
+
 module.exports = {
+    analyzers: analyzers,
+
+    writeData: function() {
+        if (this.writePending) return false;
+
+        if (this.writing) {
+            this.writePending = true;
+            return;
+        }
+        writing = true;
+        var toWrite = JSON.stringify(Data);
+
+        fs.writeFile('./data/data.json', toWrite, () => {
+            this.writing = false;
+            if (this.writePending) {
+                this.writeData();
+            }
+        });
+    },
+
     setup: function() {
+
         Connection.send('|/avatar ' + Config.avatar);
 
         for (var i = 0; i < Config.rooms.length; i++) {
@@ -58,8 +98,14 @@ module.exports = {
             case 'c':
             case 'c:':
                 if (!split[0]) split[0] = '>lobby'; // Zarel can't code
-                Analyzer.analyze(split[0].substr(1).trim(), split[4]);
+                this.analyze(split[0].substr(1).trim(), split[4]);
                 break;
+        }
+    },
+
+    analyze: function(room, message) {
+        for (var i in this.analyzers) {
+            this.analyzers[i].parser(room, message);
         }
     }
 };
