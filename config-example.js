@@ -11,6 +11,7 @@ exports.serverport = '8000';
 exports.username = '';
 exports.password = '';
 
-// Rooms to join and avatar to choose.
+// Rooms to join and avatar to choose. The maximum amount of rooms Kid A can join upon connecting is 11.
+// The reason for these restrictions is the way PS protocol works. I might try to get around it at a later date, but this is it for now.
 exports.rooms = ['dev'];
 exports.avatar = '246';

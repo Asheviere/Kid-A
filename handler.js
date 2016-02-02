@@ -43,12 +43,17 @@ module.exports = {
     },
 
     setup: function() {
-
         Connection.send('|/avatar ' + Config.avatar);
 
-        for (var i = 0; i < Config.rooms.length; i++) {
-            Connection.send('|/j ' + Config.rooms[i]);
+        var toJoin;
+
+        if (Config.rooms.length > 11) {
+            console.log("Due to spam protection, 11 is the max amount of rooms that can be joined at once.");
+            toJoin = Config.rooms.slice(0,11);
+        } else {
+            toJoin = Config.rooms;
         }
+        Connection.send('|/autojoin ' + toJoin.join(','));
     },
 
     parse: function(message) {
