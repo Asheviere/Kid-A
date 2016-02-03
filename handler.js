@@ -110,7 +110,9 @@ module.exports = {
 
 	analyze: function(room, message) {
 		for (var i in this.analyzers) {
-			this.analyzers[i].parser(room, message);
+			if (!this.analyzers[i].rooms || this.analyzers[i].rooms.indexOf(room) > -1) {
+				this.analyzers[i].parser(room, message);
+			}
 		}
 	}
 };
