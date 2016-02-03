@@ -7,6 +7,8 @@ module.exports = {
 		var parts = message.split(' ');
 
 		for (var i = 0; i < parts.length; parts++) {
+			if (parts[i].length > 100) return;
+
 			if (pattern.test(parts[i])) {
 				var link = parts[i];
 				var split = link.split('/');
