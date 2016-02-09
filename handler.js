@@ -48,7 +48,7 @@ module.exports = {
 		var toJoin;
 
 		if (Config.rooms.length > 11) {
-			console.log("Due to spam protection, 11 is the max amount of rooms that can be joined at once.");
+			statusMsg("Due to spam protection, 11 is the max amount of rooms that can be joined at once.");
 			toJoin = Config.rooms.slice(0,11);
 		} else {
 			toJoin = Config.rooms;
@@ -62,7 +62,7 @@ module.exports = {
 
 		switch (split[1]) {
 			case 'challstr':
-				console.log('Received challstr, logging in...');
+				statusMsg('Received challstr, logging in...');
 
 				var challstr = split.slice(2).join('|');
 
@@ -76,12 +76,10 @@ module.exports = {
 								if (body.assertion && body.assertion[0] !== ';') {
 									Connection.send('|/trn ' + Config.username + ',0,' + body.assertion);
 								} else {
-									console.log("Couldn't log in.");
-									process.exit(-1);
+									forceQuit("Couldn't log in.");
 								}
 							} else {
-								console.log("Incorrect request.");
-								process.exit(-1);
+								forceQuit("Incorrect request.");
 							}
 						}
 					}
@@ -90,13 +88,13 @@ module.exports = {
 			case 'updateuser':
 				if (split[2] !== Config.username) return false;
 
-				console.log("Logged in as " + split[2] + ". Setting up bot.");
+				statusMsg("Logged in as " + split[2] + ". Setting up bot.");
 				this.setup();
-				console.log("Setup done.");
+				statusMsg("Setup done.");
 				break;
 			case 'pm':
 				if (toId(split[2]) === toId(Config.username)) return false;
-				consoleMsg("PM from " + split[2] + ": " + split[4]);
+				pmMsg("PM from " + split[2] + ": " + split[4]);
 
 				Connection.send("|/reply Hi, I am a bot that is currently spying on everything you say in order to get his owner some fancy statistics. I don't have any cool commands so don't even try.");
 				break;

@@ -2,7 +2,7 @@ var http = require('http');
 var connect = require('connect');
 var serveStatic = require('serve-static');
 
-console.log("Starting server...");
+statusMsg("Starting server...");
 
 var site = connect();
 
@@ -28,4 +28,4 @@ site.use((req, res) => res.end("Invalid room."));
 
 http.createServer(site).listen(8000);
 
-console.log("Server started successfully.");
+statusMsg("Server started successfully.");
