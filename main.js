@@ -1,6 +1,6 @@
 require('sugar');
 
-let timeElem = string => (string < 10 ? "0" : "") + string;
+var timeElem = string => (string < 10 ? "0" : "") + string;
 
 global.toId = text => text.toLowerCase().replace(/[^a-z0-9]/g, '');
 
