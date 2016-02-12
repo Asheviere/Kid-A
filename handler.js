@@ -59,6 +59,7 @@ module.exports = {
 	parse: function(message) {
 		if (!message) return;
 		var split = message.split('|');
+		if (!split[0]) split[0] = '>lobby'; // Zarel can't code
 
 		switch (split[1]) {
 			case 'challstr':
@@ -100,8 +101,20 @@ module.exports = {
 				break;
 			case 'c':
 			case 'c:':
-				if (!split[0]) split[0] = '>lobby'; // Zarel can't code
 				this.analyze(split[0].substr(1).trim(), split[4]);
+				break;
+			case 'L':
+			case 'l':
+			case 'J':
+			case 'j':
+				var roomid = split[0].substr(1).trim();
+				if (roomid in Config.lookoutList) {
+					for (var i = 0; i < Config.lookoutList[roomid].length; i++) {
+						if (toId(Config.lookoutList[roomid][i])) === toId(split[2])) {
+							logMsg(Config.lookoutList[roomid][i] + (toId(split[1]) === 'j' ? "joined " : "left ") + roomid + ".");
+						}
+					}
+				}
 				break;
 		}
 	},

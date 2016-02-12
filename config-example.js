@@ -15,3 +15,7 @@ exports.password = '';
 // The reason for these restrictions is the way PS protocol works. I might try to get around it at a later date, but this is it for now.
 exports.rooms = ['dev'];
 exports.avatar = '246';
+
+// A list of users to look out for. Although this feature might seem shady, it can be very useful to check what hours a user is online,
+// mostly for figuring out which users cover the right timezones for room staff.
+exports.lookoutList = {roomname: ["user1","user2"], room2: ["user3"]};
