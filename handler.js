@@ -111,7 +111,7 @@ module.exports = {
 				if (roomid in Config.lookoutList) {
 					for (var i = 0; i < Config.lookoutList[roomid].length; i++) {
 						if (toId(Config.lookoutList[roomid][i]) === toId(split[2])) {
-							logMsg(Config.lookoutList[roomid][i] + (toId(split[1]) === 'j' ? "joined " : "left ") + roomid + ".");
+							logMsg(Config.lookoutList[roomid][i] + (toId(split[1]) === 'j' ? " joined " : " left ") + roomid + ".");
 						}
 					}
 				}
