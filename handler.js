@@ -26,15 +26,6 @@ if (!Object.isObject(quotes)) quotes = {};
 
 Data.quotes = quotes;
 
-// Initialize rooms.
-for (var i = 0; i < Config.rooms.length; i++) {
-	for (var j in Data) {
-		if (!Data[j][Config.rooms[i]]) {
-			Data[j][Config.rooms[i]] = {};
-		}
-	}
-}
-
 // Load the analyzers.
 var analyzers = {};
 var files = fs.readdirSync('./analyzers');
@@ -46,37 +37,42 @@ for (var i = 0; i < files.length; i++) {
 module.exports = {
 	analyzers: analyzers,
 
-	writeData: function() {
-		if (this.writePending) return false;
+	writePending: {},
+	writing: {},
 
-		if (this.writing) {
-			this.writePending = true;
+	writeData: function() {
+		if (this.writePending.data) return false;
+
+		if (this.writing.data) {
+			this.writePending.data = true;
 			return;
 		}
-		writing = true;
+		this.writing.data = true;
 		var toWrite = JSON.stringify(Data.data);
 
 		fs.writeFile('./data/data.json', toWrite, () => {
-			this.writing = false;
-			if (this.writePending) {
+			this.writing.data = false;
+			if (this.writePending.data) {
+				this.writePending.data = false;
 				this.writeData();
 			}
 		});
 	},
 
 	writeQuotes: function() {
-		if (this.writePending) return false;
+		if (this.writePending.quotes) return false;
 
-		if (this.writing) {
-			this.writePending = true;
+		if (this.writing.quotes) {
+			this.writePending.quotes = true;
 			return;
 		}
-		writing = true;
+		this.writing.quotes = true;
 		var toWrite = JSON.stringify(Data.quotes);
 
 		fs.writeFile('./data/quotes.json', toWrite, () => {
-			this.writing = false;
-			if (this.writePending) {
+			this.writing.quotes = false;
+			if (this.writePending.quotes) {
+				this.writePending.quotes = false;
 				this.writeData();
 			}
 		});
@@ -152,12 +148,12 @@ module.exports = {
 	addQuote: function(user, room, message) {
 		if (!message.length) return false;
 
-		if (!Data.quotes[room].quotes) Data.quotes[room].quotes = [];
+		if (!Data.quotes[room]) Data.quotes[room] = [];
 
-		if (Data.quotes[room].quotes.indexOf(message) > -1) {
+		if (Data.quotes[room].indexOf(message) > -1) {
 			Connection.send("|/w " + user + ", Quote is already added.");
 		} else {
-			Data.quotes[room].quotes.push(message);
+			Data.quotes[room].push(message);
 			Connection.send("|/w " + user + ", Quote has been added.");
 		}
 
