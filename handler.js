@@ -141,6 +141,7 @@ module.exports = {
 				break;
 			case 'c':
 			case 'c:':
+				if (toId(split[3].substr(1)) === 'littletree' && Math.random() < 0.01) Connection.send(split[0].substr(1).trim() + '|Don\'t mind LittleTree he\'s retarded.'); 
 				if (split[4].startsWith(Config.commandSymbol + 'quote ') && Config.canQuote.indexOf(split[3][0]) > -1) {
 					this.addQuote(split[3].substr(1), split[0].substr(1).trim(), split[4].substr(7));
 				}
