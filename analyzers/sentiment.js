@@ -9,13 +9,13 @@ module.exports = {
 
 		if (!smt.words.length) return false;
 
-		if (!Data[room]) Data[room] = {};
-		if (!Data[room].sentiment) Data[room].sentiment = {score: smt.score, n: 1};
+		if (!Data.data[room]) Data.data[room] = {};
+		if (!Data.data[room].sentiment) Data.data[room].sentiment = {score: smt.score, n: 1};
 
-		Data[room].sentiment.score = (Data[room].sentiment.score + smt.score) / ++Data[room].sentiment.n;
+		Data.data[room].sentiment.score = (Data.data[room].sentiment.score + smt.score) / ++Data.data[room].sentiment.n;
 
 		Handler.writeData();
 	},
 
-	display: room => 'Average sentiment: ' + (Data[room].sentiment ? Data[room].sentiment.score * 1000 : 0),
+	display: room => 'Average sentiment: ' + (Data.data[room].sentiment ? Data.data[room].sentiment.score * 1000 : 0),
 }

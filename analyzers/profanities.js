@@ -19,16 +19,16 @@ module.exports = {
 			}
 		}
 
-		if (!Data[room]) Data[room] = {};
-		if (!Data[room].profanities) {
-			Data[room].profanities = {count: profanities, total: words.length};
+		if (!Data.data[room]) Data.data[room] = {};
+		if (!Data.data[room].profanities) {
+			Data.data[room].profanities = {count: profanities, total: words.length};
 		} else {
-			Data[room].profanities.count += profanities;
-			Data[room].profanities.total += words.length;
+			Data.data[room].profanities.count += profanities;
+			Data.data[room].profanities.total += words.length;
 		}
 
 		Handler.writeData();
 	},
 
-	display: room => 'Percentage of words said that are swear words: ' + (Data[room].profanities ? Data[room].profanities.count / Data[room].profanities.total * 100 : 0),
+	display: room => 'Percentage of words said that are swear words: ' + (Data.data[room].profanities ? Data.data[room].profanities.count / Data.data[room].profanities.total * 100 : 0),
 }

@@ -3,7 +3,10 @@ var fs = require('fs');
 
 var actionUrl = 'http://play.pokemonshowdown.com/action.php';
 
-// Load the data file.
+// Main data object.
+global.Data = {};
+
+// Load the analyzer data file.
 var data;
 try {
 	data = JSON.parse(fs.readFileSync('./data/data.json'));
@@ -11,7 +14,17 @@ try {
 
 if (!Object.isObject(data)) data = {};
 
-global.Data = data;
+Data.data = data;
+
+// Load the quote db.
+var quotes;
+try {
+	quotes = JSON.parse(fs.readFileSync('./data/quotes.json'));
+} catch (e) {}
+
+if (!Object.isObject(quotes)) quotes = {};
+
+Data.quotes = quotes;
 
 // Load the analyzers.
 var analyzers = {};
@@ -32,9 +45,27 @@ module.exports = {
 			return;
 		}
 		writing = true;
-		var toWrite = JSON.stringify(Data);
+		var toWrite = JSON.stringify(Data.data);
 
 		fs.writeFile('./data/data.json', toWrite, () => {
+			this.writing = false;
+			if (this.writePending) {
+				this.writeData();
+			}
+		});
+	},
+
+	writeQuotes: function() {
+		if (this.writePending) return false;
+
+		if (this.writing) {
+			this.writePending = true;
+			return;
+		}
+		writing = true;
+		var toWrite = JSON.stringify(Data.quotes);
+
+		fs.writeFile('./data/quotes.json', toWrite, () => {
 			this.writing = false;
 			if (this.writePending) {
 				this.writeData();
@@ -101,9 +132,27 @@ module.exports = {
 				break;
 			case 'c':
 			case 'c:':
+				if (split[4].startsWith(Config.commandSymbol + 'quote ') && Config.canQuote.indexOf(split[3][0]) > -1) {
+					this.addQuote(split[3].substr(1), split[0].substr(1).trim(), split[4].substr(7));
+				}
 				this.analyze(split[0].substr(1).trim(), split[4]);
 				break;
 		}
+	},
+
+	addQuote: function(user, room, message) {
+		if (!message.length) return false;
+
+		if (!Data.quotes[room]) Data.quotes[room] = [];
+
+		if (Data.quotes[room].indexOf(message) > -1) {
+			Connection.send("|/w " + user + ", Quote is already added.");
+		} else {
+			Data.quotes[room].push(message);
+			Connection.send("|/w " + user + ", Quote has been added.");
+		}
+
+		Handler.writeQuotes();
 	},
 
 	analyze: function(room, message) {
@@ -112,5 +161,5 @@ module.exports = {
 				this.analyzers[i].parser(room, message);
 			}
 		}
-	}
+	},
 };

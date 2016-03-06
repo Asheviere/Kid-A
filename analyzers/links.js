@@ -21,10 +21,10 @@ module.exports = {
 					split.shift();
 				}
 
-				if (!Data[room]) Data[room] = {};
-				if (!Data[room].links) Data[room].links = {};
+				if (!Data.data[room]) Data.data[room] = {};
+				if (!Data.data[room].links) Data.data[room].links = {};
 
-				Data[room].links[split[0]] = Data[room].links[split[0]] + 1 || 1;
+				Data.data[room].links[split[0]] = Data.data[room].links[split[0]] + 1 || 1;
 
 				Handler.writeData();
 			}
@@ -33,8 +33,8 @@ module.exports = {
 
 	display: function(room) {
 		var output = 'Websites linked:<br/>';
-		for (var site in Data[room].links) {
-			output += site + ':\t' + Data[room].links[site] + ' times.<br/>';
+		for (var site in Data.data[room].links) {
+			output += site + ':\t' + Data.data[room].links[site] + ' times.<br/>';
 		}
 		return output;
 	}

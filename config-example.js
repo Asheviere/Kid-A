@@ -15,3 +15,7 @@ exports.password = '';
 // The reason for these restrictions is the way PS protocol works. I might try to get around it at a later date, but this is it for now.
 exports.rooms = ['dev'];
 exports.avatar = '246';
+
+// Symbol to use for commands, and the ranks that can add quotes to the db.
+exports.commandSymbol = '.';
+exports.canQuote = ['@', '&', '#', '~'];
