@@ -149,8 +149,7 @@ module.exports = {
 	addQuote: function(user, room, message) {
 		if (!message.length) return false;
 
-		if (!Data.quotes[room]) Data.data[room] = {};
-		if (!Data.quotes[room].quotes) Data.quotes[room] = [];
+		if (!Data.quotes[room]) Data.quotes[room] = [];
 
 		if (Data.quotes[room].indexOf(message) > -1) {
 			Connection.send("|/w " + user + ", Quote is already added.");
