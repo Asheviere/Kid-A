@@ -9,6 +9,7 @@ module.exports = {
 
 		if (!smt.words.length) return false;
 
+		if (!Data.data[room]) Data.data[room] = {};
 		if (!Data.data[room].sentiment) Data.data[room].sentiment = {score: smt.score, n: 1};
 
 		Data.data[room].sentiment.score = (Data.data[room].sentiment.score + smt.score) / ++Data.data[room].sentiment.n;
