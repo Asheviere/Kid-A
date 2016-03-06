@@ -46,37 +46,42 @@ for (var i = 0; i < files.length; i++) {
 module.exports = {
 	analyzers: analyzers,
 
-	writeData: function() {
-		if (this.writePending) return false;
+	writePending: {},
+	writing: {},
 
-		if (this.writing) {
-			this.writePending = true;
+	writeData: function() {
+		if (this.writePending.data) return false;
+
+		if (this.writing.data) {
+			this.writePending.data = true;
 			return;
 		}
-		writing = true;
+		this.writing.data = true;
 		var toWrite = JSON.stringify(Data.data);
 
 		fs.writeFile('./data/data.json', toWrite, () => {
-			this.writing = false;
-			if (this.writePending) {
+			this.writing.data = false;
+			if (this.writePending.data) {
+				this.writePending.data = false;
 				this.writeData();
 			}
 		});
 	},
 
 	writeQuotes: function() {
-		if (this.writePending) return false;
+		if (this.writePending.quotes) return false;
 
-		if (this.writing) {
-			this.writePending = true;
+		if (this.writing.quotes) {
+			this.writePending.quotes = true;
 			return;
 		}
-		writing = true;
+		this.writing.quotes = true;
 		var toWrite = JSON.stringify(Data.quotes);
 
 		fs.writeFile('./data/quotes.json', toWrite, () => {
-			this.writing = false;
-			if (this.writePending) {
+			this.writing.quotes = false;
+			if (this.writePending.quotes) {
+				this.writePending.quotes = false;
 				this.writeData();
 			}
 		});
