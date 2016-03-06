@@ -26,15 +26,6 @@ if (!Object.isObject(quotes)) quotes = {};
 
 Data.quotes = quotes;
 
-// Initialize rooms.
-for (var i = 0; i < Config.rooms.length; i++) {
-	for (var j in Data) {
-		if (!Data[j][Config.rooms[i]]) {
-			Data[j][Config.rooms[i]] = {};
-		}
-	}
-}
-
 // Load the analyzers.
 var analyzers = {};
 var files = fs.readdirSync('./analyzers');
@@ -157,12 +148,13 @@ module.exports = {
 	addQuote: function(user, room, message) {
 		if (!message.length) return false;
 
-		if (!Data.quotes[room].quotes) Data.quotes[room].quotes = [];
+		if (!Data.quotes[room]) Data.data[room] = {};
+		if (!Data.quotes[room].quotes) Data.quotes[room] = [];
 
-		if (Data.quotes[room].quotes.indexOf(message) > -1) {
+		if (Data.quotes[room].indexOf(message) > -1) {
 			Connection.send("|/w " + user + ", Quote is already added.");
 		} else {
-			Data.quotes[room].quotes.push(message);
+			Data.quotes[room].push(message);
 			Connection.send("|/w " + user + ", Quote has been added.");
 		}
 
