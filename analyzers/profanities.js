@@ -19,7 +19,6 @@ module.exports = {
 			}
 		}
 
-		if (!Data.data[room]) Data.data[room] = {};
 		if (!Data.data[room].profanities) {
 			Data.data[room].profanities = {count: profanities, total: words.length};
 		} else {

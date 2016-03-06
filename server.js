@@ -23,8 +23,10 @@ function generateRoomPage(req, res) {
 function generateQuotePage(req, res) {
 	var room = req.originalUrl.split('/')[2];
 	var content = '<!DOCTYPE html><html><head><link rel="stylesheet" type="text/css" href="style.css"><title>' + room + ' - Kid A</title></head><body>'
-	for (var i = 0; i < Data.quotes[room].length; i++) {
-		content += Data.quotes[room][i] + '<br/>';
+	if (Data.quotes[room].quotes) {
+		for (var i = 0; i < Data.quotes[room].quotes.length; i++) {
+			content += Data.quotes[room].quotes[i] + '<br/>';
+		}
 	}
 	content += '</body></html>';
 	res.end(content);

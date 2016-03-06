@@ -21,7 +21,6 @@ module.exports = {
 					split.shift();
 				}
 
-				if (!Data.data[room]) Data.data[room] = {};
 				if (!Data.data[room].links) Data.data[room].links = {};
 
 				Data.data[room].links[split[0]] = Data.data[room].links[split[0]] + 1 || 1;
