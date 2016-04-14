@@ -5,8 +5,10 @@ module.exports = {
         switch (message) {
             case 'data':
                 loadData();
-                return {reply: "Data reloaded succesfully."};
-                break;
+                return {reply: "Data reloaded successfully."};
+            case 'config':
+                global.Config = require('../config.js');
+                return {reply: "Config reloaded successfully."};
             default:
                 return {pmreply: "Invalid option."};
         }
