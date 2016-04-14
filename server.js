@@ -42,6 +42,6 @@ for (var room in Data.quotes) {
 
 site.use((req, res) => res.end("Invalid room."));
 
-http.createServer(site).listen(8000);
+http.createServer(site).listen(Config.serverport);
 
 statusMsg("Server started successfully.");
