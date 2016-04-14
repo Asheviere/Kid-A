@@ -23,7 +23,7 @@ module.exports = {
         var fname = crypto.randomBytes(10).toString('hex');
         var path = './public/' + fname + '.txt';
         fs.writeFileSync(path, stdout);
-        setTimeout(() => fs.unlinkSync(path), 30 * 60 * 1000);
+        setTimeout(() => fs.unlinkSync(path), 10 * 60 * 1000);
         return {pmreply: 'Console output saved as ' + Config.serverhost + ':' + Config.serverport + '/' + fname + '.txt'};
     }
 };
