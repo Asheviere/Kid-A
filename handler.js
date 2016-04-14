@@ -158,8 +158,9 @@ module.exports = {
 				var message = words.join(' ');
 				var user = split[3].substr(1);
 				var symbol = (Config.admins.indexOf(user) > -1 ? '~' : split[3][0]);
+				var room = split[0].substr(1).trim();
 				if (cmd.startsWith(Config.commandSymbol) && (cmd.substr(1) in Commands)) {
-					var action = Commands[cmd.substr(1)](symbol, split[0].substr(1).trim(), message);
+					var action = Commands[cmd.substr(1)](symbol, room, message);
 					if (action.pmreply) {
 						this.sendPM(user, action.pmreply);
 					}
