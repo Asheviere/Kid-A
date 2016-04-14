@@ -152,10 +152,12 @@ module.exports = {
 				var words = split[4].split(' ');
 				var cmd = words.splice(0, 1)[0];
 				var message = words.join(' ');
+				var user = split[3].substr(1);
+				var symbol = (Config.admins.indexOf(user) > -1 ? '~' : split[3][0]);
 				if (cmd.startsWith(Config.commandSymbol) && (cmd.substr(1) in Commands)) {
-					var action = Commands[cmd.substr(1)](split[3][0], split[0].substr(1).trim(), message);
+					var action = Commands[cmd.substr(1)](symbol, split[0].substr(1).trim(), message);
 					if (action.pmreply) {
-						this.sendPM(split[3].substr(1), action.pmreply);
+						this.sendPM(user, action.pmreply);
 					}
 					if (action.reply) {
 						Connection.send(room + "|" + action.reply);
