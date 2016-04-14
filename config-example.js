@@ -4,7 +4,8 @@ var fs = require('fs');
 exports.host = 'sim.smogon.com';
 exports.port = '8000';
 
-// Port to use for the http server part of Kid A.
+// Host and port to use for the http server part of Kid A.
+exports.serverhost = 'localhost';
 exports.serverport = '8000';
 
 // Username and password to use on PS.

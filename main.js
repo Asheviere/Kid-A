@@ -2,6 +2,13 @@ require('sugar');
 
 var timeElem = string => (string < 10 ? "0" : "") + string;
 
+global.stdout = "";
+
+global.output = string => {
+    stdout += string + "\n";
+    console.log(string);
+};
+
 global.canUse = function (symbol, permission) {
     switch (symbol) {
         case '~':
@@ -25,29 +32,29 @@ global.toId = text => text.toLowerCase().replace(/[^a-z0-9]/g, '');
 
 global.consoleMsg = msg => {
     var time = new Date();
-    console.log("[" + timeElem(time.getHours()) + ":" + timeElem(time.getMinutes()) + "] " + msg);
+    output("[" + timeElem(time.getHours()) + ":" + timeElem(time.getMinutes()) + "] " + msg);
 };
 
 // Maybe also something more elaborate for this one
 global.logMsg = msg => {
     var time = new Date();
-    console.log("[" + timeElem(time.getDate()) + "/" + timeElem(time.getMonth() + 1) + " " + timeElem(time.getHours()) + ":" + timeElem(time.getMinutes()) + "] " + msg);
+    output("[" + timeElem(time.getDate()) + "/" + timeElem(time.getMonth() + 1) + " " + timeElem(time.getHours()) + ":" + timeElem(time.getMinutes()) + "] " + msg);
 }
 
 // For now these are pretty basic, but this might get fancier if/when I implement colors and other markup.
 
-global.statusMsg = msg => console.log("[STATUS] " + msg);
+global.statusMsg = msg => output("[STATUS] " + msg);
 
-global.errorMsg = msg => console.log("[ERROR] " + msg);
+global.errorMsg = msg => output("[ERROR] " + msg);
 
 global.pmMsg = msg => consoleMsg(msg);
 
 global.forceQuit = msg => {
-    console.log("[FATAL] " + msg);
+    output("[FATAL] " + msg);
 
     var time = new Date();
 
-    console.log("Kid A forcequit " + (time.getHours() < 10 ? "0" : "") + time.getHours() + ":" + (time.getMinutes() < 10 ? "0" : "") + time.getMinutes() + ".");
+    output("Kid A forcequit " + (time.getHours() < 10 ? "0" : "") + time.getHours() + ":" + (time.getMinutes() < 10 ? "0" : "") + time.getMinutes() + ".");
     process.exit(-1);
 };
 
