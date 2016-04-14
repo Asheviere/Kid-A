@@ -106,6 +106,7 @@ module.exports = {
 			toJoin = Config.rooms;
 		}
 		Connection.send('|/autojoin ' + toJoin.join(','));
+		statusMsg("Setup done.");
 	},
 
 	parse: function(message) {
@@ -127,6 +128,7 @@ module.exports = {
 									body = JSON.parse(body.substr(1));
 								} catch (e) {}
 								if (body.assertion && body.assertion[0] !== ';') {
+									this.setup();
 									Connection.send('|/trn ' + Config.username + ',0,' + body.assertion);
 								} else {
 									forceQuit("Couldn't log in.");
@@ -141,9 +143,7 @@ module.exports = {
 			case 'updateuser':
 				if (split[2] !== Config.username) return false;
 
-				statusMsg("Logged in as " + split[2] + ". Setting up bot.");
-				this.setup();
-				statusMsg("Setup done.");
+				statusMsg("Logged in as " + split[2] + ".");
 				break;
 			case 'pm':
 				if (toId(split[2]) === toId(Config.username)) return false;
