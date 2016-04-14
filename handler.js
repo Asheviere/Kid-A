@@ -147,7 +147,7 @@ module.exports = {
 				break;
 			case 'pm':
 				if (toId(split[2]) === toId(Config.username)) return false;
-				pmMsg("PM from " + split[2] + ": " + split[4]);
+				pmMsg("PM from " + (split[2][0] === ' ' ? split[2].substr(1) : split[2]) + ": " + split[4]);
 
 				Connection.send("|/reply Hi, I am a bot that is currently spying on everything you say in order to get his owner some fancy statistics. I don't have any cool commands so don't even try.");
 				break;
