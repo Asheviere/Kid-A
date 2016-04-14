@@ -6,25 +6,29 @@ var actionUrl = 'http://play.pokemonshowdown.com/action.php';
 // Main data object.
 global.Data = {};
 
-// Load the analyzer data file.
-var data;
-try {
-	data = JSON.parse(fs.readFileSync('./data/data.json'));
-} catch (e) {}
+global.loadData = function() {
+	// Load the analyzer data file.
+	var data;
+	try {
+		data = JSON.parse(fs.readFileSync('./data/data.json'));
+	} catch (e) {}
 
-if (!Object.isObject(data)) data = {};
+	if (!Object.isObject(data)) data = {};
 
-Data.data = data;
+	Data.data = data;
 
-// Load the quote db.
-var quotes;
-try {
-	quotes = JSON.parse(fs.readFileSync('./data/quotes.json'));
-} catch (e) {}
+	// Load the quote db.
+	var quotes;
+	try {
+		quotes = JSON.parse(fs.readFileSync('./data/quotes.json'));
+	} catch (e) {}
 
-if (!Object.isObject(quotes)) quotes = {};
+	if (!Object.isObject(quotes)) quotes = {};
 
-Data.quotes = quotes;
+	Data.quotes = quotes;
+};
+
+loadData();
 
 // Load the analyzers.
 var analyzers = {};
