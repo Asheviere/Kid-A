@@ -34,6 +34,18 @@ for (var i = 0; i < files.length; i++) {
 	analyzers[files[i].split('.')[0]] = require('./analyzers/' + files[i]);
 }
 
+// Load chat plugins
+global.Commands = {};
+
+var plugins = fs.readdirSync('./plugins');
+
+for (var i = 0; i < plugins.length; i++) {
+	var commands = require('./plugins/' + plugins[i]);
+	for (var command in commands) {
+		Commands[command] = commands[command];
+	}
+}
+
 module.exports = {
 	analyzers: analyzers,
 
@@ -137,27 +149,25 @@ module.exports = {
 				break;
 			case 'c':
 			case 'c:':
-				if (split[4].startsWith(Config.commandSymbol + 'quote ') && Config.canQuote.indexOf(split[3][0]) > -1) {
-					this.addQuote(split[3].substr(1), split[0].substr(1).trim(), split[4].substr(7));
+				var words = split[4].split(' ');
+				var cmd = words.splice(0, 1)[0];
+				var message = words.join(' ');
+				if (cmd.startsWith(Config.commandSymbol) && (cmd.substr(1) in Commands)) {
+					var action = Commands[cmd.substr(1)](split[3][0], split[0].substr(1).trim(), message);
+					if (action.pmreply) {
+						this.sendPM(split[3].substr(1), action.pmreply);
+					}
+					if (action.reply) {
+						Connection.send(room + "|" + action.reply);
+					}
 				}
 				this.analyze(split[0].substr(1).trim(), split[4]);
 				break;
 		}
 	},
 
-	addQuote: function(user, room, message) {
-		if (!message.length) return false;
-
-		if (!Data.quotes[room]) Data.quotes[room] = [];
-
-		if (Data.quotes[room].indexOf(message) > -1) {
-			Connection.send("|/w " + user + ", Quote is already added.");
-		} else {
-			Data.quotes[room].push(message);
-			Connection.send("|/w " + user + ", Quote has been added.");
-		}
-
-		Handler.writeQuotes();
+	sendPM: function(user, message) {
+		Connection.send("|/w " + user + ", " + message);
 	},
 
 	analyze: function(room, message) {

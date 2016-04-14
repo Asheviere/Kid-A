@@ -2,6 +2,25 @@ require('sugar');
 
 var timeElem = string => (string < 10 ? "0" : "") + string;
 
+global.canUse = function (symbol, permission) {
+    switch (symbol) {
+        case '~':
+        case '#':
+        case '&':
+            return (permission < 6);
+        case '@':
+            return (permission < 5);
+        case '%':
+            return (permission < 4);
+        case '%':
+            return (permission < 3);
+        case '+':
+            return (permission < 2);
+        default:
+            return !permission;
+    }
+};
+
 global.toId = text => text.toLowerCase().replace(/[^a-z0-9]/g, '');
 
 global.consoleMsg = msg => {

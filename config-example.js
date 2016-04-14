@@ -16,6 +16,8 @@ exports.password = '';
 exports.rooms = ['dev'];
 exports.avatar = '246';
 
-// Symbol to use for commands, and the ranks that can add quotes to the db.
+// Symbol to use for commands.
 exports.commandSymbol = '.';
-exports.canQuote = ['@', '&', '#', '~'];
+
+// Names of administrators of the bot
+exports.admins = ['bumbadadabum'];
