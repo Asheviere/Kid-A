@@ -7,7 +7,16 @@ var cooldown = {};
 module.exports = {
     analyzer: {
         parser: function(room, message) {
-            if (message.split(' ').length < 3) return;
+            var words = message.split(' ');
+
+            var toParse = [];
+            for (var i = 0; i < words.length; i++) {
+                if (!/( ?https?:\/\/.*\.[^ ]* ?)|\[.*\]|<<.*>>/.test(words[i]) && toId(words[i]).length) {
+                    toParse.push(words[i].replace(/``|__|\*\*|~~/g, ''));
+                }
+            }
+
+            if (toParse.length < 3) return;
 
             if (!Markov[room]) {
                 Markov[room] = markov(2);
@@ -20,7 +29,7 @@ module.exports = {
                 Data.markov[room] = Markov[room].db;
             }
 
-            Markov[room].seed(message);
+            Markov[room].seed(toParse.join(' '));
 
             Handler.writeMarkov();
         }
