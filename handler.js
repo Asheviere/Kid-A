@@ -213,7 +213,8 @@ module.exports = {
 						this.sendPM(user, action.pmreply);
 					}
 					if (action.reply) {
-						Connection.send(room + "|" + action.reply);
+						// For the russian roulette thing.
+						Connection.send(room + "|" + action.reply.replace(/trigger/g, 't⁠igger'));
 					}
 				}
 				this.analyze(split[0].substr(1).trim(), split[4]);
