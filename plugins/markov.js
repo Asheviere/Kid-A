@@ -12,6 +12,8 @@ module.exports = {
         var generator = message;
         if (!generator) generator = room;
 
+        if (generator === 'staff' && !(room === 'staff' || (!room && canUse(symbol, 2)))) return {pmreply: "I'm not leaking staff to you."};
+
         if (!Markov[generator]) {
             if (!Data.markov[generator]) return {pmreply: "Invalid room."};
 
