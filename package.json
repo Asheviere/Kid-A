@@ -7,7 +7,8 @@
 		"request": "2.67.0",
 		"sentiment": "1.0.5",
 		"connect": "3.4.1",
-		"serve-static": "1.10.2"
+		"serve-static": "1.10.2",
+		"markov": "0.0.7"
 	},
 	"engines": {
 		"node": ">= 4.0.0"
