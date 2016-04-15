@@ -177,10 +177,12 @@ module.exports = {
 				break;
 			case 'c':
 			case 'c:':
+				var user = split[3].substr(1);
+				if (user === Config.username) break;
+
 				var words = split[4].split(' ');
 				var cmd = words.splice(0, 1)[0];
 				var message = words.join(' ');
-				var user = split[3].substr(1);
 				var symbol = (Config.admins.indexOf(user) > -1 ? '~' : split[3][0]);
 				var room = split[0].substr(1).trim();
 				if (cmd.startsWith(Config.commandSymbol) && (cmd.substr(1) in Commands)) {
