@@ -40,23 +40,25 @@ global.loadData = function() {
 
 loadData();
 
-// Load the analyzers.
-var analyzers = {};
-var files = fs.readdirSync('./analyzers');
+// Load the analyzers and plugins.
+var plugins = {};
+var files = fs.readdirSync('./plugins');
 
 for (var i = 0; i < files.length; i++) {
-	analyzers[files[i].split('.')[0]] = require('./analyzers/' + files[i]);
+	plugins[files[i].split('.')[0]] = require('./plugins/' + files[i]);
 }
 
-// Load chat plugins
+var analyzers = {};
 global.Commands = {};
 
-var plugins = fs.readdirSync('./plugins');
-
-for (var i = 0; i < plugins.length; i++) {
-	var commands = require('./plugins/' + plugins[i]);
-	for (var command in commands) {
-		Commands[command] = commands[command];
+for (var i in plugins) {
+	if (plugins[i].analyzer) {
+		analyzers[i] = plugins[i].analyzer;
+	}
+	if (plugins[i].commands) {
+		for (var command in plugins[i].commands) {
+			Commands[command] = plugins[i].commands[command];
+		}
 	}
 }
 
