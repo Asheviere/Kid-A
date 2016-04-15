@@ -26,6 +26,16 @@ global.loadData = function() {
 	if (!Object.isObject(quotes)) quotes = {};
 
 	Data.quotes = quotes;
+
+	// Load the markov db.
+	var markovdb;
+	try {
+		markovdb = JSON.parse(fs.readFileSync('./data/markov.json'));
+	} catch (e) {}
+
+	if (!Object.isObject(markovdb)) markovdb = {};
+
+	Data.markov = markovdb;
 };
 
 loadData();
@@ -49,6 +59,9 @@ for (var i = 0; i < plugins.length; i++) {
 		Commands[command] = commands[command];
 	}
 }
+
+// Load the markov generators used.
+global.Markov = {};
 
 module.exports = {
 	analyzers: analyzers,
@@ -89,8 +102,19 @@ module.exports = {
 			this.writing.quotes = false;
 			if (this.writePending.quotes) {
 				this.writePending.quotes = false;
-				this.writeData();
+				this.writeQuotes();
 			}
+		});
+	},
+
+	writeMarkov: function() {
+		if (this.writing.markov) return;
+
+		this.writing.markov = true;
+		var toWrite = JSON.stringify(Data.markov);
+
+		fs.writeFile('./data/markov.json', toWrite, () => {
+			setTimeout(() => this.writing.markov = false, 60 * 1000);
 		});
 	},
 
