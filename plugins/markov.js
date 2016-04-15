@@ -7,7 +7,7 @@ var cooldown = {};
 module.exports = {
     say: function(symbol, room, message) {
         if (!canUse(symbol, 1)) return {pmreply: "Permission denied."};
-        if (cooldown[room]) return {pmreply: "Please wait before using this again."};
+        if (room && cooldown[room]) return {pmreply: "Please wait before using this again."};
 
         var generator = message;
         if (!generator) generator = room;
@@ -19,8 +19,10 @@ module.exports = {
             Markov[generator].db = Data.markov[generator];
         }
 
-        cooldown[room] = true;
-        setTimeout(() => delete cooldown[room], 10 * 1000);
+        if (room) {
+            cooldown[room] = true;
+            setTimeout(() => delete cooldown[room], 10 * 1000);
+        }
         return {reply: Markov[generator].fill(Markov[generator].pick(), 16).join(' ')};
     }
 };

@@ -1,5 +1,6 @@
 module.exports = {
     quote: function (symbol, room, message) {
+        if (!room) return {pmreply: "This command can't be used in PMs."};
         if (!canUse(symbol, 2)) return {pmreply: "Permission denied."};
         if (!message.length) return {pmreply: "Please enter a valid quote."};
 
