@@ -57,6 +57,31 @@ module.exports = {
                 setTimeout(() => delete cooldown[room], 10 * 1000);
             }
             return {reply: Markov[generator].fill(Markov[generator].pick(), 16).join(' ')};
+        },
+        reply: function(symbol, room, message) {
+            if (!canUse(symbol, 1)) return {pmreply: "Permission denied."};
+            if (room && cooldown[room]) return {pmreply: "Please wait before using this again."};
+            if (!message) return {pmreply: "Please enter a message to get a reply for."};
+
+            var generator = room;
+            if (!generator) {
+                var rooms = Object.keys(Data.markov);
+                if (rooms.indexOf('staff') > -1) rooms.splice(rooms.indexOf('staff'), 1);
+                generator = rooms[Math.floor(Math.random() * rooms.length)];
+            }
+
+            if (!Markov[generator]) {
+                if (!Data.markov[generator]) return {pmreply: "Invalid room."};
+
+                Markov[generator] = markov(2);
+                Markov[generator].db = Data.markov[generator];
+            }
+
+            if (room) {
+                cooldown[room] = true;
+                setTimeout(() => delete cooldown[room], 10 * 1000);
+            }
+            return {reply: Markov[generator].respond(message, 16).join(' ')};
         }
     }
 };
