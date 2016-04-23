@@ -1,5 +1,6 @@
 var request = require('request');
 var fs = require('fs');
+var loki = require('lokijs');
 
 var actionUrl = 'http://play.pokemonshowdown.com/action.php';
 
@@ -28,14 +29,8 @@ global.loadData = function() {
 	Data.quotes = quotes;
 
 	// Load the markov db.
-	var markovdb;
-	try {
-		markovdb = JSON.parse(fs.readFileSync('./data/markov.json'));
-	} catch (e) {}
-
-	if (!Object.isObject(markovdb)) markovdb = {};
-
-	Data.markov = markovdb;
+	Data.markov = new loki('./data/markov.json');
+	Data.markov.loadDatabase();
 };
 
 loadData();
@@ -113,10 +108,8 @@ module.exports = {
 		if (this.writing.markov) return;
 
 		this.writing.markov = true;
-		var toWrite = JSON.stringify(Data.markov);
-
-		fs.writeFile('./data/markov.json', toWrite, () => {
-			setTimeout(() => this.writing.markov = false, 60 * 1000);
+		Data.markov.saveDatabase(() => {
+			setTimeout(() => this.writing.markov = false, 30 * 60 * 1000);
 		});
 	},
 

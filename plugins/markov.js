@@ -1,4 +1,5 @@
 var markov = require('../markov/markov.js');
+var loki = require('lokijs');
 
 var LIMIT = 16;
 
@@ -21,12 +22,12 @@ module.exports = {
             if (!Markov[room]) {
                 Markov[room] = markov(2);
 
-                if (Data.markov[room]) {
-                    Markov[room].db = Data.markov[room];
+                if (Data.markov.getCollection(room)) {
+                    Markov[room].db = Data.markov.getCollection(room);
                 }
             }
-            if (!Data.markov[room]) {
-                Data.markov[room] = Markov[room].db;
+            if (!Data.markov.getCollection(room)) {
+                Markov[room].db = Data.markov.addCollection(room);
             }
 
             Markov[room].seed(toParse.join(' '));
@@ -46,10 +47,10 @@ module.exports = {
             if (generator === 'staff' && !(room === 'staff' || (!room && canUse(symbol, 2)))) return {pmreply: "I'm not leaking staff to you."};
 
             if (!Markov[generator]) {
-                if (!Data.markov[generator]) return {pmreply: "Invalid room."};
+                if (!Data.markov.getCollection(generator)) return {pmreply: "Invalid room."};
 
                 Markov[generator] = markov(2);
-                Markov[generator].db = Data.markov[generator];
+                Markov[generator].db = Data.markov.getCollection(generator);
             }
 
             if (room) {
@@ -71,10 +72,10 @@ module.exports = {
             }
 
             if (!Markov[generator]) {
-                if (!Data.markov[generator]) return {pmreply: "Invalid room."};
+                if (!Data.markov.getCollection(generator)) return {pmreply: "Invalid room."};
 
                 Markov[generator] = markov(2);
-                Markov[generator].db = Data.markov[generator];
+                Markov[generator].db = Data.markov.getCollection(generator);
             }
 
             if (room) {

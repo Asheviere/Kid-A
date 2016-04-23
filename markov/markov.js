@@ -1,11 +1,12 @@
 var deck = require('deck');
 var Lazy = require('lazy');
 var Hash = require('hashish');
+var loki = require('lokijs');
 
 module.exports = function (order) {
     if (!order) order = 2;
     var self = {};
-    self.db = {};
+    self.db = new loki.Collection('dummy', {});
 
     self.seed = function (seed) {
         var words = seed.split(/\s+/);
@@ -26,16 +27,20 @@ module.exports = function (order) {
             var next = links[i];
             var cnext = clean(next);
 
-            var node = Hash.has(this.db, cword)
-                ? this.db[cword]
-                : {
+            var node;
+
+            if (this.db.findObject({'cword' : cword})) {
+                node = this.db.findObject({'cword' : cword});
+            } else {
+                node = {
+                    cword: cword,
                     count : 0,
                     words : {},
                     next : {},
                     prev : {},
                 }
-            ;
-            this.db[cword] = node;
+                this.db.insert(node);
+            }
 
             node.count ++;
             node.words[word] = (
@@ -55,13 +60,20 @@ module.exports = function (order) {
             }
         }
 
-        if (!Hash.has(this.db, cnext)) this.db[cnext] = {
-            count : 1,
-            words : {},
-            next : { '' : 0 },
-            prev : {},
-        };
-        var n = this.db[cnext];
+        var n;
+
+        if (!this.db.findObject({'cword' : cword})) {
+            n = {
+                cword: cnext,
+                count : 1,
+                words : {},
+                next : { '' : 0 },
+                prev : {},
+            };
+        } else {
+            n = this.db.findObject({'cword' : cword});
+        }
+
         n.words[next] = (Hash.has(n.words, next) ? n.words[next] : 0) + 1;
         n.prev[cword] = (Hash.has(n.prev, cword) ? n.prev[cword] : 0) + 1;
         n.next[''] = (n.next[''] || 0) + 1;
@@ -75,33 +87,33 @@ module.exports = function (order) {
         var groups = {};
         for (var i = 0; i < words.length; i += order) {
             var word = clean(words.slice(i, i + order).join(' '));
-            if (Hash.has(this.db, word)) groups[word] = this.db[word].count;
+            if (this.db.findObject({'cword' : word})) groups[word] = this.db.findObject({'cword' : cword}).count;
         }
 
         return deck.pick(groups);
     };
 
     self.pick = function () {
-        return deck.pick(Object.keys(this.db))
+        return deck.pick(this.db.findObjects({})).cword;
     };
 
     self.next = function (cur) {
-        if (!cur || !this.db[cur]) return undefined;
+        if (!cur || !this.db.findObject({'cword' : cur})) return undefined;
 
-        var next = deck.pick(this.db[cur].next);
-        return next && {
+        var next = deck.pick(this.db.findObject({'cword' : cur}).next);
+        return this.db.findObject({'cword' : next}) && {
             key : next,
-            word : deck.pick(this.db[next].words),
+            word : deck.pick(this.db.findObject({'cword' : next}).words),
         } || undefined;
     };
 
     self.prev = function (cur) {
-        if (!cur || !this.db[cur]) return undefined;
+        if (!cur || !this.db.findObject({'cword' : cur})) return undefined;
 
-        var prev = deck.pick(this.db[cur].prev);
+        var prev = deck.pick(this.db.findObject({'cword' : cur}).prev);
         return prev && {
             key : prev,
-            word : deck.pick(this.db[prev].words),
+            word : deck.pick(this.db.findObject({'cword' : prev}).words),
         } || undefined;
     };
 
@@ -130,9 +142,9 @@ module.exports = function (order) {
     };
 
     self.fill = function (cur, limit) {
-        var res = [ deck.pick(this.db[cur].words) ];
+        var res = [ deck.pick(this.db.findObject({'cword' : cur}).words) ];
         if (!res[0]) return [];
-        if (limit && res.length >= limit) return res;;
+        if (limit && res.length >= limit) return res;
 
         var pcur = cur;
         var ncur = cur;
@@ -168,7 +180,7 @@ module.exports = function (order) {
     };
 
     self.word = function (cur) {
-        return this.db[cur] && deck.pick(this.db[cur].words);
+        return this.db.findObject({'cword' : cur}) && deck.pick(this.db.findObject({'cword' : cur}).words);
     };
 
     return self;
