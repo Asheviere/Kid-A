@@ -87,7 +87,7 @@ module.exports = function (order) {
         var groups = {};
         for (var i = 0; i < words.length; i += order) {
             var word = clean(words.slice(i, i + order).join(' '));
-            if (this.db.findObject({'cword' : word})) groups[word] = this.db.findObject({'cword' : cword}).count;
+            if (this.db.findObject({'cword' : word})) groups[word] = this.db.findObject({'cword' : word}).count;
         }
 
         return deck.pick(groups);
