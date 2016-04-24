@@ -29,7 +29,16 @@ global.loadData = function() {
 	Data.quotes = quotes;
 
 	// Load the markov db.
-	Data.markov = new loki('./data/markov.json');
+	var autoload = false;
+	try {
+		autoload = fs.lstatSync('./data/markov.json').isFile();
+	} catch (e) {
+		fs.writeFileSync('./data/markov.json', '', 'utf8');
+		autoload = true;
+	} finally {
+		Data.markov = new Loki('./data/markov.json', {autoload});
+	}
+	
 	Data.markov.loadDatabase();
 };
 
