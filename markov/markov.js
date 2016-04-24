@@ -62,7 +62,7 @@ module.exports = function (order) {
 
         var n;
 
-        if (!this.db.findObject({'cword' : cword})) {
+        if (!this.db.findObject({'cword' : cnext})) {
             n = {
                 cword: cnext,
                 count : 1,
@@ -71,7 +71,7 @@ module.exports = function (order) {
                 prev : {},
             };
         } else {
-            n = this.db.findObject({'cword' : cword});
+            n = this.db.findObject({'cword' : cnext});
         }
 
         n.words[next] = (Hash.has(n.words, next) ? n.words[next] : 0) + 1;
