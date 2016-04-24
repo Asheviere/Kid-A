@@ -36,9 +36,9 @@ global.loadData = function() {
 		fs.writeFileSync('./data/markov.json', '', 'utf8');
 		autoload = true;
 	} finally {
-		Data.markov = new Loki('./data/markov.json', {autoload});
+		Data.markov = new loki('./data/markov.json', {autoload});
 	}
-	
+
 	Data.markov.loadDatabase();
 };
 
