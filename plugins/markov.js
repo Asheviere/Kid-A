@@ -66,9 +66,14 @@ module.exports = {
 
             var generator = room;
             if (!generator) {
-                var rooms = Object.keys(Data.markov);
-                if (rooms.indexOf('staff') > -1) rooms.splice(rooms.indexOf('staff'), 1);
-                generator = rooms[Math.floor(Math.random() * rooms.length)];
+                var rooms = Data.markov.listCollections();
+                for (var i = 0; i < rooms.length; i++) {
+                    if (rooms[i].name === 'staff') {
+                        rooms.splice(i, 1);
+                        break;
+                    }
+                }
+                generator = rooms[Math.floor(Math.random() * rooms.length)].name;
             }
 
             if (!Markov[generator]) {
