@@ -35,13 +35,12 @@ module.exports = {
                     if (track.artist && track.artist['#text']) {
                         msg += track.artist['#text'] + ' - ';
                     }
-                    msg += track.name + '.';
+                    msg += track.name + '. Profile link: http://www.last.fm/user/' + message;
                 } else if (data.error) {
                     msg += data.message + '.';
                 } else {
                     msg += message + ' doesn\'t seem to have listened to anything recently.';
                 }
-                msg += " Profile link: http://www.last.fm/user/" + message;
                 return {reply: msg};
             }, data => {pmreply: "Something went wrong! Please try again, or contact the bot's administator(s) when this problem persists."});
         }
