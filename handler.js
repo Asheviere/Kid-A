@@ -137,6 +137,20 @@ module.exports = {
 		statusMsg("Setup done.");
 	},
 
+	parseAction: function(user, room, action) {
+		if (!action) return;
+		if (action.pmreply) {
+			this.sendPM(user, action.pmreply);
+		}
+		if (action.reply) {
+			if (room) {
+				Connection.send(room + "|" + action.reply.replace(/trigger/g, 't⁠igger'));
+			} else {
+				this.sendPM(user, action.reply);
+			}
+		}
+	},
+
 	parse: function(message) {
 		if (!message) return;
 		var split = message.split('|');
@@ -188,11 +202,12 @@ module.exports = {
 					if (Config.admins.indexOf(user) > -1) symbol = '~';
 					var message = words.join(' ');
 					var action = Commands[cmd.substr(1)](symbol, null, message);
-					if (action.pmreply) {
-						this.sendPM(user, action.pmreply);
-					}
-					if (action.reply) {
-						this.sendPM(user, action.reply);
+					if (!action) return;
+
+					if (action.then) {
+						action.then(val => this.parseAction(user, room, val));
+					} else {
+						this.parseAction(user, room, action);
 					}
 				} else {
 					pmMsg("PM from " + (split[2][0] === ' ' ? split[2].substr(1) : split[2]) + ": " + split[4]);
@@ -211,12 +226,12 @@ module.exports = {
 				if (cmd.startsWith(Config.commandSymbol) && (cmd.substr(1) in Commands)) {
 					var message = words.join(' ');
 					var action = Commands[cmd.substr(1)](symbol, room, message);
-					if (action.pmreply) {
-						this.sendPM(user, action.pmreply);
-					}
-					if (action.reply) {
-						// For the russian roulette thing.
-						Connection.send(room + "|" + action.reply.replace(/trigger/g, 't⁠igger'));
+					if (!action) return;
+
+					if (action.then) {
+						action.then(val => this.parseAction(user, room, val));
+					} else {
+						this.parseAction(user, room, action);
 					}
 				}
 				this.analyze(split[0].substr(1).trim(), split[4]);

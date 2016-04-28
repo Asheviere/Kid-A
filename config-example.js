@@ -25,3 +25,6 @@ exports.admins = ['bumbadadabum'];
 
 // Rooms the markov feature should collect data from. If empty, collect from all rooms.
 exports.markovWhitelist = [];
+
+// Last.fm API key, used for the lastfm feature.
+exports.lastfmKey = '';
