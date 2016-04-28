@@ -8,6 +8,7 @@ var cooldown = {};
 module.exports = {
     analyzer: {
         parser: function(room, message) {
+            if (Config.markovWhitelist.length && Config.markovWhitelist.indexOf(room) < 0) return;
             var words = message.split(' ');
 
             var toParse = [];

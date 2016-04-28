@@ -20,5 +20,8 @@ exports.avatar = '246';
 // Symbol to use for commands.
 exports.commandSymbol = '.';
 
-// Names of administrators of the bot
+// Names of  the administrators of the bot.
 exports.admins = ['bumbadadabum'];
+
+// Rooms the markov feature should collect data from. If empty, collect from all rooms.
+exports.markovWhitelist = [];
