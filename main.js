@@ -30,6 +30,8 @@ global.canUse = function (symbol, permission) {
 
 global.toId = text => text.toLowerCase().replace(/[^a-z0-9]/g, '');
 
+global.sanitize = text => ('' + text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;').replace(/\//g, '&#x2f;');
+
 global.consoleMsg = msg => {
     var time = new Date();
     output("[" + timeElem(time.getHours()) + ":" + timeElem(time.getMinutes()) + "] " + msg);

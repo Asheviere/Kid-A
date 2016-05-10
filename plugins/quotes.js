@@ -24,12 +24,14 @@ module.exports = {
             if (!canUse(symbol, 2)) return {pmreply: "Permission denied."};
             if (!message.length) return {pmreply: "Please enter a valid quote."};
 
+            var quote = sanitize(message);
+
             if (!Data.quotes[room]) Data.quotes[room] = [];
 
-            if (Data.quotes[room].indexOf(message) > -1) {
+            if (Data.quotes[room].indexOf(quote) > -1) {
                 return {pmreply: "Quote is already added."};
             } else {
-                Data.quotes[room].push(message);
+                Data.quotes[room].push(quote);
                 return {pmreply: "Quote has been added."};
             }
 
