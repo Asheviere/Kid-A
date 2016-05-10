@@ -26,8 +26,6 @@ module.exports = {
 					if (!Data.data[room].links) Data.data[room].links = {};
 
 					Data.data[room].links[split[0]] = Data.data[room].links[split[0]] + 1 || 1;
-
-					Handler.writeData();
 				}
 			}
 		},

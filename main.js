@@ -59,6 +59,7 @@ global.forceQuit = msg => {
 };
 
 global.Config = require('./config.js');
+global.Databases = require('./databases.js');
 global.Handler = require('./handler.js');
 global.Connection = null;
 require('./connect.js');

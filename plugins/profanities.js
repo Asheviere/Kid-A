@@ -27,8 +27,6 @@ module.exports = {
 				Data.data[room].profanities.count += profanities;
 				Data.data[room].profanities.total += words.length;
 			}
-
-			Handler.writeData();
 		},
 
 		display: room => 'Percentage of words said that are swear words: ' + (Data.data[room].profanities ? Data.data[room].profanities.count / Data.data[room].profanities.total * 100 : 0),

@@ -4,45 +4,43 @@ var loki = require('lokijs');
 
 var actionUrl = 'http://play.pokemonshowdown.com/action.php';
 
-// Main data object.
-global.Data = {};
-
-global.loadData = function() {
-	// Load the analyzer data file.
+function loadSettings() {
 	var data;
 	try {
-		data = JSON.parse(fs.readFileSync('./data/data.json'));
+		data = require('./data/settings.json');
 	} catch (e) {}
 
 	if (!Object.isObject(data)) data = {};
 
-	Data.data = data;
+	return data;
+}
 
-	// Load the quote db.
-	var quotes;
+function writeSettings() {
+	var toWrite = JSON.stringify(Data.settings);
+
+	fs.writeFileSync('./data/settings.json', toWrite);
+}
+
+function loadData() {
+	var data;
 	try {
-		quotes = JSON.parse(fs.readFileSync('./data/quotes.json'));
+		data = require('./data/data.json');
 	} catch (e) {}
 
-	if (!Object.isObject(quotes)) quotes = {};
+	if (!Object.isObject(data)) data = {};
 
-	Data.quotes = quotes;
+	return data;
+}
 
-	// Load the markov db.
-	var autoload = false;
-	try {
-		autoload = fs.lstatSync('./data/markov.json').isFile();
-	} catch (e) {
-		fs.writeFileSync('./data/markov.json', '', 'utf8');
-		autoload = true;
-	} finally {
-		Data.markov = new loki('./data/markov.json', {autoload});
-	}
+function writeData() {
+	var toWrite = JSON.stringify(Data.data);
 
-	Data.markov.loadDatabase();
-};
+	fs.writeFileSync('./data/data.json', toWrite);
+}
 
-loadData();
+Databases.addDatabase('settings', loadSettings, writeSettings);
+global.Settings = Data.settings;
+Databases.addDatabase('data', loadData, writeData);
 
 // Load the analyzers and plugins.
 var plugins = {};
@@ -71,56 +69,6 @@ global.Markov = {};
 
 module.exports = {
 	analyzers: analyzers,
-
-	writePending: {},
-	writing: {},
-
-	writeData: function() {
-		if (this.writePending.data) return false;
-
-		if (this.writing.data) {
-			this.writePending.data = true;
-			return;
-		}
-		this.writing.data = true;
-		var toWrite = JSON.stringify(Data.data);
-
-		fs.writeFile('./data/data.json', toWrite, () => {
-			this.writing.data = false;
-			if (this.writePending.data) {
-				this.writePending.data = false;
-				this.writeData();
-			}
-		});
-	},
-
-	writeQuotes: function() {
-		if (this.writePending.quotes) return false;
-
-		if (this.writing.quotes) {
-			this.writePending.quotes = true;
-			return;
-		}
-		this.writing.quotes = true;
-		var toWrite = JSON.stringify(Data.quotes);
-
-		fs.writeFile('./data/quotes.json', toWrite, () => {
-			this.writing.quotes = false;
-			if (this.writePending.quotes) {
-				this.writePending.quotes = false;
-				this.writeQuotes();
-			}
-		});
-	},
-
-	writeMarkov: function() {
-		if (this.writing.markov) return;
-
-		this.writing.markov = true;
-		Data.markov.saveDatabase(() => {
-			setTimeout(() => this.writing.markov = false, 30 * 60 * 1000);
-		});
-	},
 
 	setup: function() {
 		Connection.send('|/avatar ' + Config.avatar);
@@ -249,5 +197,6 @@ module.exports = {
 				this.analyzers[i].parser(room, message);
 			}
 		}
+		Databases.writeDatabase('data');
 	},
 };

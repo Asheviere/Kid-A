@@ -8,7 +8,7 @@ module.exports = {
 
             switch (message) {
                 case 'data':
-                    loadData();
+                    Databases.reloadDatabases();
                     return {reply: "Data reloaded successfully."};
                 case 'config':
                     delete require.cache[require.resolve('../config.js')];

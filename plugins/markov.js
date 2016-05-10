@@ -1,5 +1,27 @@
 var markov = require('../markov/markov.js');
 var loki = require('lokijs');
+var fs = require('fs');
+
+function loadMarkov() {
+    var autoload = false;
+	try {
+		autoload = fs.lstatSync('./data/markov.json').isFile();
+	} catch (e) {
+		fs.writeFileSync('./data/markov.json', '', 'utf8');
+		autoload = true;
+	} finally {
+		Data.markov = new loki('./data/markov.json', {autoload});
+	}
+
+	Data.markov.loadDatabase();
+}
+
+function writeMarkov() {
+    Data.markov.saveDatabase();
+    return 30 * 60 * 1000;
+}
+
+Databases.addDatabase('markov', loadMarkov, writeMarkov);
 
 var LIMIT = 16;
 
@@ -33,7 +55,7 @@ module.exports = {
 
             Markov[room].seed(toParse.join(' '));
 
-            Handler.writeMarkov();
+            Databases.writeDatabase('markov');
         }
     },
 

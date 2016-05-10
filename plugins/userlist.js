@@ -1,33 +1,23 @@
 var fs = require('fs');
 
-var userlist;
-try {
-    userlist = JSON.parse(fs.readFileSync('./data/userlist.json'));
-} catch (e) {}
+function loadUserlist() {
+    var userlist;
+    try {
+        userlist = require('../data/userlist.json');
+    } catch (e) {}
 
-if (!Object.isObject(userlist)) userlist = {};
+    if (!Object.isObject(userlist)) userlist = {};
 
-var writePending;
-var writing;
+    return userlist;
+}
 
-function writeData() {
-    if (writePending) return false;
+function writeUserlist() {
+    var toWrite = JSON.stringify(Data.userlist);
 
-    if (writing) {
-        writePending = true;
-        return;
-    }
-    writing = true;
-    var toWrite = JSON.stringify(userlist);
+	fs.writeFileSync('../data/userlist.json', toWrite);
+}
 
-    fs.writeFile('./data/userlist.json', toWrite, () => {
-        writing = false;
-        if (writePending) {
-            writePending = false;
-            writeData();
-        }
-    });
-};
+Databases.addDatabase('userlist', loadUserlist, writeUserlist);
 
 module.exports = {
     commands: {
@@ -48,9 +38,9 @@ module.exports = {
                 info[toId(vals[0])] = vals[1];
             }
 
-            if (!userlist[room]) userlist[room] = {};
-            userlist[room][userid] = info;
-            writeData();
+            if (!Data.userlist[room]) Data.userlist[room] = {};
+            Data.userlist[room][userid] = info;
+            Databases.writeDatabase('userlist');
             return {reply: "Info successfully added."};
         },
         removeinfo: function(symbol, room, message) {
@@ -62,22 +52,22 @@ module.exports = {
 
             var userid = toId(params[0]);
 
-            if (!(userlist[room] && userlist[room][userid])) return {pmreply: "User not found in this room's userlist."};
+            if (!(Data.userlist[room] && Data.userlist[room][userid])) return {pmreply: "User not found in this room's userlist."};
 
             if (params.length === 1) {
-                delete userlist[room][userid];
-                writeData();
+                delete Data.userlist[room][userid];
+                Databases.writeDatabase('userlist');
                 return {reply: "User successfully deleted."};
             }
 
             for (var i = 1; i < params.length; i++) {
                 var val = toId(params[i]);
-                if (!(val in userlist[room][userid])) return {pmreply: "Field not found: " + val};
+                if (!(val in Data.userlist[room][userid])) return {pmreply: "Field not found: " + val};
 
-                delete userlist[room][userid][val];
+                delete Data.userlist[room][userid][val];
             }
 
-            writeData();
+            Databases.writeDatabase('userlist');
             return {reply: "Info successfully deleted."};
         },
         info: function(symbol, room, message) {
@@ -88,21 +78,21 @@ module.exports = {
 
             var userid = toId(params[0]);
 
-            if (!(userlist[room] && userlist[room][userid])) return {pmreply: "User not found in this room's userlist."};
+            if (!(Data.userlist[room] && Data.userlist[room][userid])) return {pmreply: "User not found in this room's userlist."};
 
             if (params.length === 1) {
                 var output = [];
-                for (var i in userlist[room][userid]) {
-                    output.push(i + ": " + userlist[room][userid][i]);
+                for (var i in Data.userlist[room][userid]) {
+                    output.push(i + ": " + Data.userlist[room][userid][i]);
                 }
                 return {reply: output.join(', ')};
             }
 
             var field = toId(params[1]);
-            if (!(field in userlist[room][userid])) return {pmreply: "Field not found."};
+            if (!(field in Data.userlist[room][userid])) return {pmreply: "Field not found."};
 
             writeData();
-            return {reply: field + ": " + userlist[room][userid][field]};
+            return {reply: field + ": " + Data.userlist[room][userid][field]};
         },
     },
 };

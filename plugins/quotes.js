@@ -1,3 +1,22 @@
+function loadQuotes() {
+	var data;
+	try {
+		data = require('../data/quotes.json');
+	} catch (e) {}
+
+	if (!Object.isObject(data)) data = {};
+
+	return data;
+}
+
+function writeQuotes() {
+	var toWrite = JSON.stringify(Data.quotes);
+
+	fs.writeFileSync('../data/quotes.json', toWrite);
+}
+
+Databases.addDatabase('quotes', loadQuotes, writeQuotes);
+
 module.exports = {
     commands: {
         quote: function (symbol, room, message) {
@@ -14,7 +33,7 @@ module.exports = {
                 return {pmreply: "Quote has been added."};
             }
 
-            Handler.writeQuotes();
+            Databases.writeDatabase('quotes');
         },
         quotes: function (symbol, room, message) {
             if (!room) return {pmreply: "This command can't be used in PMs."};
