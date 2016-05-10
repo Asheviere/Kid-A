@@ -14,7 +14,7 @@ function loadUserlist() {
 function writeUserlist() {
     var toWrite = JSON.stringify(Data.userlist);
 
-	fs.writeFileSync('../data/userlist.json', toWrite);
+	fs.writeFileSync('./data/userlist.json', toWrite);
 }
 
 Databases.addDatabase('userlist', loadUserlist, writeUserlist);
@@ -91,7 +91,6 @@ module.exports = {
             var field = toId(params[1]);
             if (!(field in Data.userlist[room][userid])) return {pmreply: "Field not found."};
 
-            writeData();
             return {reply: field + ": " + Data.userlist[room][userid][field]};
         },
     },
