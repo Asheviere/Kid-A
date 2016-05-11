@@ -74,7 +74,7 @@ module.exports = {
             if (!room) return {pmreply: "This command can't be used in PMs."};
             var params = message.split(',').map(param => param.trim());
 
-            if (!params.length) return {pmreply: "No user supplied."};
+            if (!params.length) params = [userstr.substr(1)];
 
             var userid = toId(params[0]);
 
