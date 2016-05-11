@@ -12,7 +12,7 @@ function loadQuotes() {
 function writeQuotes() {
 	var toWrite = JSON.stringify(Data.quotes);
 
-	fs.writeFileSync('../data/quotes.json', toWrite);
+	fs.writeFileSync('./data/quotes.json', toWrite);
 }
 
 Databases.addDatabase('quotes', loadQuotes, writeQuotes);
