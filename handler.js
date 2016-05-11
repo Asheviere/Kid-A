@@ -91,7 +91,10 @@ module.exports = {
 
 		var words = message.split(' ');
 		var cmd = words.splice(0, 1)[0];
-		if (!((cmd.substr(1) in Commands) || room)) return this.sendPM(user, "Invalid command.");
+		if (!(cmd.substr(1) in Commands)) {
+			if (room) return;
+			return this.sendPM(user, "Invalid command.");
+		}
 
 		if (!room && symbol === ' ') symbol = '+';
 		if (Config.admins.indexOf(user) > -1) symbol = '~';
