@@ -3,8 +3,8 @@ var crypto = require('crypto');
 
 module.exports = {
     commands: {
-        reload: function(symbol, room, message) {
-            if (!canUse(symbol, 5)) return {pmreply: "Permission denied."};
+        reload: function (userstr, room, message) {
+            if (!canUse(userstr, 2)) return {pmreply: "Permission denied."};
 
             switch (message) {
                 case 'data':
@@ -18,8 +18,8 @@ module.exports = {
                     return {pmreply: "Invalid option."};
             }
         },
-        console: function(symbol, room, message) {
-            if (!canUse(symbol, 5)) return {pmreply: "Permission denied."};
+        console: function(userstr, room, message) {
+            if (!canUse(userstr, 5)) return {pmreply: "Permission denied."};
 
             var fname = crypto.randomBytes(10).toString('hex');
             var path = './public/' + fname + '.txt';

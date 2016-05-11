@@ -85,6 +85,26 @@ module.exports = {
 		statusMsg("Setup done.");
 	},
 
+	parseCommand: function(userstr, room, message) {
+		var user = userstr.substr(1);
+		var symbol = userstr[0];
+
+		var words = message.split(' ');
+		var cmd = words.splice(0, 1)[0];
+		if (!(cmd.substr(1) in Commands)) return this.sendPM(user, "Invalid command.");
+
+		if (!room && symbol === ' ') symbol = '+';
+		if (Config.admins.indexOf(user) > -1) symbol = '~';
+		var action = Commands[cmd.substr(1)](userstr, room, words.join(' '));
+		if (!action) return;
+
+		if (action.then) {
+			action.then(val => this.parseAction(user, room, val));
+		} else {
+			this.parseAction(user, room, action);
+		}
+	},
+
 	parseAction: function(user, room, action) {
 		if (!action) return;
 		if (action.pmreply) {
@@ -142,21 +162,7 @@ module.exports = {
 				var symbol = split[2][0];
 
 				if (split[4].startsWith(Config.commandSymbol)) {
-					var words = split[4].split(' ');
-					var cmd = words.splice(0, 1)[0];
-					if (!(cmd.substr(1) in Commands)) return this.sendPM(user, "Invalid command.");
-
-					if (symbol === ' ') symbol = '+';
-					if (Config.admins.indexOf(user) > -1) symbol = '~';
-					var message = words.join(' ');
-					var action = Commands[cmd.substr(1)](symbol, null, message);
-					if (!action) return;
-
-					if (action.then) {
-						action.then(val => this.parseAction(user, room, val));
-					} else {
-						this.parseAction(user, room, action);
-					}
+					this.parseCommand(split[2], null, split[4]);
 				} else {
 					pmMsg("PM from " + (split[2][0] === ' ' ? split[2].substr(1) : split[2]) + ": " + split[4]);
 					Connection.send("|/reply Hi, I am a bot that is currently spying on everything you say in order to get his owner some fancy statistics. I don't have any cool commands so don't even try.");
@@ -167,22 +173,12 @@ module.exports = {
 				var user = split[3].substr(1);
 				if (user === Config.username) return;
 
-				var words = split[4].split(' ');
-				var cmd = words.splice(0, 1)[0];
-				var symbol = (Config.admins.indexOf(user) > -1 ? '~' : split[3][0]);
 				var room = split[0].substr(1).trim();
-				if (cmd.startsWith(Config.commandSymbol) && (cmd.substr(1) in Commands)) {
-					var message = words.join(' ');
-					var action = Commands[cmd.substr(1)](symbol, room, message);
-					if (!action) return;
 
-					if (action.then) {
-						action.then(val => this.parseAction(user, room, val));
-					} else {
-						this.parseAction(user, room, action);
-					}
+				if (split[4].startsWith(Config.commandSymbol)) {
+					this.parseCommand(split[3], room, split[4]);
 				}
-				this.analyze(split[0].substr(1).trim(), split[4]);
+				this.analyze(room, split[4]);
 				break;
 		}
 	},

@@ -60,14 +60,14 @@ module.exports = {
     },
 
     commands: {
-        say: function(symbol, room, message) {
-            if (!canUse(symbol, 1)) return {pmreply: "Permission denied."};
+        say: function (userstr, room, message) {
+            if (!canUse(userstr, 1)) return {pmreply: "Permission denied."};
             if (room && cooldown[room]) return {pmreply: "Please wait before using this again."};
 
             var generator = message;
             if (!generator) generator = room;
 
-            if (generator === 'staff' && !(room === 'staff' || (!room && canUse(symbol, 2)))) return {pmreply: "I'm not leaking staff to you."};
+            if (generator === 'staff' && !(room === 'staff' || (!room && canUse(userstr, 2)))) return {pmreply: "I'm not leaking staff to you."};
 
             if (!Markov[generator]) {
                 if (!Data.markov.getCollection(generator)) return {pmreply: "Invalid room."};
@@ -82,8 +82,8 @@ module.exports = {
             }
             return {reply: Markov[generator].fill(Markov[generator].pick(), 16).join(' ')};
         },
-        reply: function(symbol, room, message) {
-            if (!canUse(symbol, 1)) return {pmreply: "Permission denied."};
+        reply: function(userstr, room, message) {
+            if (!canUse(userstr, 1)) return {pmreply: "Permission denied."};
             if (room && cooldown[room]) return {pmreply: "Please wait before using this again."};
             if (!message) return {pmreply: "Please enter a message to get a reply for."};
 

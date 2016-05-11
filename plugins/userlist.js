@@ -21,9 +21,9 @@ Databases.addDatabase('userlist', loadUserlist, writeUserlist);
 
 module.exports = {
     commands: {
-        addinfo: function(symbol, room, message) {
-            if (!canUse(symbol, 2)) return {pmreply: "Permission denied."};
-            if (!room) return {pmreply: "This command cannot be used in PM."};
+        addinfo: function (userstr, room, message) {
+            if (!room) return {pmreply: "This command can't be used in PMs."};
+            if (!canUse(userstr, 2)) return {pmreply: "Permission denied."};
             var params = message.split(',').map(param => param.trim());
 
             if (!params.length) return {pmreply: "No user supplied."};
@@ -43,9 +43,9 @@ module.exports = {
             Databases.writeDatabase('userlist');
             return {reply: "Info successfully added."};
         },
-        removeinfo: function(symbol, room, message) {
-            if (!canUse(symbol, 2)) return {pmreply: "Permission denied."};
-            if (!room) return {pmreply: "This command cannot be used in PM."};
+        removeinfo: function (userstr, room, message) {
+            if (!room) return {pmreply: "This command can't be used in PMs."};
+            if (!canUse(userstr, 2)) return {pmreply: "Permission denied."};
             var params = message.split(',').map(param => param.trim());
 
             if (!params.length) return {pmreply: "No user supplied."};
@@ -70,8 +70,8 @@ module.exports = {
             Databases.writeDatabase('userlist');
             return {reply: "Info successfully deleted."};
         },
-        info: function(symbol, room, message) {
-            if (!room) return {pmreply: "This command cannot be used in PM."};
+        info: function (userstr, room, message) {
+            if (!room) return {pmreply: "This command can't be used in PMs."};
             var params = message.split(',').map(param => param.trim());
 
             if (!params.length) return {pmreply: "No user supplied."};

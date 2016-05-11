@@ -4,8 +4,8 @@ var API_ROOT = 'http://ws.audioscrobbler.com/2.0/';
 
 module.exports = {
     commands: {
-        lastfm: function(symbol, room, message) {
-            if (!canUse(symbol, 1)) return {pmreply: "Permission denied."};
+        lastfm: function(userstr, room, message) {
+            if (!canUse(userstr, 1)) return {pmreply: "Permission denied."};
 
             if (!Config.lastfmKey) return errorMsg("No last.fm API key found.");
 

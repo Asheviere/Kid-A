@@ -19,9 +19,9 @@ Databases.addDatabase('quotes', loadQuotes, writeQuotes);
 
 module.exports = {
     commands: {
-        quote: function (symbol, room, message) {
+        quote: function (userstr, room, message) {
             if (!room) return {pmreply: "This command can't be used in PMs."};
-            if (!canUse(symbol, 2)) return {pmreply: "Permission denied."};
+            if (!canUse(userstr, 2)) return {pmreply: "Permission denied."};
             if (!message.length) return {pmreply: "Please enter a valid quote."};
 
             var quote = sanitize(message);
@@ -37,9 +37,9 @@ module.exports = {
 
             Databases.writeDatabase('quotes');
         },
-        quotes: function (symbol, room, message) {
+        quotes: function (userstr, room, message) {
             if (!room) return {pmreply: "This command can't be used in PMs."};
-            if (!canUse(symbol, 1)) return {pmreply: "Permission denied."};
+            if (!canUse(userstr, 2)) return {pmreply: "Permission denied."};
 
             if (Data.quotes[room]) {
                 return {reply: "http://" + Config.serverhost + ":" + Config.serverport + "/" + room + "/quotes"};

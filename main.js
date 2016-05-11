@@ -9,8 +9,8 @@ global.output = string => {
     console.log(string);
 };
 
-global.canUse = function (symbol, permission) {
-    switch (symbol) {
+global.canUse = function (userstr, permission) {
+    switch (userstr[0]) {
         case '~':
         case '#':
         case '&':
