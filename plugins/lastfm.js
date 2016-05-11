@@ -1,4 +1,5 @@
 var request = require('request');
+var fs = require('fs');
 
 function loadLastfmData() {
 	var data;
@@ -75,6 +76,8 @@ module.exports = {
             Data.lastfm[userid] = username;
 
             Databases.writeDatabase('lastfm');
+
+            return {pmreply: "You've been registered as " + username + "."}
         }
     },
 };
