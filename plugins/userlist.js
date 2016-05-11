@@ -65,6 +65,7 @@ module.exports = {
                 if (!(val in Data.userlist[room][userid])) return {pmreply: "Field not found: " + val};
 
                 delete Data.userlist[room][userid][val];
+                if (!Object.keys(Data.userlist[room][userid]).length) delete Data.userlist[room][userid];
             }
 
             Databases.writeDatabase('userlist');
