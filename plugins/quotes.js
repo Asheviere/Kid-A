@@ -1,3 +1,5 @@
+var fs = require('fs');
+
 function loadQuotes() {
 	var data;
 	try {
@@ -11,7 +13,6 @@ function loadQuotes() {
 
 function writeQuotes() {
 	var toWrite = JSON.stringify(Data.quotes);
-
 	fs.writeFileSync('./data/quotes.json', toWrite);
 }
 
@@ -30,12 +31,11 @@ module.exports = {
 
             if (Data.quotes[room].indexOf(quote) > -1) {
                 return {pmreply: "Quote is already added."};
-            } else {
-                Data.quotes[room].push(quote);
-                return {pmreply: "Quote has been added."};
             }
 
+            Data.quotes[room].push(quote);
             Databases.writeDatabase('quotes');
+            return {pmreply: "Quote has been added."};
         },
         quotes: function (userstr, room, message) {
             if (!room) return {pmreply: "This command can't be used in PMs."};
