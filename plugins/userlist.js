@@ -28,8 +28,10 @@ module.exports = {
 
             if (!params.length) return {pmreply: "No user supplied."};
 
+            if (!Data.userlist[room]) Data.userlist[room] = {};
+
             var userid = toId(params[0]);
-            var info = {};
+            var info = Data.userlist[room][userid] || {};
 
             for (var i = 1; i < params.length; i++) {
                 var vals = params[i].split(':').map(param => param.trim());
@@ -38,7 +40,6 @@ module.exports = {
                 info[toId(vals[0])] = vals[1];
             }
 
-            if (!Data.userlist[room]) Data.userlist[room] = {};
             Data.userlist[room][userid] = info;
             Databases.writeDatabase('userlist');
             return {reply: "Info successfully added."};
