@@ -90,14 +90,15 @@ module.exports = {
 		var symbol = userstr[0];
 
 		var words = message.split(' ');
-		var cmd = words.splice(0, 1)[0];
-		if (!(cmd.substr(1) in Commands)) {
+		var cmd = words.splice(0, 1)[0].substr(1);
+		if (!(cmd in Commands)) {
 			if (room) return;
 			return this.sendPM(user, "Invalid command.");
 		}
 
 		if (!room && symbol === ' ') symbol = '+';
-		var action = Commands[cmd.substr(1)](userstr, room, words.join(' '));
+		if (Settings[room] && Settings[room][cmd] === 'off') return;
+		var action = Commands[cmd](userstr, room, words.join(' '));
 		if (!action) return;
 
 		if (action.then) {

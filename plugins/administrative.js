@@ -34,7 +34,7 @@ module.exports = {
             var params = message.split(',').map(param => toId(param));
             if (!(params[0] in Commands)) return {pmreply: "Invalid command."};
 
-            if (params.length < 2) return {reply: "This command is currently turned " + ((Settings[room] ? Settings[room][params[0]] : 'on') || 'on') + '.'};
+            if (params.length < 2) return {reply: "This command is currently turned " + (Settings[room] ? (Settings[room][params[0]] || 'on') : 'on') + '.'};
 
             if (!Settings[room]) {
                 Settings[room] = {};
@@ -45,7 +45,7 @@ module.exports = {
                 case 'true':
                 case 'yes':
                 case 'enable':
-                    Settings[room][params[0]] = 'on';
+                    delete Settings[room][params[0]];
                     break;
                 case 'off':
                 case 'false':
@@ -58,7 +58,7 @@ module.exports = {
             }
 
             Databases.writeDatabase('settings');
-            return {reply: "Usage of " + params[0] + " was turned " + Settings[room][params[0]] + '.'};
+            return {reply: "Usage of " + params[0] + " was turned " + (Settings[room][params[0]] ? 'off': 'on') + '.'};
         },
         leave: function(userstr, room, message) {
             if (!canUse(userstr, 5)) return {pmreply: "Permission denied."};
