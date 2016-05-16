@@ -10,6 +10,7 @@ global.output = string => {
 };
 
 global.canUse = function (userstr, permission) {
+    if (Config.admins.indexOf(toId(userstr)) > -1) return true;
     switch (userstr[0]) {
         case '~':
             return (permission < 7);

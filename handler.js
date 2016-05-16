@@ -74,15 +74,14 @@ module.exports = {
 	setup: function() {
 		Connection.send('|/avatar ' + Config.avatar);
 
-		var toJoin;
+		this.toJoin = Config.rooms;
 
-		if (Config.rooms.length > 11) {
-			statusMsg("Due to spam protection, 11 is the max amount of rooms that can be joined at once.");
-			toJoin = Config.rooms.slice(0,11);
-		} else {
-			toJoin = Config.rooms;
+		if (Settings.toJoin) {
+			this.toJoin = this.toJoin.concat(Settings.toJoin);
 		}
-		Connection.send('|/autojoin ' + toJoin.join(','));
+
+		Connection.send('|/autojoin ' + this.toJoin.splice(0,11).join(','));
+
 		statusMsg("Setup done.");
 	},
 
@@ -98,7 +97,6 @@ module.exports = {
 		}
 
 		if (!room && symbol === ' ') symbol = '+';
-		if (Config.admins.indexOf(user) > -1) symbol = '~';
 		var action = Commands[cmd.substr(1)](userstr, room, words.join(' '));
 		if (!action) return;
 
@@ -158,6 +156,22 @@ module.exports = {
 				if (split[2] !== Config.username) return false;
 
 				statusMsg("Logged in as " + split[2] + ".");
+
+				if (this.toJoin.length) {
+					statusMsg("Joining additional rooms.");
+
+					var joiner = function(toJoin) {
+						var room = toJoin.splice(0, 1);
+						if (room.length) {
+							Connection.send('|/join ' + room[0]);
+							setTimeout(() => {
+								joiner(toJoin);
+							}, 500);
+						}
+					};
+
+					joiner(this.toJoin);
+				}
 				break;
 			case 'pm':
 				if (toId(split[2]) === toId(Config.username)) return false;
@@ -168,6 +182,15 @@ module.exports = {
 				if (split[4].startsWith(Config.commandSymbol)) {
 					this.parseCommand(split[2], null, split[4]);
 				} else {
+					if (canUse(split[2], 2) && split[4].startsWith('/invite')) {
+						var room = split[4].substr(8);
+						if (!(Config.rooms.indexOf(room) > -1 || (Settings.toJoin && Settings.toJoin.indexOf(room) > -1))) {
+							if (!Settings.toJoin) Settings.toJoin = [];
+							Settings.toJoin.push(room);
+							Connection.send('|/join ' + room);
+							return Databases.writeDatabase('settings');
+						}
+					}
 					pmMsg("PM from " + (split[2][0] === ' ' ? split[2].substr(1) : split[2]) + ": " + split[4]);
 					Connection.send("|/reply Hi, I am a bot that is currently spying on everything you say in order to get his owner some fancy statistics. I don't have any cool commands so don't even try.");
 				}
