@@ -12,6 +12,7 @@ global.output = string => {
 global.canUse = function (userstr, permission) {
     switch (userstr[0]) {
         case '~':
+            return (permission < 7);
         case '#':
         case '&':
             return (permission < 6);

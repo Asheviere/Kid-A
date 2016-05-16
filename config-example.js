@@ -23,6 +23,9 @@ exports.commandSymbol = '.';
 // Names of  the administrators of the bot.
 exports.admins = ['bumbadadabum'];
 
+// Blacklisted plugins. Accepts filenames, minus .js.
+exports.blacklistedPlugins = ['markov'];
+
 // Rooms the markov feature should collect data from. If empty, collect from all rooms.
 exports.markovWhitelist = [];
 

@@ -4,7 +4,7 @@ var crypto = require('crypto');
 module.exports = {
     commands: {
         reload: function (userstr, room, message) {
-            if (!canUse(userstr, 2)) return {pmreply: "Permission denied."};
+            if (!canUse(userstr, 6)) return {pmreply: "Permission denied."};
 
             switch (message) {
                 case 'data':
@@ -19,13 +19,43 @@ module.exports = {
             }
         },
         console: function(userstr, room, message) {
-            if (!canUse(userstr, 5)) return {pmreply: "Permission denied."};
+            if (!canUse(userstr, 6)) return {pmreply: "Permission denied."};
 
             var fname = crypto.randomBytes(10).toString('hex');
             var path = './public/' + fname + '.txt';
             fs.writeFileSync(path, stdout);
             setTimeout(() => fs.unlinkSync(path), 10 * 60 * 1000);
             return {pmreply: 'Console output saved as ' + Config.serverhost + ':' + Config.serverport + '/' + fname + '.txt'};
+        },
+        set: function(userstr, room, message) {
+            if (!canUse(userstr, 5)) return {pmreply: "Permission denied."};
+            if (!room) return {pmreply: "This command can't be used in PMs."};
+
+            var params = message.split(',').map(param => toId(param));
+            if (!(params[0] in Commands)) return {pmreply: "Invalid command."};
+
+            if (params.length < 2) return {reply: "This command is currently turned " + ((Settings[room] ? Settings[room][params[0]] : 'on') || 'on') + '.'};
+
+            if (!Settings[room]) Settings.room = {};
+
+            switch (params[1]) {
+                case 'on':
+                case 'true':
+                case 'yes':
+                case 'enable':
+                    Settings[room][params[0]] = 'on';
+                    break;
+                case 'off':
+                case 'false':
+                case 'no':
+                case 'disable':
+                    Settings[room][params[0]] = 'off';
+                    break;
+                default:
+                    return {pmreply: "Invalid value. Use 'on' or 'off'."};
+            }
+
+            return {reply: "Usage of " + params[0] + " was turned " + Settings[room][params[0]] + '.'};
         }
     }
 };

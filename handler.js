@@ -47,6 +47,7 @@ var plugins = {};
 var files = fs.readdirSync('./plugins');
 
 for (var i = 0; i < files.length; i++) {
+	if (Config.blacklistedPlugins.includes(files[i].split('.')[0])) continue;
 	plugins[files[i].split('.')[0]] = require('./plugins/' + files[i]);
 }
 
