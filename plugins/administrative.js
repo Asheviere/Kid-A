@@ -36,7 +36,9 @@ module.exports = {
 
             if (params.length < 2) return {reply: "This command is currently turned " + ((Settings[room] ? Settings[room][params[0]] : 'on') || 'on') + '.'};
 
-            if (!Settings[room]) Settings.room = {};
+            if (!Settings[room]) {
+                Settings[room] = {};
+            }
 
             switch (params[1]) {
                 case 'on':
