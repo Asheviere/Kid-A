@@ -1,6 +1,3 @@
-var fs = require('fs');
-
-// Host and port of the PS server to connect to.
 exports.host = 'sim.smogon.com';
 exports.port = '8000';
 

@@ -1,6 +1,5 @@
 var request = require('request');
 var fs = require('fs');
-var loki = require('lokijs');
 
 var actionUrl = 'http://play.pokemonshowdown.com/action.php';
 
@@ -46,9 +45,9 @@ Databases.addDatabase('data', loadData, writeData);
 var plugins = {};
 var files = fs.readdirSync('./plugins');
 
-for (var i = 0; i < files.length; i++) {
-	if (Config.blacklistedPlugins.indexOf(files[i].split('.')[0]) > -1) continue;
-	plugins[files[i].split('.')[0]] = require('./plugins/' + files[i]);
+for (var j = 0; j < files.length; i++) {
+	if (Config.blacklistedPlugins.indexOf(files[j].split('.')[0]) > -1) continue;
+	plugins[files[j].split('.')[0]] = require('./plugins/' + files[j]);
 }
 
 var analyzers = {};
@@ -65,9 +64,6 @@ for (var i in plugins) {
 	}
 }
 
-// Load the markov generators used.
-global.Markov = {};
-
 module.exports = {
 	analyzers: analyzers,
 
@@ -80,9 +76,9 @@ module.exports = {
 			this.toJoin = this.toJoin.concat(Settings.toJoin);
 		}
 
-		Connection.send('|/autojoin ' + this.toJoin.splice(0,11).join(','));
+		Connection.send('|/autojoin ' + this.toJoin.splice(0, 11).join(','));
 
-		statusMsg("Setup done.");
+		statusMsg('Setup done.');
 	},
 
 	parseCommand: function(userstr, room, message) {
@@ -93,7 +89,7 @@ module.exports = {
 		var cmd = words.splice(0, 1)[0].substr(1);
 		if (!(cmd in Commands)) {
 			if (room) return;
-			return this.sendPM(user, "Invalid command.");
+			return this.sendPM(user, 'Invalid command.');
 		}
 
 		if (!room && symbol === ' ') symbol = '+';
@@ -115,7 +111,7 @@ module.exports = {
 		}
 		if (action.reply) {
 			if (room) {
-				Connection.send(room + "|" + action.reply.replace(/trigger/g, 't⁠igger'));
+				Connection.send(room + '|' + action.reply.replace(/trigger/g, 't⁠igger'));
 			} else {
 				this.sendPM(user, action.reply);
 			}
@@ -128,91 +124,90 @@ module.exports = {
 		if (!split[0]) split[0] = '>lobby'; // Zarel can't code
 
 		switch (split[1]) {
-			case 'challstr':
-				statusMsg('Received challstr, logging in...');
+		case 'challstr':
+			statusMsg('Received challstr, logging in...');
 
-				var challstr = split.slice(2).join('|');
+			var challstr = split.slice(2).join('|');
 
-				request.post(actionUrl, {headers : {'Content-Type': 'application/x-www-form-urlencoded'}, body: 'act=login&name=' + Config.username + '&pass=' + Config.password + '&challstr=' + challstr},
-					(error, response, body) => {
-						if (!error && response.statusCode == 200) {
-							if (body[0] === ']') {
-								try {
-									body = JSON.parse(body.substr(1));
-								} catch (e) {}
-								if (body.assertion && body.assertion[0] !== ';') {
-									this.setup();
-									Connection.send('|/trn ' + Config.username + ',0,' + body.assertion);
-								} else {
-									forceQuit("Couldn't log in.");
-								}
-							} else {
-								forceQuit("Incorrect request.");
-							}
+			request.post(actionUrl, {
+				headers: {
+					'Content-Type': 'application/x-www-form-urlencoded'
+				},
+				body: 'act=login&name=' + Config.username + '&pass=' + Config.password + '&challstr=' + challstr
+			}, (error, response, body) => {
+				if (!error && response.statusCode == 200) {
+					if (body[0] === ']') {
+						try {
+							body = JSON.parse(body.substr(1));
+						} catch (e) {}
+						if (body.assertion && body.assertion[0] !== ';') {
+							this.setup();
+							Connection.send('|/trn ' + Config.username + ',0,' + body.assertion);
+						} else {
+							forceQuit('Couldn\'t log in.');
 						}
+					} else {
+						forceQuit('Incorrect request.');
 					}
-				);
-				break;
-			case 'updateuser':
-				if (split[2] !== Config.username) return false;
-
-				statusMsg("Logged in as " + split[2] + ".");
-
-				if (this.toJoin.length) {
-					statusMsg("Joining additional rooms.");
-
-					var joiner = function(toJoin) {
-						var room = toJoin.splice(0, 1);
-						if (room.length) {
-							Connection.send('|/join ' + room[0]);
-							setTimeout(() => {
-								joiner(toJoin);
-							}, 500);
-						}
-					};
-
-					joiner(this.toJoin);
 				}
-				break;
-			case 'pm':
-				if (toId(split[2]) === toId(Config.username)) return false;
+			});
+			break;
+		case 'updateuser':
+			if (split[2] !== Config.username) return false;
 
-				var user = split[2].substr(1);
-				var symbol = split[2][0];
+			statusMsg('Logged in as ' + split[2] + '.');
 
-				if (split[4].startsWith(Config.commandSymbol)) {
-					this.parseCommand(split[2], null, split[4]);
-				} else {
-					if (canUse(split[2], 2) && split[4].startsWith('/invite')) {
-						var room = split[4].substr(8);
-						if (!(Config.rooms.indexOf(room) > -1 || (Settings.toJoin && Settings.toJoin.indexOf(room) > -1))) {
-							if (!Settings.toJoin) Settings.toJoin = [];
-							Settings.toJoin.push(room);
-							Connection.send('|/join ' + room);
-							return Databases.writeDatabase('settings');
-						}
+			if (this.toJoin.length) {
+				statusMsg('Joining additional rooms.');
+
+				var joiner = function(toJoin) {
+					var room = toJoin.splice(0, 1);
+					if (room.length) {
+						Connection.send('|/join ' + room[0]);
+						setTimeout(() => {
+							joiner(toJoin);
+						}, 500);
 					}
-					pmMsg("PM from " + (split[2][0] === ' ' ? split[2].substr(1) : split[2]) + ": " + split[4]);
-					Connection.send("|/reply Hi, I am a bot that is currently spying on everything you say in order to get his owner some fancy statistics. I don't have any cool commands so don't even try.");
-				}
-				break;
-			case 'c':
-			case 'c:':
-				var user = split[3].substr(1);
-				if (user === Config.username) return;
+				};
 
-				var room = split[0].substr(1).trim();
+				joiner(this.toJoin);
+			}
+			break;
+		case 'pm':
+			if (toId(split[2]) === toId(Config.username)) return false;
 
-				if (split[4].startsWith(Config.commandSymbol)) {
-					this.parseCommand(split[3], room, split[4]);
+			if (split[4].startsWith(Config.commandSymbol)) {
+				this.parseCommand(split[2], null, split[4]);
+			} else {
+				if (canUse(split[2], 2) && split[4].startsWith('/invite')) {
+					var room = split[4].substr(8);
+					if (!(Config.rooms.indexOf(room) > -1 || (Settings.toJoin && Settings.toJoin.indexOf(room) > -1))) {
+						if (!Settings.toJoin) Settings.toJoin = [];
+						Settings.toJoin.push(room);
+						Connection.send('|/join ' + room);
+						return Databases.writeDatabase('settings');
+					}
 				}
-				this.analyze(room, split[4]);
-				break;
+				pmMsg('PM from ' + (split[2][0] === ' ' ? split[2].substr(1) : split[2]) + ': ' + split[4]);
+				Connection.send('|/reply Hi, I am a bot that is currently spying on everything you say in order to get his owner some fancy statistics. I don\'t have any cool commands so don\'t even try.');
+			}
+			break;
+		case 'c':
+		case 'c:':
+			if (toId(split[3]) === Config.username) return;
+
+			var roomid = split[0].substr(1).trim();
+
+			if (split[4].startsWith(Config.commandSymbol)) {
+				this.parseCommand(split[3], roomid, split[4]);
+			}
+			this.analyze(roomid, split[4]);
+			break;
 		}
 	},
 
 	sendPM: function(user, message) {
-		Connection.send("|/w " + user + ", " + message);
+		Connection.send('|/w ' + user + ', ' + message);
 	},
 
 	analyze: function(room, message) {
@@ -222,5 +217,5 @@ module.exports = {
 			}
 		}
 		Databases.writeDatabase('data');
-	},
+	}
 };

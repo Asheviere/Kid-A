@@ -36,6 +36,6 @@ module.exports = {
 				output += site + ':\t' + Data.data[room].links[site] + ' times.<br/>';
 			}
 			return output;
-		},
-	},
+		}
+	}
 };

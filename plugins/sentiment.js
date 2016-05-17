@@ -16,6 +16,6 @@ module.exports = {
 			Data.data[room].sentiment.score = (Data.data[room].sentiment.score + smt.score) / ++Data.data[room].sentiment.n;
 		},
 
-		display: room => 'Average sentiment: ' + (Data.data[room].sentiment ? Data.data[room].sentiment.score * 1000 : 0),
+		display: room => 'Average sentiment: ' + (Data.data[room].sentiment ? Data.data[room].sentiment.score * 1000 : 0)
 	}
-}
+};
