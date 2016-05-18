@@ -23,6 +23,9 @@ exports.admins = ['bumbadadabum'];
 // Blacklisted plugins. Accepts filenames, minus .js.
 exports.blacklistedPlugins = ['markov'];
 
+// Whether the bot can (and should) check IPs instead of usernames for room moderation.
+exports.checkIps = 'true';
+
 // Rooms the markov feature should collect data from. If empty, collect from all rooms.
 exports.markovWhitelist = [];
 

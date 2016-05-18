@@ -1,5 +1,6 @@
 var request = require('request');
 var fs = require('fs');
+var cheerio = require('cheerio');
 
 var actionUrl = 'http://play.pokemonshowdown.com/action.php';
 
@@ -45,7 +46,7 @@ Databases.addDatabase('data', loadData, writeData);
 var plugins = {};
 var files = fs.readdirSync('./plugins');
 
-for (var j = 0; j < files.length; i++) {
+for (var j = 0; j < files.length; j++) {
 	if (Config.blacklistedPlugins.indexOf(files[j].split('.')[0]) > -1) continue;
 	plugins[files[j].split('.')[0]] = require('./plugins/' + files[j]);
 }
@@ -66,6 +67,12 @@ for (var i in plugins) {
 
 module.exports = {
 	analyzers: analyzers,
+	ipQueue: [],
+
+	checkIp: function(userid, resolver) {
+		Connection.send('|/ip ' + userid);
+		this.ipQueue.push(resolver);
+	},
 
 	setup: function() {
 		Connection.send('|/avatar ' + Config.avatar);
@@ -116,6 +123,20 @@ module.exports = {
 				this.sendPM(user, action.reply);
 			}
 		}
+	},
+
+	parseIP: function(html) {
+		var userid = toId(html('.username').text());
+		var split = html.root().html().split('>');
+		var ips;
+		for (var i = 0; i < split.length; i++) {
+			if (split[i].trim().startsWith('IP:')) {
+				ips = split[i].trim().substr(4).split('<')[0].split(', ');
+				break;
+			}
+		}
+		var callback = this.ipQueue.splice(0, 1)[0];
+		if (callback) return callback(userid, ips);
 	},
 
 	parse: function(message) {
@@ -201,7 +222,13 @@ module.exports = {
 			if (split[4].startsWith(Config.commandSymbol)) {
 				this.parseCommand(split[3], roomid, split[4]);
 			}
-			this.analyze(roomid, split[4]);
+			this.analyze(roomid, split[4], split[3]);
+			break;
+		case 'raw':
+			var html = cheerio.load(split[2]);
+			if (html('.username').text() && Config.checkIps && split[0].substr(1).trim() !== 'staff') {
+				this.parseIP(html);
+			}
 			break;
 		}
 	},
@@ -210,10 +237,10 @@ module.exports = {
 		Connection.send('|/w ' + user + ', ' + message);
 	},
 
-	analyze: function(room, message) {
+	analyze: function(room, message, userstr) {
 		for (var i in this.analyzers) {
 			if (!this.analyzers[i].rooms || this.analyzers[i].rooms.indexOf(room) > -1) {
-				this.analyzers[i].parser(room, message);
+				this.analyzers[i].parser(room, message, userstr);
 			}
 		}
 		Databases.writeDatabase('data');
