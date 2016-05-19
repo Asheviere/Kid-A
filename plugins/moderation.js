@@ -38,9 +38,9 @@ var timers = {};
 function addBuffer(userid, room, message) {
 	if (!buffers[room]) buffers[room] = [];
 	buffers[room].push([userid, message]);
-	if (buffers[room].length > 5) buffers[room].splice(0, 1);
+	if (buffers[room].length > 6) buffers[room].splice(0, 1);
 	if (timers[room]) clearTimeout(timers[room]);
-	timers[room] = setTimeout(() => buffers[room] = [], 1000 * 7);
+	timers[room] = setTimeout(() => buffers[room] = [], 1000 * 5);
 }
 
 module.exports = {
@@ -99,7 +99,7 @@ module.exports = {
 				}
 			}
 
-			if (msgs >= 6 || identical >= 3) {
+			if (msgs >= 5 || identical >= 3) {
 				if (Config.checkIps) {
 					Handler.checkIp(userid, (userid, ips) => {
 						punish(userid, ips, room, 2, 'Bot moderation: flooding');
