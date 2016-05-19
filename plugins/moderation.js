@@ -33,14 +33,14 @@ function punish(userid, ips, room, val, msg) {
 }
 
 var buffers = {};
-var timer;
+var timers = {};
 
 function addBuffer(userid, room, message) {
 	if (!buffers[room]) buffers[room] = [];
 	buffers[room].push([userid, message]);
 	if (buffers[room].length > 8) buffers[room].splice(0, 1);
-	if (timer) clearTimeout(timer);
-	timer = setTimeout(() => buffers[room] = [], 1000 * 30);
+	if (timers[room]) clearTimeout(timers[room]);
+	timers[room] = setTimeout(() => buffers[room] = [], 1000 * 10);
 }
 
 module.exports = {
