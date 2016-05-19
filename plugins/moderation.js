@@ -111,8 +111,9 @@ module.exports = {
 
 			// Moderation for caps and stretching copied from boTTT.
 			var capsString = message.replace(/[^A-Za-z]/g, '').match(/[A-Z]/g);
+			var len = toId(message).length;
 
-			if (capsString && (capsString.length / toId(message).length) >= 0.8) {
+			if (len >= 8 && capsString && (capsString.length / len) >= 0.8) {
 				if (Config.checkIps) {
 					Handler.checkIp(userid, (userid, ips) => {
 						punish(userid, ips, room, 1, 'Bot moderation: caps');
