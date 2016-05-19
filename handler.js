@@ -225,7 +225,7 @@ module.exports = {
 			this.analyze(roomid, split[4], split[3]);
 			break;
 		case 'raw':
-			var html = cheerio.load(split[2]);
+			var html = cheerio.load(split.slice(2).join('|'));
 			if (html('.username').text() && Config.checkIps && split[0].substr(1).trim() !== 'staff') {
 				this.parseIP(html);
 			}
