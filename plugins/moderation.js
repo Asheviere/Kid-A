@@ -17,7 +17,7 @@ var punishments = {};
 
 function punish(userid, ips, room, val, msg) {
 	if (!punishments[room]) punishments[room] = {};
-	if (!ips) return;
+	if (!ips) ips = [userid];
 	for (var i = 0; i < ips.length; i++) {
 		var max = val;
 		if (ips[i] in punishments[room]) {
