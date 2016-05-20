@@ -14,6 +14,8 @@ function getPunishment(val) {
 }
 
 var punishments = {};
+var mutes = {};
+var muteTimers = {};
 
 function punish(userid, ips, room, val, msg) {
 	if (!punishments[room]) punishments[room] = {};
@@ -26,9 +28,34 @@ function punish(userid, ips, room, val, msg) {
 		} else {
 			punishments[room][ips[i]] = val;
 		}
-		console.log(punishments);
-		Connection.send(room + '|/' + getPunishment(max) + ' ' + userid + ',' + msg);
-		setTimeout(() => punishments[room][ips[i]] -= val, 1000 * 60 * 10);
+		setTimeout(() => punishments[room][ips[i]] -= val, 1000 * 60 * 15);
+	}
+
+	Connection.send(room + '|/' + getPunishment(max) + ' ' + userid + ',' + msg);
+
+	if (max >= 3) {
+		if (!mutes[userid]) mutes[userid] = [];
+		if (!muteTimers[userid]) muteTimers[userid] = {};
+		if (mutes[userid].indexOf(room) > -1) {
+			clearTimeout(muteTimers[userid][room]);
+		} else {
+			mutes[userid].push(room);
+		}
+		if (mutes[userid].length >= 3) {
+			Connection.send('staff|/l ' + userid + ', Bot moderation: Breaking chat rules in multiple rooms.');
+			Connection.send('staff|/modnote ' + userid + ' was locked for breaking chat rules in the following rooms: ' + mutes[userid].join(', '));
+			delete mutes[userid];
+			for (var j in muteTimers[userid]) {
+				clearTimeout(muteTimers[userid][j]);
+			}
+			delete muteTimers[userid];
+		} else {
+			muteTimers[userid][room] = setTimeout(() => {
+				delete muteTimers[userid][room];
+				mutes[userid].splice(mutes[userid].indexOf(room), 1);
+				if (!mutes[userid].length) delete mutes[userid];
+			}, 1000 * 60 * 15);
+		}
 	}
 }
 
