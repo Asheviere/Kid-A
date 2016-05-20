@@ -38,9 +38,9 @@ var timers = {};
 function addBuffer(userid, room, message) {
 	if (!buffers[room]) buffers[room] = [];
 	buffers[room].push([userid, message]);
-	if (buffers[room].length > 6) buffers[room].splice(0, 1);
+	if (buffers[room].length > 7) buffers[room].splice(0, 1);
 	if (timers[room]) clearTimeout(timers[room]);
-	timers[room] = setTimeout(() => buffers[room] = [], 1000 * 5);
+	timers[room] = setTimeout(() => buffers[room] = [], 1000 * 3);
 }
 
 module.exports = {
