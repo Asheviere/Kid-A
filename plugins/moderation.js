@@ -28,12 +28,15 @@ function punish(userid, ips, room, val, msg) {
 		} else {
 			punishments[room][ips[i]] = val;
 		}
-		setTimeout(() => punishments[room][ips[i]] -= val, 1000 * 60 * 15);
+		setTimeout(() => {
+			punishments[room][ips[i]] -= val;
+			if (!punishments[room][ips[i]]) delete punishments[room][ips[i]];
+		}, 1000 * 60 * 15);
 	}
 
 	Connection.send(room + '|/' + getPunishment(max) + ' ' + userid + ',' + msg);
 
-	if (max >= 3) {
+	if (max >= 3 && Config.checkIps) {
 		if (!mutes[userid]) mutes[userid] = [];
 		if (!muteTimers[userid]) muteTimers[userid] = {};
 		if (mutes[userid].indexOf(room) > -1) {
