@@ -1,95 +1,142 @@
 var request = require('request');
 var fs = require('fs');
+var cheerio = require('cheerio');
 
 var actionUrl = 'http://play.pokemonshowdown.com/action.php';
 
-// Main data object.
-global.Data = {};
+function loadSettings() {
+	var data;
+	try {
+		data = require('./data/settings.json');
+	} catch (e) {}
 
-// Load the analyzer data file.
-var data;
-try {
-	data = JSON.parse(fs.readFileSync('./data/data.json'));
-} catch (e) {}
+	if (!Object.isObject(data)) data = {};
 
-if (!Object.isObject(data)) data = {};
+	return data;
+}
 
-Data.data = data;
+function writeSettings() {
+	var toWrite = JSON.stringify(Data.settings);
 
-// Load the quote db.
-var quotes;
-try {
-	quotes = JSON.parse(fs.readFileSync('./data/quotes.json'));
-} catch (e) {}
+	fs.writeFileSync('./data/settings.json', toWrite);
+}
 
-if (!Object.isObject(quotes)) quotes = {};
+function loadData() {
+	var data;
+	try {
+		data = require('./data/data.json');
+	} catch (e) {}
 
-Data.quotes = quotes;
+	if (!Object.isObject(data)) data = {};
 
-// Load the analyzers.
+	return data;
+}
+
+function writeData() {
+	var toWrite = JSON.stringify(Data.data);
+
+	fs.writeFileSync('./data/data.json', toWrite);
+}
+
+Databases.addDatabase('settings', loadSettings, writeSettings);
+global.Settings = Data.settings;
+Databases.addDatabase('data', loadData, writeData);
+
+// Load the analyzers and plugins.
+var plugins = {};
+var files = fs.readdirSync('./plugins');
+
+for (var j = 0; j < files.length; j++) {
+	if (Config.blacklistedPlugins.indexOf(files[j].split('.')[0]) > -1) continue;
+	plugins[files[j].split('.')[0]] = require('./plugins/' + files[j]);
+}
+
 var analyzers = {};
-var files = fs.readdirSync('./analyzers');
+global.Commands = {};
 
-for (var i = 0; i < files.length; i++) {
-	analyzers[files[i].split('.')[0]] = require('./analyzers/' + files[i]);
+for (var i in plugins) {
+	if (plugins[i].analyzer) {
+		analyzers[i] = plugins[i].analyzer;
+	}
+	if (plugins[i].commands) {
+		for (var command in plugins[i].commands) {
+			Commands[command] = plugins[i].commands[command];
+		}
+	}
 }
 
 module.exports = {
 	analyzers: analyzers,
+	ipQueue: [],
 
-	writePending: {},
-	writing: {},
-
-	writeData: function() {
-		if (this.writePending.data) return false;
-
-		if (this.writing.data) {
-			this.writePending.data = true;
-			return;
-		}
-		this.writing.data = true;
-		var toWrite = JSON.stringify(Data.data);
-
-		fs.writeFile('./data/data.json', toWrite, () => {
-			this.writing.data = false;
-			if (this.writePending.data) {
-				this.writePending.data = false;
-				this.writeData();
-			}
-		});
-	},
-
-	writeQuotes: function() {
-		if (this.writePending.quotes) return false;
-
-		if (this.writing.quotes) {
-			this.writePending.quotes = true;
-			return;
-		}
-		this.writing.quotes = true;
-		var toWrite = JSON.stringify(Data.quotes);
-
-		fs.writeFile('./data/quotes.json', toWrite, () => {
-			this.writing.quotes = false;
-			if (this.writePending.quotes) {
-				this.writePending.quotes = false;
-				this.writeData();
-			}
-		});
+	checkIp: function(userid, resolver) {
+		Connection.send('|/ip ' + userid);
+		this.ipQueue.push(resolver);
 	},
 
 	setup: function() {
 		Connection.send('|/avatar ' + Config.avatar);
 
-		var toJoin;
+		this.toJoin = Config.rooms;
 
-		if (Config.rooms.length > 11) {
-			statusMsg("Due to spam protection, 11 is the max amount of rooms that can be joined at once.");
-			toJoin = Config.rooms.slice(0,11);
-		} else {
-			toJoin = Config.rooms;
+		if (Settings.toJoin) {
+			this.toJoin = this.toJoin.concat(Settings.toJoin);
 		}
-		Connection.send('|/autojoin ' + toJoin.join(','));
+
+		Connection.send('|/autojoin ' + this.toJoin.splice(0, 11).join(','));
+
+		statusMsg('Setup done.');
+	},
+
+	parseCommand: function(userstr, room, message) {
+		var user = userstr.substr(1);
+		var symbol = userstr[0];
+
+		var words = message.split(' ');
+		var cmd = words.splice(0, 1)[0].substr(1);
+		if (!(cmd in Commands)) {
+			if (room) return;
+			return this.sendPM(user, 'Invalid command.');
+		}
+
+		if (!room && symbol === ' ') symbol = '+';
+		if (Settings[room] && Settings[room][cmd] === 'off') return;
+		var action = Commands[cmd](userstr, room, words.join(' '));
+		if (!action) return;
+
+		if (action.then) {
+			action.then(val => this.parseAction(user, room, val));
+		} else {
+			this.parseAction(user, room, action);
+		}
+	},
+
+	parseAction: function(user, room, action) {
+		if (!action) return;
+		if (action.pmreply) {
+			this.sendPM(user, action.pmreply);
+		}
+		if (action.reply) {
+			if (room) {
+				Connection.send(room + '|' + action.reply.replace(/trigger/g, 't⁠igger'));
+			} else {
+				this.sendPM(user, action.reply);
+			}
+		}
+	},
+
+	parseIP: function(html) {
+		var userid = toId(html('.username').text());
+		var split = html.root().html().split('>');
+		var ips;
+		for (var i = 0; i < split.length; i++) {
+			if (split[i].trim().startsWith('IP:')) {
+				ips = split[i].trim().substr(4).split('<')[0].split(', ');
+				break;
+			}
+		}
+		var callback = this.ipQueue.splice(0, 1)[0];
+		if (callback) return callback(userid, ips);
 	},
 
 	parse: function(message) {
@@ -98,74 +145,104 @@ module.exports = {
 		if (!split[0]) split[0] = '>lobby'; // Zarel can't code
 
 		switch (split[1]) {
-			case 'challstr':
-				statusMsg('Received challstr, logging in...');
+		case 'challstr':
+			statusMsg('Received challstr, logging in...');
 
-				var challstr = split.slice(2).join('|');
+			var challstr = split.slice(2).join('|');
 
-				request.post(actionUrl, {headers : {'Content-Type': 'application/x-www-form-urlencoded'}, body: 'act=login&name=' + Config.username + '&pass=' + Config.password + '&challstr=' + challstr},
-					(error, response, body) => {
-						if (!error && response.statusCode == 200) {
-							if (body[0] === ']') {
-								try {
-									body = JSON.parse(body.substr(1));
-								} catch (e) {}
-								if (body.assertion && body.assertion[0] !== ';') {
-									Connection.send('|/trn ' + Config.username + ',0,' + body.assertion);
-								} else {
-									forceQuit("Couldn't log in.");
-								}
-							} else {
-								forceQuit("Incorrect request.");
-							}
+			request.post(actionUrl, {
+				headers: {
+					'Content-Type': 'application/x-www-form-urlencoded'
+				},
+				body: 'act=login&name=' + Config.username + '&pass=' + Config.password + '&challstr=' + challstr
+			}, (error, response, body) => {
+				if (!error && response.statusCode == 200) {
+					if (body[0] === ']') {
+						try {
+							body = JSON.parse(body.substr(1));
+						} catch (e) {}
+						if (body.assertion && body.assertion[0] !== ';') {
+							this.setup();
+							Connection.send('|/trn ' + Config.username + ',0,' + body.assertion);
+						} else {
+							forceQuit('Couldn\'t log in.');
 						}
+					} else {
+						forceQuit('Incorrect request.');
 					}
-				);
-				break;
-			case 'updateuser':
-				if (split[2] !== Config.username) return false;
-
-				statusMsg("Logged in as " + split[2] + ". Setting up bot.");
-				this.setup();
-				statusMsg("Setup done.");
-				break;
-			case 'pm':
-				if (toId(split[2]) === toId(Config.username)) return false;
-				pmMsg("PM from " + split[2] + ": " + split[4]);
-
-				Connection.send("|/reply Hi, I am a bot that is currently spying on everything you say in order to get his owner some fancy statistics. I don't have any cool commands so don't even try.");
-				break;
-			case 'c':
-			case 'c:':
-				if (toId(split[3].substr(1)) === 'littletree' && Math.random() < 0.01) Connection.send(split[0].substr(1).trim() + '|Don\'t mind LittleTree he\'s retarded.'); 
-				if (split[4].startsWith(Config.commandSymbol + 'quote ') && Config.canQuote.indexOf(split[3][0]) > -1) {
-					this.addQuote(split[3].substr(1), split[0].substr(1).trim(), split[4].substr(7));
 				}
-				this.analyze(split[0].substr(1).trim(), split[4]);
-				break;
+			});
+			break;
+		case 'updateuser':
+			if (split[2] !== Config.username) return false;
+
+			statusMsg('Logged in as ' + split[2] + '.');
+
+			if (this.toJoin.length) {
+				statusMsg('Joining additional rooms.');
+
+				var joiner = function(toJoin) {
+					var room = toJoin.splice(0, 1);
+					if (room.length) {
+						Connection.send('|/join ' + room[0]);
+						setTimeout(() => {
+							joiner(toJoin);
+						}, 500);
+					}
+				};
+
+				joiner(this.toJoin);
+			}
+			break;
+		case 'pm':
+			if (toId(split[2]) === toId(Config.username)) return false;
+
+			if (split[4].startsWith(Config.commandSymbol)) {
+				this.parseCommand(split[2], null, split[4]);
+			} else {
+				if (canUse(split[2], 2) && split[4].startsWith('/invite')) {
+					var room = split[4].substr(8);
+					if (!(Config.rooms.indexOf(room) > -1 || (Settings.toJoin && Settings.toJoin.indexOf(room) > -1))) {
+						if (!Settings.toJoin) Settings.toJoin = [];
+						Settings.toJoin.push(room);
+						Connection.send('|/join ' + room);
+						return Databases.writeDatabase('settings');
+					}
+				}
+				pmMsg('PM from ' + (split[2][0] === ' ' ? split[2].substr(1) : split[2]) + ': ' + split[4]);
+				Connection.send('|/reply Hi, I am a bot that is currently spying on everything you say in order to get his owner some fancy statistics. I don\'t have any cool commands so don\'t even try.');
+			}
+			break;
+		case 'c':
+		case 'c:':
+			if (toId(split[3]) === Config.username) return;
+
+			var roomid = split[0].substr(1).trim();
+
+			if (split[4].startsWith(Config.commandSymbol)) {
+				this.parseCommand(split[3], roomid, split[4]);
+			}
+			this.analyze(roomid, split[4], split[3]);
+			break;
+		case 'raw':
+			var html = cheerio.load(split.slice(2).join('|'));
+			if (html('.username').text() && Config.checkIps && split[0].substr(1).trim() !== 'staff') {
+				this.parseIP(html);
+			}
+			break;
 		}
 	},
 
-	addQuote: function(user, room, message) {
-		if (!message.length) return false;
-
-		if (!Data.quotes[room]) Data.quotes[room] = [];
-
-		if (Data.quotes[room].indexOf(message) > -1) {
-			Connection.send("|/w " + user + ", Quote is already added.");
-		} else {
-			Data.quotes[room].push(message);
-			Connection.send("|/w " + user + ", Quote has been added.");
-		}
-
-		Handler.writeQuotes();
+	sendPM: function(user, message) {
+		Connection.send('|/w ' + user + ', ' + message);
 	},
 
-	analyze: function(room, message) {
+	analyze: function(room, message, userstr) {
 		for (var i in this.analyzers) {
 			if (!this.analyzers[i].rooms || this.analyzers[i].rooms.indexOf(room) > -1) {
-				this.analyzers[i].parser(room, message);
+				this.analyzers[i].parser(room, message, userstr);
 			}
 		}
-	},
+		Databases.writeDatabase('data');
+	}
 };

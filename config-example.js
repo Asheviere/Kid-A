@@ -1,10 +1,8 @@
-var fs = require('fs');
-
-// Host and port of the PS server to connect to.
 exports.host = 'sim.smogon.com';
 exports.port = '8000';
 
-// Port to use for the http server part of Kid A.
+// Host and port to use for the http server part of Kid A.
+exports.serverhost = 'localhost';
 exports.serverport = '8000';
 
 // Username and password to use on PS.
@@ -16,6 +14,20 @@ exports.password = '';
 exports.rooms = ['dev'];
 exports.avatar = '246';
 
-// Symbol to use for commands, and the ranks that can add quotes to the db.
+// Symbol to use for commands.
 exports.commandSymbol = '.';
-exports.canQuote = ['@', '&', '#', '~'];
+
+// Names of  the administrators of the bot.
+exports.admins = ['bumbadadabum'];
+
+// Blacklisted plugins. Accepts filenames, minus .js.
+exports.blacklistedPlugins = ['markov'];
+
+// Whether the bot can (and should) check IPs instead of usernames for room moderation.
+exports.checkIps = 'true';
+
+// Rooms the markov feature should collect data from. If empty, collect from all rooms.
+exports.markovWhitelist = [];
+
+// Last.fm API key, used for the lastfm feature.
+exports.lastfmKey = '';

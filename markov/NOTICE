@@ -1,0 +1,1 @@
+Code largely copied from https://github.com/substack/node-markov, with adaptations to allow the db to be saved, and removal of features unneeded for my use.
