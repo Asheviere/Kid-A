@@ -90,7 +90,6 @@ module.exports = {
 
 	parseCommand: function(userstr, room, message) {
 		var user = userstr.substr(1);
-		var symbol = userstr[0];
 
 		var words = message.split(' ');
 		var cmd = words.splice(0, 1)[0].substr(1);
@@ -99,7 +98,7 @@ module.exports = {
 			return this.sendPM(user, 'Invalid command.');
 		}
 
-		if (!room && symbol === ' ') symbol = '+';
+		if (!room && userstr[0] === ' ') userstr[0] = '+';
 		if (Settings[room] && Settings[room][cmd] === 'off') return;
 		var action = Commands[cmd](userstr, room, words.join(' '));
 		if (!action) return;
