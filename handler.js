@@ -210,7 +210,7 @@ module.exports = {
 					}
 				}
 				pmMsg('PM from ' + (split[2][0] === ' ' ? split[2].substr(1) : split[2]) + ': ' + split[4]);
-				Connection.send('|/reply Hi, I am a bot that is currently spying on everything you say in order to get his owner some fancy statistics. I don\'t have any cool commands so don\'t even try.');
+				Connection.send("|/reply Hi I'm a chatbot made by bumbadadabum. I moderate rooms, provide chat analytics, and have a few other neat features. For help with using the bot, use ``.help`` for a list of available topics.");
 			}
 			break;
 		case 'c':
