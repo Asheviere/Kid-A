@@ -89,7 +89,7 @@ module.exports = {
 	},
 
 	parseCommand: function(userstr, room, message) {
-		var user = userstr.substr(1);
+		var username = userstr.substr(1);
 
 		var words = message.split(' ');
 		var cmd = words.splice(0, 1)[0].substr(1);
@@ -98,15 +98,15 @@ module.exports = {
 			return this.sendPM(user, 'Invalid command.');
 		}
 
-		if (!room && userstr[0] === ' ') userstr[0] = '+';
+		var user = (!room && userstr[0] === ' ' ? '+' : userstr[0]) + username;
 		if (Settings[room] && Settings[room][cmd] === 'off') return;
-		var action = Commands[cmd](userstr, room, words.join(' '));
+		var action = Commands[cmd](user, room, words.join(' '));
 		if (!action) return;
 
 		if (action.then) {
-			action.then(val => this.parseAction(user, room, val));
+			action.then(val => this.parseAction(username, room, val));
 		} else {
-			this.parseAction(user, room, action);
+			this.parseAction(username, room, action);
 		}
 	},
 
