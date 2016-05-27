@@ -18,6 +18,22 @@ function writeQuotes() {
 
 Databases.addDatabase('quotes', loadQuotes, writeQuotes);
 
+function quoteResolver(req, res) {
+	var room = req.originalUrl.split('/')[1];
+	var content = '<!DOCTYPE html><html><head><link rel="stylesheet" type="text/css" href="style.css"><title>' + room + ' - Kid A</title></head><body>';
+	if (Data.quotes[room]) {
+		for (var i = 0; i < Data.quotes[room].length; i++) {
+			content += Data.quotes[room][i] + '<br/>';
+		}
+	}
+	content += '</body></html>';
+	res.end(content);
+}
+
+for (var room in Data.quotes) {
+	Server.addPage('/' + room + '/quotes', quoteResolver);
+}
+
 module.exports = {
 	commands: {
 		quote: function (userstr, room, message) {
@@ -27,7 +43,11 @@ module.exports = {
 
 			var quote = sanitize(message);
 
-			if (!Data.quotes[room]) Data.quotes[room] = [];
+			if (!Data.quotes[room]) {
+				Data.quotes[room] = [];
+				Server.addPage('/' + room + '/quotes', quoteResolver);
+				Server.restart();
+			};
 
 			if (Data.quotes[room].indexOf(quote) > -1) {
 				return {pmreply: "Quote is already added."};

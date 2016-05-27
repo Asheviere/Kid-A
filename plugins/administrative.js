@@ -14,6 +14,9 @@ module.exports = {
 				delete require.cache[require.resolve('../config.js')];
 				Config = require('../config.js');
 				return {reply: "Config reloaded successfully."};
+			case 'server':
+				Server.restart();
+				break;
 			default:
 				return {pmreply: "Invalid option."};
 			}
