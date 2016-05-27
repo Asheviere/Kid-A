@@ -13,14 +13,16 @@ function add404() {
 	for (var i = 0; i < site.stack.length; i++) {
 		if (site.stack[i].route === '') {
 			site.stack.splice(i, 1);
-			break;
 		}
 	}
 
+	site.use(serveStatic(__dirname + '/public'));
 	site.use((req, res) => res.end('Invalid room.'));
 }
 
 Server.url = 'http://' + Config.serverhost + (Config.serverport === '80' ? '' : ':8000') + '/';
+
+site.use(serveStatic(__dirname + '/public'));
 
 Server.addPage = function(name, resolver) {
 	site.use(name, resolver);
@@ -57,7 +59,5 @@ Server.start = function() {
 	httpserver = http.createServer(site);
 	httpserver.listen(Config.serverport);
 };
-
-site.use(serveStatic(__dirname + '/public'));
 
 statusMsg('Server started successfully.');
