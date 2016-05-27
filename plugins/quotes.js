@@ -46,7 +46,8 @@ module.exports = {
 			if (!Data.quotes[room]) {
 				Data.quotes[room] = [];
 				Server.addPage('/' + room + '/quotes', quoteResolver);
-				Server.restart();
+				// Wait 500ms to make sure everything's ready.
+				setTimeout(() => Server.restart(), 500);
 			};
 
 			if (Data.quotes[room].indexOf(quote) > -1) {
