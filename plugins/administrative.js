@@ -3,6 +3,11 @@ var crypto = require('crypto');
 
 module.exports = {
 	commands: {
+		eval: function(userstr, room, message) {
+			if (Config.admins.indexOf(toId(userstr)) < 0) return;
+
+			return {reply: '' + eval(message)};
+		},
 		reload: function (userstr, room, message) {
 			if (!canUse(userstr, 6)) return {pmreply: "Permission denied."};
 
