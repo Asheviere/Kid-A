@@ -20,6 +20,8 @@ function writeLastfmData() {
 Databases.addDatabase('lastfm', loadLastfmData, writeLastfmData);
 
 var API_ROOT = 'http://ws.audioscrobbler.com/2.0/';
+var YT_ROOT = 'https://www.googleapis.com/youtube/v3/search';
+var VIDEO_ROOT = 'https://youtu.be/';
 
 module.exports = {
 	commands: {
@@ -54,17 +56,40 @@ module.exports = {
 					} else {
 						msg += " was last seen listening to: ";
 					}
+					var trackname = '';
 					// Should always be the case but just in case.
 					if (track.artist && track.artist['#text']) {
-						msg += track.artist['#text'] + ' - ';
+						trackname += track.artist['#text'] + ' - ';
 					}
-					msg += track.name + '. Profile link: http://www.last.fm/user/' + message;
+					trackname += track.name;
+					msg += trackname;
+					var yturl = YT_ROOT + '?part=snippet&order=relevance&maxResults=1&q=' + encodeURIComponent(trackname) + '&key=' + Config.youtubekey;
+					var yt = new Promise(function(resolve, reject) {
+						request(yturl, function (error, response, body) {
+							if (error) {
+								errorMsg(error);
+								reject(error);
+							} else {
+								resolve(JSON.parse(body));
+							}
+						});
+					});
+
+					return yt.then(video => {
+						if (video.error) {
+							errorMsg(video.error.message);
+							msg = 'Something went wrong with the youtube API.';
+						} else if (video.items && video.items.length && video.items[0].id) {
+							msg += ' ' + VIDEO_ROOT + video.items[0].id.videoId;
+							msg += ' | Profile link: http://www.last.fm/user/' + message;
+						}
+						return {reply: msg};
+					});
 				} else if (data.error) {
-					msg += data.message + '.';
+					return {reply: msg + data.message + '.'};
 				} else {
-					msg += message + ' doesn\'t seem to have listened to anything recently.';
+					return {reply: msg + message + ' doesn\'t seem to have listened to anything recently.'};
 				}
-				return {reply: msg};
 			});
 		},
 		registerlastfm: function(userstr, room, message) {
