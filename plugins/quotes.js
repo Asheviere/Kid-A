@@ -62,7 +62,7 @@ module.exports = {
 			if (!canUse(userstr, 2)) return {pmreply: "Permission denied."};
 
 			if (Data.quotes[room]) {
-				return {reply: "http://" + Config.serverhost + ":" + Config.serverport + "/" + room + "/quotes"};
+				return {reply: "Quote page: "+ Server.url + room + "/quotes"};
 			} else {
 				return {pmreply: "This room has no quotes."};
 			}

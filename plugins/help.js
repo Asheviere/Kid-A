@@ -12,7 +12,7 @@ module.exports = {
 			message = toId(message);
 			if (!(message in helpTopics)) return {pmreply: "Invalid option for topic."};
 
-			return {reply: "http://" + Config.serverhost + ":" + Config.serverport + "/" + helpTopics[message]};
+			return {reply: Server.url + helpTopics[message]};
 		}
 	}
 };

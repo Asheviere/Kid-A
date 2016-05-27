@@ -20,6 +20,8 @@ function add404() {
 	site.use((req, res) => res.end('Invalid room.'));
 }
 
+Server.url = 'http://' + Config.serverhost + (Config.serverport === '80' ? '' : ':8000') + '/';
+
 Server.addPage = function(name, resolver) {
 	site.use(name, resolver);
 };

@@ -28,7 +28,7 @@ module.exports = {
 			var path = './public/' + fname + '.txt';
 			fs.writeFileSync(path, stdout);
 			setTimeout(() => fs.unlinkSync(path), 10 * 60 * 1000);
-			return {pmreply: 'Console output saved as ' + Config.serverhost + ':' + Config.serverport + '/' + fname + '.txt'};
+			return {pmreply: 'Console output saved as ' + Server.url + fname + '.txt'};
 		},
 		set: function(userstr, room, message) {
 			if (!canUse(userstr, 5)) return {pmreply: "Permission denied."};
