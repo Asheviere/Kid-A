@@ -65,6 +65,24 @@ for (var i in plugins) {
 	}
 }
 
+function dataResolver(req, res) {
+	var room = req.originalUrl.split('/')[1];
+	var content = '<!DOCTYPE html><html><head><link rel="stylesheet" type="text/css" href="style.css"><title>' + room + ' - Kid A</title></head><body>';
+	for (var i in analyzers) {
+		if (analyzers[i].display && (!analyzers[i].rooms || analyzers[i].rooms.indexOf(room) > -1)) {
+			content += analyzers[i].display(room) + '<br/></br/>';
+		}
+	}
+	content += '</body></html>';
+	res.end(content);
+}
+
+for (var room in Data.data) {
+	Server.addPage('/' + room + '/data', dataResolver);
+}
+
+Server.start();
+
 module.exports = {
 	analyzers: analyzers,
 	ipQueue: [],

@@ -6,7 +6,7 @@
     "globals": {
 		"Config": false, "toId": false, "Tools": false, "Data": false, "errorMsg": false, "statusMsg": false,
         "Handler": false, "consoleMsg": false, "output": false, "stdout": false, "Databases": false, "Connection": false,
-        "pmMsg": false, "Settings": false, "canUse": false, "forceQuit": false, "Commands": false, "sanitize": false, "Markov": false
+        "pmMsg": false, "Settings": false, "canUse": false, "forceQuit": false, "Commands": false, "sanitize": false, "Markov": false, "Server": false
 	},
     "extends": "eslint:recommended",
     "parserOptions": {

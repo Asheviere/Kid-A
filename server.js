@@ -2,46 +2,62 @@ var http = require('http');
 var connect = require('connect');
 var serveStatic = require('serve-static');
 
-statusMsg('Starting server...');
+statusMsg('Setting up server.');
 
 var site = connect();
+var httpserver;
+
+var Server = module.exports;
+
+function add404() {
+	for (var i = 0; i < site.stack.length; i++) {
+		if (site.stack[i].route === '') {
+			site.stack.splice(i, 1);
+			break;
+		}
+	}
+
+	site.use((req, res) => res.end('Invalid room.'));
+}
+
+Server.url = 'http://' + Config.serverhost + (Config.serverport === '80' ? '' : ':8000') + '/';
+
+Server.addPage = function(name, resolver) {
+	site.use(name, resolver);
+};
+
+var restarting = false;
+var restartPending = false;
+
+Server.restart = function() {
+	if (restarting) {
+		restartPending = true;
+		return;
+	};
+	if (!httpserver) return errorMsg("Trying to restart server but no server found.");
+
+	add404();
+
+	httpserver.close(() => {
+		httpserver = http.createServer(site);
+		httpserver.listen(Config.serverport);
+		restarting = false;
+		if (restartPending) {
+			restartPending = false;
+			Server.restart();
+		};
+	});
+};
+
+Server.start = function() {
+	if (httpserver) return Server.restart();
+
+	add404();
+
+	httpserver = http.createServer(site);
+	httpserver.listen(Config.serverport);
+};
 
 site.use(serveStatic(__dirname + '/public'));
-
-function generateRoomPage(req, res) {
-	var room = req.originalUrl.split('/')[1];
-	var content = '<!DOCTYPE html><html><head><link rel="stylesheet" type="text/css" href="style.css"><title>' + room + ' - Kid A</title></head><body>';
-	for (var i in Handler.analyzers) {
-		if (Handler.analyzers[i].display && (!Handler.analyzers[i].rooms || Handler.analyzers[i].rooms.indexOf(room) > -1)) {
-			content += Handler.analyzers[i].display(room) + '<br/></br/>';
-		}
-	}
-	content += '</body></html>';
-	res.end(content);
-}
-
-function generateQuotePage(req, res) {
-	var room = req.originalUrl.split('/')[1];
-	var content = '<!DOCTYPE html><html><head><link rel="stylesheet" type="text/css" href="style.css"><title>' + room + ' - Kid A</title></head><body>';
-	if (Data.quotes[room]) {
-		for (var i = 0; i < Data.quotes[room].length; i++) {
-			content += Data.quotes[room][i] + '<br/>';
-		}
-	}
-	content += '</body></html>';
-	res.end(content);
-}
-
-for (var room in Data.data) {
-	site.use('/' + room + '/data', generateRoomPage);
-}
-
-for (room in Data.quotes) {
-	site.use('/' + room + '/quotes', generateQuotePage);
-}
-
-site.use((req, res) => res.end('Invalid room.'));
-
-http.createServer(site).listen(Config.serverport);
 
 statusMsg('Server started successfully.');
