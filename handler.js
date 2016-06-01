@@ -89,7 +89,7 @@ module.exports = {
 
 	checkIp: function(userid, resolver) {
 		Connection.send('|/ip ' + userid);
-		this.ipQueue.push(resolver);
+		this.ipQueue.push({query: userid, resolver: resolver});
 	},
 
 	setup: function() {
@@ -145,15 +145,21 @@ module.exports = {
 	parseIP: function(html) {
 		var userid = toId(html('.username').text());
 		var split = html.root().html().split('>');
-		var ips;
+		var ips, previousNames;
 		for (var i = 0; i < split.length; i++) {
 			if (split[i].trim().startsWith('IP:')) {
 				ips = split[i].trim().substr(4).split('<')[0].split(', ');
 				break;
 			}
+			if (split[i].trim().startsWith('Previous names:')) {
+				previousNames = split[i].trim().substr(4).split('<')[0].split(', ');
+				break;
+			}
 		}
-		var callback = this.ipQueue.splice(0, 1)[0];
-		if (callback) return callback(userid, ips);
+		var idx = this.ipQueue.findIndex(elem => elem.query === userid);
+		if (idx < 0) idx = this.ipQueue.findIndex(elem => previousNames.indexOf(elem.query) > -1);
+		if (idx < 0) return;
+		if (this.ipQueue[idx].resolver) return this.ipQueue[idx].resolver(userid, ips);
 	},
 
 	parse: function(message) {
