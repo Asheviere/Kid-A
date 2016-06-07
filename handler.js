@@ -157,9 +157,9 @@ module.exports = {
 			}
 		}
 		var idx = this.ipQueue.findIndex(elem => elem.query === userid);
-		if (idx < 0) idx = this.ipQueue.findIndex(elem => previousNames.indexOf(elem.query) > -1);
+		if (idx < 0 && previousNames) idx = this.ipQueue.findIndex(elem => previousNames.indexOf(elem.query) > -1);
 		if (idx < 0) return;
-		if (this.ipQueue[idx].resolver) return this.ipQueue[idx].resolver(userid, ips);
+		if (this.ipQueue[idx].resolver) return this.ipQueue.splice(idx, 1)[0].resolver(userid, ips);
 	},
 
 	parse: function(message) {

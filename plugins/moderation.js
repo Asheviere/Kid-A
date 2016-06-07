@@ -137,6 +137,7 @@ module.exports = {
 				} else {
 					punish(userid, [userid], room, 2, 'Bot moderation: flooding');
 				}
+				return;
 			}
 
 			// Moderation for caps and stretching copied from boTTT.
@@ -151,6 +152,7 @@ module.exports = {
 				} else {
 					punish(userid, [userid], room, 1, 'Bot moderation: caps');
 				}
+				return;
 			}
 
 			if (/(.)\1{7,}/gi.test(message) || /(..+)\1{4,}/gi.test(message)) {
@@ -161,6 +163,7 @@ module.exports = {
 				} else {
 					punish(userid, [userid], room, 1, 'Bot moderation: stretching');
 				}
+				return;
 			}
 		}
 	}
