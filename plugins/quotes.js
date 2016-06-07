@@ -51,19 +51,29 @@ module.exports = {
 			};
 
 			if (Data.quotes[room].indexOf(quote) > -1) {
-				return {pmreply: "Quote is already added."};
+				return {reply: "Quote is already added."};
 			}
 
 			Data.quotes[room].push(quote);
 			Databases.writeDatabase('quotes');
-			return {pmreply: "Quote has been added."};
+			return {reply: "Quote has been added."};
 		},
 		quotes: function (userstr, room) {
 			if (!room) return {pmreply: "This command can't be used in PMs."};
-			if (!canUse(userstr, 2)) return {pmreply: "Permission denied."};
+			if (!canUse(userstr, 1)) return {pmreply: "Permission denied."};
 
 			if (Data.quotes[room]) {
 				return {reply: "Quote page: "+ Server.url + room + "/quotes"};
+			} else {
+				return {pmreply: "This room has no quotes."};
+			}
+		},
+		randquote: function (userstr, room) {
+			if (!room) return {pmreply: "This command can't be used in PMs."};
+			if (!canUse(userstr, 1)) return {pmreply: "Permission denied."};
+
+			if (Data.quotes[room]) {
+				return Data.quotes[room][Math.floor(Math.random() * Data.quotes[room].length)];
 			} else {
 				return {pmreply: "This room has no quotes."};
 			}
