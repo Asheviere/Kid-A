@@ -20,13 +20,15 @@ Databases.addDatabase('quotes', loadQuotes, writeQuotes);
 
 function quoteResolver(req, res) {
 	var room = req.originalUrl.split('/')[1];
-	var content = '<!DOCTYPE html><html><head><link rel="stylesheet" type="text/css" href="style.css"><title>' + room + ' - Kid A</title></head><body>';
+	var content = '<!DOCTYPE html><html><head><link rel="stylesheet" type="text/css" href="../style.css"><title>' + room + ' - Kid A</title></head><body><div class="container">';
 	if (Data.quotes[room]) {
+		content += "<h1>" + room + ' quotes:</h1><div class="quotes">';
 		for (var i = 0; i < Data.quotes[room].length; i++) {
-			content += Data.quotes[room][i] + '<br/>';
+			content += '<p>' + Data.quotes[room][i] + '</p>';
 		}
+		content += '</div>';
 	}
-	content += '</body></html>';
+	content += '</div></body></html>';
 	res.end(content);
 }
 

@@ -67,13 +67,16 @@ for (var i in plugins) {
 
 function dataResolver(req, res) {
 	var room = req.originalUrl.split('/')[1];
-	var content = '<!DOCTYPE html><html><head><link rel="stylesheet" type="text/css" href="style.css"><title>' + room + ' - Kid A</title></head><body>';
+	var content = '<!DOCTYPE html><html><head><link rel="stylesheet" type="text/css" href="../style.css"><title>' + room + ' - Kid A</title></head><body><div class="container">';
+	content += "<h1>" + room + ' data:</h1><div class="quotes">';
 	for (var i in analyzers) {
+		content += '<div class="analyzer">';
 		if (analyzers[i].display && (!analyzers[i].rooms || analyzers[i].rooms.indexOf(room) > -1)) {
-			content += analyzers[i].display(room) + '<br/></br/>';
+			content += analyzers[i].display(room);
 		}
+		content += '</div>';
 	}
-	content += '</body></html>';
+	content += '</div></body></html>';
 	res.end(content);
 }
 

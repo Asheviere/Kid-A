@@ -31,10 +31,11 @@ module.exports = {
 		},
 
 		display: function(room) {
-			var output = 'Websites linked:<br/>';
+			var output = '<h2>Websites linked:</h2><ul>';
 			for (var site in Data.data[room].links) {
-				output += site + ':\t' + Data.data[room].links[site] + ' times.<br/>';
+				output += '<li>' + site + ':\t' + Data.data[room].links[site] + ' times.</li>';
 			}
+			output += '</ul>';
 			return output;
 		}
 	}

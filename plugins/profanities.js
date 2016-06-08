@@ -29,6 +29,6 @@ module.exports = {
 			}
 		},
 
-		display: room => 'Percentage of words said that are swear words: ' + (Data.data[room].profanities ? Data.data[room].profanities.count / Data.data[room].profanities.total * 100 : 0)
+		display: room => '<p>Percentage of words said that are swear words: ' + (Data.data[room].profanities ? Data.data[room].profanities.count / Data.data[room].profanities.total * 100 : 0) + '</p>'
 	}
 };

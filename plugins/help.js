@@ -1,5 +1,5 @@
 var helpTopics = {
-	commands: 'commands.txt'
+	commands: 'commands.html'
 };
 
 module.exports = {
