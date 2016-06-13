@@ -6,7 +6,7 @@ function loadQuotes() {
 		data = require('../data/quotes.json');
 	} catch (e) {}
 
-	if (!Object.isObject(data)) data = {};
+	if (typeof data !== 'object' || Array.isArray(data)) data = {};
 
 	return data;
 }
