@@ -241,10 +241,19 @@ module.exports = {
 			}
 			break;
 		case 'c':
+			if (toId(split[2]) === Config.username) return;
+
+			var roomid = split[0].slice(1, -1);
+			split[3] = split.splice(3).join('|');
+			if (split[3].startsWith(Config.commandSymbol)) {
+				this.parseCommand(split[2], roomid, split[3]);
+			}
+			this.analyze(roomid, split[3], split[2]);
+			break;
 		case 'c:':
 			if (toId(split[3]) === Config.username) return;
 
-			var roomid = split[0].substr(1).trim();
+			var roomid = split[0].slice(1, -1);
 			split[4] = split.splice(4).join('|');
 			if (split[4].startsWith(Config.commandSymbol)) {
 				this.parseCommand(split[3], roomid, split[4]);
