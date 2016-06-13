@@ -6,7 +6,15 @@ module.exports = {
 		eval: function(userstr, room, message) {
 			if (Config.admins.indexOf(toId(userstr)) < 0) return;
 
-			return {reply: '' + eval(message)};
+			let ret;
+			try {
+				ret = JSON.stringify(eval(message));
+				if (ret === undefined) ret = 'undefined';
+			} catch (e) {
+				ret = 'Failed to eval ' + message + ': ' + e.toString();
+			} finally {
+				return {reply: '' + ret};
+			}
 		},
 		reload: function (userstr, room, message) {
 			if (!canUse(userstr, 6)) return {pmreply: "Permission denied."};
