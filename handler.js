@@ -223,6 +223,7 @@ module.exports = {
 		case 'pm':
 			if (toId(split[2]) === toId(Config.username)) return false;
 
+			split[4] = split.splice(4).join('|');
 			if (split[4].startsWith(Config.commandSymbol)) {
 				this.parseCommand(split[2], null, split[4]);
 			} else {
@@ -244,7 +245,7 @@ module.exports = {
 			if (toId(split[3]) === Config.username) return;
 
 			var roomid = split[0].substr(1).trim();
-
+			split[4] = split.splice(4).join('|');
 			if (split[4].startsWith(Config.commandSymbol)) {
 				this.parseCommand(split[3], roomid, split[4]);
 			}
