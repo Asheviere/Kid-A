@@ -6,7 +6,7 @@ module.exports = {
 		eval: function(userstr, room, message) {
 			if (Config.admins.indexOf(toId(userstr)) < 0) return;
 
-			let ret;
+			var ret;
 			try {
 				ret = JSON.stringify(eval(message));
 				if (ret === undefined) ret = 'undefined';
