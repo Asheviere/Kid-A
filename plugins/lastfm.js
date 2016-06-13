@@ -7,7 +7,7 @@ function loadLastfmData() {
 		data = require('../data/lastfm.json');
 	} catch (e) {}
 
-	if (!Object.isObject(data)) data = {};
+	if (typeof data !== 'object' || Array.isArray(data)) data = {};
 
 	return data;
 }

@@ -2,7 +2,6 @@
   "name": "Kid-A",
   "version": "0.0.1",
   "dependencies": {
-    "sugar": "1.4.1",
     "websocket": "1.0.22",
     "request": "2.67.0",
     "sentiment": "1.0.5",

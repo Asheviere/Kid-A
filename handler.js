@@ -10,7 +10,7 @@ function loadSettings() {
 		data = require('./data/settings.json');
 	} catch (e) {}
 
-	if (!Object.isObject(data)) data = {};
+	if (typeof data !== 'object' || Array.isArray(data)) data = {};
 
 	return data;
 }
@@ -27,7 +27,7 @@ function loadData() {
 		data = require('./data/data.json');
 	} catch (e) {}
 
-	if (!Object.isObject(data)) data = {};
+	if (typeof data !== 'object' || Array.isArray(data)) data = {};
 
 	return data;
 }

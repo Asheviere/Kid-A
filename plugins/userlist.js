@@ -4,11 +4,9 @@ function loadUserlist () {
 	var userlist;
 	try {
 		userlist = require('../data/userlist.json');
-	} catch (e) {
-		userlist = {};
-	}
+	} catch (e) {}
 
-	if (!Object.isObject(userlist)) userlist = {};
+	if (typeof userlist !== 'object' || Array.isArray(userlist)) userlist = {};
 
 	return userlist;
 }
