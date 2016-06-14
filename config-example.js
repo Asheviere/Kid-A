@@ -18,10 +18,10 @@ exports.avatar = '246';
 exports.commandSymbol = '.';
 
 // Names of  the administrators of the bot.
-exports.admins = ['bumbadadabum'];
+exports.admins = new Set([]);
 
-// Blacklisted plugins. Accepts filenames, minus .js.
-exports.blacklistedPlugins = [];
+// Blacklisted plugins. Accepts filenames.
+exports.blacklistedPlugins = new Set([]);
 
 // Whether the bot can (and should) check IPs instead of usernames for room moderation.
 exports.checkIps = 'true';

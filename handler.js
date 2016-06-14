@@ -1,11 +1,13 @@
-var request = require('request');
-var fs = require('fs');
-var cheerio = require('cheerio');
+'use strict';
 
-var actionUrl = 'http://play.pokemonshowdown.com/action.php';
+const request = require('request');
+const fs = require('fs');
+const cheerio = require('cheerio');
+
+const ACTION_URL = 'http://play.pokemonshowdown.com/action.php';
 
 function loadSettings() {
-	var data;
+	let data;
 	try {
 		data = require('./data/settings.json');
 	} catch (e) {}
@@ -16,13 +18,13 @@ function loadSettings() {
 }
 
 function writeSettings() {
-	var toWrite = JSON.stringify(Data.settings);
+	let toWrite = JSON.stringify(Data.settings);
 
 	fs.writeFileSync('./data/settings.json', toWrite);
 }
 
 function loadData() {
-	var data;
+	let data;
 	try {
 		data = require('./data/data.json');
 	} catch (e) {}
@@ -33,7 +35,7 @@ function loadData() {
 }
 
 function writeData() {
-	var toWrite = JSON.stringify(Data.data);
+	let toWrite = JSON.stringify(Data.data);
 
 	fs.writeFileSync('./data/data.json', toWrite);
 }
@@ -43,35 +45,31 @@ global.Settings = Data.settings;
 Databases.addDatabase('data', loadData, writeData);
 
 // Load the analyzers and plugins.
-var plugins = {};
-var files = fs.readdirSync('./plugins');
-
-for (var j = 0; j < files.length; j++) {
-	if (Config.blacklistedPlugins.indexOf(files[j].split('.')[0]) > -1) continue;
-	plugins[files[j].split('.')[0]] = require('./plugins/' + files[j]);
-}
-
-var analyzers = {};
+let plugins = {};
+let analyzers = {};
 global.Commands = {};
 
-for (var i in plugins) {
-	if (plugins[i].analyzer) {
-		analyzers[i] = plugins[i].analyzer;
-	}
-	if (plugins[i].commands) {
-		for (var command in plugins[i].commands) {
-			Commands[command] = plugins[i].commands[command];
+fs.readdirSync('./plugins')
+	.filter((file) => file.endsWith('.js') && !Config.blacklistedPlugins.has(file.slice(0, -3)))
+	.forEach((file) => {
+		let plugin = require('./plugins/' + file);
+		let name = file.slice(0, -3);
+		plugins[name] = plugin;
+		if (plugin.analyzer) analyzers[name] = plugin.analyzer;
+		if (plugin.commands) {
+			Object.keys(plugin.commands).forEach((c) => {
+				Commands[c] = plugin.commands[c];
+			});
 		}
-	}
-}
+	});
 
 function dataResolver(req, res) {
-	var room = req.originalUrl.split('/')[1];
-	var content = '<!DOCTYPE html><html><head><link rel="stylesheet" type="text/css" href="../style.css"><title>' + room + ' - Kid A</title></head><body><div class="container">';
+	let room = req.originalUrl.split('/')[1];
+	let content = '<!DOCTYPE html><html><head><link rel="stylesheet" type="text/css" href="../style.css"><title>' + room + ' - Kid A</title></head><body><div class="container">';
 	content += "<h1>" + room + ' data:</h1><div class="quotes">';
-	for (var i in analyzers) {
+	for (let i in analyzers) {
 		content += '<div class="analyzer">';
-		if (analyzers[i].display && (!analyzers[i].rooms || analyzers[i].rooms.indexOf(room) > -1)) {
+		if (analyzers[i].display && (!analyzers[i].rooms || analyzers[i].rooms.includes(room))) {
 			content += analyzers[i].display(room);
 		}
 		content += '</div>';
@@ -80,7 +78,7 @@ function dataResolver(req, res) {
 	res.end(content);
 }
 
-for (var room in Data.data) {
+for (let room in Data.data) {
 	Server.addPage('/' + room + '/data', dataResolver);
 }
 
@@ -90,12 +88,12 @@ module.exports = {
 	analyzers: analyzers,
 	ipQueue: [],
 
-	checkIp: function(userid, resolver) {
+	checkIp(userid, resolver) {
 		Connection.send('|/ip ' + userid);
 		this.ipQueue.push({query: userid, resolver: resolver});
 	},
 
-	setup: function() {
+	setup() {
 		Connection.send('|/avatar ' + Config.avatar);
 
 		this.toJoin = Config.rooms;
@@ -109,19 +107,19 @@ module.exports = {
 		statusMsg('Setup done.');
 	},
 
-	parseCommand: function(userstr, room, message) {
-		var username = userstr.substr(1);
+	parseCommand(userstr, room, message) {
+		let username = userstr.substr(1);
 
-		var words = message.split(' ');
-		var cmd = words.splice(0, 1)[0].substr(1);
+		let words = message.split(' ');
+		let cmd = words.splice(0, 1)[0].substr(1);
 		if (!(cmd in Commands)) {
 			if (room) return;
 			return this.sendPM(user, 'Invalid command.');
 		}
 
-		var user = (!room && userstr[0] === ' ' ? '+' : userstr[0]) + username;
+		let user = (!room && userstr[0] === ' ' ? '+' : userstr[0]) + username;
 		if (Settings[room] && Settings[room][cmd] === 'off') return;
-		var action = Commands[cmd](user, room, words.join(' '));
+		let action = Commands[cmd](user, room, words.join(' '));
 		if (!action) return;
 
 		if (action.then) {
@@ -131,7 +129,7 @@ module.exports = {
 		}
 	},
 
-	parseAction: function(user, room, action) {
+	parseAction(user, room, action) {
 		if (!action) return;
 		if (action.pmreply) {
 			this.sendPM(user, action.pmreply);
@@ -145,11 +143,12 @@ module.exports = {
 		}
 	},
 
-	parseIP: function(html) {
-		var userid = toId(html('.username').text());
-		var split = html.root().html().split('>');
-		var ips, previousNames;
-		for (var i = 0; i < split.length; i++) {
+	parseIP(html) {
+		let userid = toId(html('.username').text());
+		let split = html.root().html().split('>');
+		let ips;
+		let previousNames;
+		for (let i = 0; i < split.length; i++) {
 			if (split[i].trim().startsWith('IP:')) {
 				ips = split[i].trim().substr(4).split('<')[0].split(', ');
 				break;
@@ -159,24 +158,25 @@ module.exports = {
 				break;
 			}
 		}
-		var idx = this.ipQueue.findIndex(elem => elem.query === userid);
-		if (idx < 0 && previousNames) idx = this.ipQueue.findIndex(elem => previousNames.indexOf(elem.query) > -1);
+		let idx = this.ipQueue.findIndex(elem => elem.query === userid);
+		if (idx < 0 && previousNames) idx = this.ipQueue.findIndex(elem => previousNames.includes(elem.query));
 		if (idx < 0) return;
 		if (this.ipQueue[idx].resolver) return this.ipQueue.splice(idx, 1)[0].resolver(userid, ips);
 	},
 
-	parse: function(message) {
+	parse(message) {
 		if (!message) return;
-		var split = message.split('|');
+		let split = message.split('|');
 		if (!split[0]) split[0] = '>lobby'; // Zarel can't code
 
+		let roomid;
 		switch (split[1]) {
 		case 'challstr':
 			statusMsg('Received challstr, logging in...');
 
-			var challstr = split.slice(2).join('|');
+			let challstr = split.slice(2).join('|');
 
-			request.post(actionUrl, {
+			request.post(ACTION_URL, {
 				headers: {
 					'Content-Type': 'application/x-www-form-urlencoded'
 				},
@@ -206,18 +206,16 @@ module.exports = {
 
 			if (this.toJoin.length) {
 				statusMsg('Joining additional rooms.');
-
-				var joiner = function(toJoin) {
-					var room = toJoin.splice(0, 1);
-					if (room.length) {
-						Connection.send('|/join ' + room[0]);
-						setTimeout(() => {
-							joiner(toJoin);
-						}, 500);
-					}
-				};
-
-				joiner(this.toJoin);
+	
+				this.toJoin.map((room, i) => (
+					() => new Promise((resolve, reject) => {
+						Connection.send('|/join ' + room);
+						setTimeout(resolve, 500);
+					})
+				)).reduce(
+					(thenable, p) => thenable.then(p),
+					Promise.resolve()
+				);
 			}
 			break;
 		case 'pm':
@@ -228,8 +226,8 @@ module.exports = {
 				this.parseCommand(split[2], null, split[4]);
 			} else {
 				if (canUse(split[2], 2) && split[4].startsWith('/invite')) {
-					var room = split[4].substr(8);
-					if (!(Config.rooms.indexOf(room) > -1 || (Settings.toJoin && Settings.toJoin.indexOf(room) > -1))) {
+					let room = split[4].substr(8);
+					if (!(Config.rooms.includes(room) || (Settings.toJoin && Settings.toJoin.includes(room)))) {
 						if (!Settings.toJoin) Settings.toJoin = [];
 						Settings.toJoin.push(room);
 						Connection.send('|/join ' + room);
@@ -243,7 +241,7 @@ module.exports = {
 		case 'c':
 			if (toId(split[2]) === Config.username) return;
 
-			var roomid = split[0].slice(1, -1);
+			roomid = split[0].slice(1, -1);
 			split[3] = split.splice(3).join('|');
 			if (split[3].startsWith(Config.commandSymbol)) {
 				this.parseCommand(split[2], roomid, split[3]);
@@ -253,7 +251,7 @@ module.exports = {
 		case 'c:':
 			if (toId(split[3]) === Config.username) return;
 
-			var roomid = split[0].slice(1, -1);
+			roomid = split[0].slice(1, -1);
 			split[4] = split.splice(4).join('|');
 			if (split[4].startsWith(Config.commandSymbol)) {
 				this.parseCommand(split[3], roomid, split[4]);
@@ -261,7 +259,7 @@ module.exports = {
 			this.analyze(roomid, split[4], split[3]);
 			break;
 		case 'raw':
-			var html = cheerio.load(split.slice(2).join('|'));
+			let html = cheerio.load(split.slice(2).join('|'));
 			if (html('.username').text() && Config.checkIps && split[0].substr(1).trim() !== 'staff') {
 				this.parseIP(html);
 			}
@@ -269,14 +267,15 @@ module.exports = {
 		}
 	},
 
-	sendPM: function(user, message) {
+	sendPM(user, message) {
 		Connection.send('|/w ' + user + ', ' + message);
 	},
 
-	analyze: function(room, message, userstr) {
-		for (var i in this.analyzers) {
-			if (!this.analyzers[i].rooms || this.analyzers[i].rooms.indexOf(room) > -1) {
-				this.analyzers[i].parser(room, message, userstr);
+	analyze(room, message, userstr) {
+		for (let i in this.analyzers) {
+			let analyzer = this.analyzers[i];
+			if (!analyzer.rooms || analyzer.rooms.includes(room)) {
+				analyzer.parser(room, message, userstr);
 			}
 		}
 		Databases.writeDatabase('data');

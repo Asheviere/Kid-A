@@ -1,7 +1,6 @@
-require('sugar');
+'use strict';
 
-var timeElem = string => (string < 10 ? '0' : '') + string;
-
+// TODO: abstract logging away from the global namespace.
 global.stdout = '';
 
 global.output = string => {
@@ -10,7 +9,7 @@ global.output = string => {
 };
 
 global.canUse = function(userstr, permission) {
-	if (Config.admins.indexOf(toId(userstr)) > -1) return true;
+	if (Config.admins.has(toId(userstr))) return true;
 	switch (userstr[0]) {
 	case '~':
 		return (permission < 7);
@@ -32,14 +31,16 @@ global.toId = text => text.toLowerCase().replace(/[^a-z0-9]/g, '');
 
 global.sanitize = text => ('' + text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;').replace(/\//g, '&#x2f;');
 
+const timeElem = string => (string < 10 ? '0' : '') + string;
+
 global.consoleMsg = msg => {
-	var time = new Date();
+	let time = new Date();
 	output('[' + timeElem(time.getHours()) + ':' + timeElem(time.getMinutes()) + '] ' + msg);
 };
 
 // Maybe also something more elaborate for this one
 global.logMsg = msg => {
-	var time = new Date();
+	let time = new Date();
 	output('[' + timeElem(time.getDate()) + '/' + timeElem(time.getMonth() + 1) + ' ' + timeElem(time.getHours()) + ':' + timeElem(time.getMinutes()) + '] ' + msg);
 };
 
@@ -54,10 +55,9 @@ global.pmMsg = msg => consoleMsg(msg);
 global.forceQuit = msg => {
 	output('[FATAL] ' + msg);
 
-	var time = new Date();
-
-	output('Kid A forcequit ' + (time.getHours() < 10 ? '0' : '') + time.getHours() + ':' + (time.getMinutes() < 10 ? '0' : '') + time.getMinutes() + '.');
-	process.exit(-1);
+	let time = new Date();
+	output('Kid A forcequit ' + timeElem(time.getHours()) + ':' + timeElem(time.getMinutes()) + '.');
+	process.exit(0);
 };
 
 global.Config = require('./config.js');

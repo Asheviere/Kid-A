@@ -1,21 +1,18 @@
-var http = require('http');
-var connect = require('connect');
-var serveStatic = require('serve-static');
+'use strict';
+
+const http = require('http');
+const connect = require('connect');
+const serveStatic = require('serve-static');
 
 statusMsg('Setting up server.');
 
-var site = connect();
-var httpserver;
+const site = connect();
+let httpserver;
 
-var Server = module.exports;
+let Server = module.exports;
 
 function add404() {
-	for (var i = 0; i < site.stack.length; i++) {
-		if (site.stack[i].route === '') {
-			site.stack.splice(i, 1);
-		}
-	}
-
+	site.stack = site.stack.filter((s) => s.route !== '');
 	site.use(serveStatic(__dirname + '/public'));
 	site.use((req, res) => res.end('Invalid room.'));
 }
@@ -28,8 +25,8 @@ Server.addPage = function(name, resolver) {
 	site.use(name, resolver);
 };
 
-var restarting = false;
-var restartPending = false;
+let restarting = false;
+let restartPending = false;
 
 Server.restart = function() {
 	if (restarting) {

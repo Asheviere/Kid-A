@@ -1,10 +1,12 @@
-var helpTopics = {
+'use strict';
+
+const helpTopics = {
 	commands: 'commands.html'
 };
 
 module.exports = {
 	commands: {
-		help: function(userstr, room, message) {
+		help(userstr, room, message) {
 			if (!canUse(userstr, 1)) return {pmreply: "Permission denied."};
 
 			if (!message) return {reply: "Available help topics: " + Object.keys(helpTopics).join(', ')};

@@ -1,9 +1,11 @@
-var WebSocketClient = require('websocket').client;
+'use strict';
 
-var retryTime = 10; // Time (in seconds) before the bot retries a failed connection.
+const WebSocketClient = require('websocket').client;
+
+let retryTime = 10; // Time (in seconds) before the bot retries a failed connection.
 
 function connect() {
-	var client = new WebSocketClient();
+	let client = new WebSocketClient();
 
 	client.on('connectFailed', error => {
 		errorMsg('Connection failed with error: ' + error + '. Retrying in ' + retryTime + 's.');

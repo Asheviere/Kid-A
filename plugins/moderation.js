@@ -1,3 +1,5 @@
+'use strict';
+
 function getPunishment(val) {
 	switch (val) {
 	case 1:
@@ -13,15 +15,15 @@ function getPunishment(val) {
 	}
 }
 
-var punishments = {};
-var mutes = {};
-var muteTimers = {};
+let punishments = {};
+let mutes = {};
+let muteTimers = {};
 
 function punish(userid, ips, room, val, msg) {
 	if (!punishments[room]) punishments[room] = {};
 	if (!ips) ips = [userid];
-	for (var i = 0; i < ips.length; i++) {
-		var max = val;
+	for (let i = 0; i < ips.length; i++) {
+		let max = val;
 		if (ips[i] in punishments[room]) {
 			punishments[room][ips[i]] += val;
 			if (punishments[room][ips[i]] > max) max = punishments[room][ips[i]];
@@ -39,7 +41,7 @@ function punish(userid, ips, room, val, msg) {
 	if (max >= 3 && Config.checkIps) {
 		if (!mutes[userid]) mutes[userid] = [];
 		if (!muteTimers[userid]) muteTimers[userid] = {};
-		if (mutes[userid].indexOf(room) > -1) {
+		if (mutes[userid].includes(room)) {
 			clearTimeout(muteTimers[userid][room]);
 		} else {
 			mutes[userid].push(room);
@@ -48,7 +50,7 @@ function punish(userid, ips, room, val, msg) {
 			Connection.send('staff|/l ' + userid + ', Bot moderation: Breaking chat rules in multiple rooms.');
 			Connection.send('staff|/modnote ' + userid + ' was locked for breaking chat rules in the following rooms: ' + mutes[userid].join(', '));
 			delete mutes[userid];
-			for (var j in muteTimers[userid]) {
+			for (let j in muteTimers[userid]) {
 				clearTimeout(muteTimers[userid][j]);
 			}
 			delete muteTimers[userid];
@@ -62,8 +64,8 @@ function punish(userid, ips, room, val, msg) {
 	}
 }
 
-var buffers = {};
-var timers = {};
+let buffers = {};
+let timers = {};
 
 function addBuffer(userid, room, message) {
 	if (!buffers[room]) buffers[room] = [];
@@ -75,21 +77,21 @@ function addBuffer(userid, room, message) {
 
 module.exports = {
 	commands : {
-		moderation: function(userstr, room, message) {
+		moderation(userstr, room, message) {
 			if (!canUse(userstr, 5)) return {pmreply: "Permission denied."};
 			if (!room) return {pmreply: "This command can't be used in PMs."};
 
 			if (!Settings.modRooms) Settings.modRooms = [];
 
 			message = toId(message);
-			var index = Settings.modRooms.indexOf(room);
+			let idx = Settings.modRooms.indexOf(room);
 
 			switch (message) {
 			case 'on':
 			case 'true':
 			case 'yes':
 			case 'enable':
-				if (index < 0) {
+				if (idx < 0) {
 					Settings.modRooms.push(room);
 					Databases.writeDatabase('settings');
 					return {reply: "Bot moderation was turned on in this room."};
@@ -99,8 +101,8 @@ module.exports = {
 			case 'false':
 			case 'no':
 			case 'disable':
-				if (index > -1) {
-					Settings.modRooms.splice(index, 1);
+				if (idx > -1) {
+					Settings.modRooms.splice(idx, 1);
 					Databases.writeDatabase('settings');
 					return {reply: "Bot moderation was turned off in this room."};
 				}
@@ -110,19 +112,20 @@ module.exports = {
 			}
 		}
 	},
+
 	analyzer: {
 		rooms: Settings.modRooms,
-		parser: function(room, message, userstr) {
+		parser(room, message, userstr) {
 			if (canUse(userstr, 1)) return;
 
-			var userid = toId(userstr);
+			let userid = toId(userstr);
 
 			addBuffer(userid, room, message);
 
-			var msgs = 0;
-			var identical = 0;
+			let msgs = 0;
+			let identical = 0;
 
-			for (var i = 0; i < buffers[room].length; i++) {
+			for (let i = 0; i < buffers[room].length; i++) {
 				if (buffers[room][i][0] === userid) {
 					msgs++;
 					if (buffers[room][i][1] === message) identical++;
@@ -141,8 +144,8 @@ module.exports = {
 			}
 
 			// Moderation for caps and stretching copied from boTTT.
-			var capsString = message.replace(/[^A-Za-z]/g, '').match(/[A-Z]/g);
-			var len = toId(message).length;
+			let capsString = message.replace(/[^A-Za-z]/g, '').match(/[A-Z]/g);
+			let len = toId(message).length;
 
 			if (len >= 8 && capsString && (capsString.length / len) >= 0.8) {
 				if (Config.checkIps) {

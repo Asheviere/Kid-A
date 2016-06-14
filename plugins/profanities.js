@@ -1,24 +1,24 @@
-var profanityList = [
+'use strict';
+
+const PROFANITY_LIST = new Set([
 	'fuck', 'fucking', 'motherfucking', 'motherfucker', 'bitch', 'shit', 'shitting', 'cock', 'dick', 'pussy', 'roastie', 'cunt',
 	'autist', 'aspie', 'retard', 'cuck', 'cuckold', 'whore',
 	'nigger', 'fag', 'faggot', 'meanie', 'poopyhead', 'kike', 'spic', 'sandnigger', 'pinoy', 'nigga', 'mexican',
 	'tymp', 'tympy', 'tympani'
-];
+]);
 
 module.exports = {
 	analyzer: {
-		parser: function(room, message) {
+		parser(room, message) {
 			// Don't even bother with messages that are just emoticons.
 			if (toId(message).length < 2) return false;
 
-			var words = message.split(' ');
+			let words = message.split(' ');
 
-			var profanities = 0;
-			for (var i = 0; i < words.length; i++) {
-				if (profanityList.indexOf(toId(words[i])) > -1) {
-					profanities++;
-				}
-			}
+			let profanities = message.split(' ').reduce((tally, word) => {
+				if (PROFANITY_LIST.has(toId(word))) return ++tally;
+				return tally;
+			}, 0);
 
 			if (!Data.data[room]) Data.data[room] = {};
 			if (!Data.data[room].profanities) {
@@ -29,6 +29,9 @@ module.exports = {
 			}
 		},
 
-		display: room => '<p>Percentage of words said that are swear words: ' + (Data.data[room].profanities ? Data.data[room].profanities.count / Data.data[room].profanities.total * 100 : 0) + '</p>'
+		display(room) {
+			let profanities = Data.data[room] && Data.data[room].profanities;
+			return '<p>Percentage of words said that are swear words: ' + (profanities ? (profanities.count / profanities.total * 100) : 0) + '</p>'
+		}
 	}
 };

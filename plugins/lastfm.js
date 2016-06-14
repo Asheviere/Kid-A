@@ -1,8 +1,11 @@
-var request = require('request');
-var fs = require('fs');
+'use strict';
+
+const fs = require('fs');
+
+const request = require('request');
 
 function loadLastfmData() {
-	var data;
+	let data;
 	try {
 		data = require('../data/lastfm.json');
 	} catch (e) {}
@@ -13,29 +16,29 @@ function loadLastfmData() {
 }
 
 function writeLastfmData() {
-	var toWrite = JSON.stringify(Data.lastfm);
+	let toWrite = JSON.stringify(Data.lastfm);
 	fs.writeFileSync('./data/lastfm.json', toWrite);
 }
 
 Databases.addDatabase('lastfm', loadLastfmData, writeLastfmData);
 
-var API_ROOT = 'http://ws.audioscrobbler.com/2.0/';
-var YT_ROOT = 'https://www.googleapis.com/youtube/v3/search';
-var VIDEO_ROOT = 'https://youtu.be/';
+const API_ROOT = 'http://ws.audioscrobbler.com/2.0/';
+const YT_ROOT = 'https://www.googleapis.com/youtube/v3/search';
+const VIDEO_ROOT = 'https://youtu.be/';
 
 module.exports = {
 	commands: {
-		lastfm: function(userstr, room, message) {
+		lastfm(userstr, room, message) {
 			if (!canUse(userstr, 1)) return {pmreply: "Permission denied."};
 
 			if (!Config.lastfmKey) return errorMsg("No last.fm API key found.");
 
-			var userid = toId(userstr);
-			var accountname = message || userstr.substr(1);
+			let userid = toId(userstr);
+			let accountname = message || userstr.substr(1);
 			if (!message && (userid in Data.lastfm)) message = Data.lastfm[userid];
 
-			var url = API_ROOT + '?method=user.getrecenttracks&user=' + message + '&limit=1&api_key=' + Config.lastfmKey + '&format=json';
-			var req = new Promise(function(resolve, reject) {
+			let url = API_ROOT + '?method=user.getrecenttracks&user=' + message + '&limit=1&api_key=' + Config.lastfmKey + '&format=json';
+			let req = new Promise(function(resolve, reject) {
 				request(url, function (error, response, body) {
 					if (error) {
 						errorMsg(error);
@@ -47,24 +50,24 @@ module.exports = {
 			});
 
 			return req.then(data => {
-				var msg = '';
+				let msg = '';
 				if (data.recenttracks && data.recenttracks.track && data.recenttracks.track.length) {
 					msg += accountname;
-					var track = data.recenttracks.track[0];
+					let track = data.recenttracks.track[0];
 					if (track['@attr'] && track['@attr'].nowplaying) {
 						msg += " is now listening to: ";
 					} else {
 						msg += " was last seen listening to: ";
 					}
-					var trackname = '';
+					let trackname = '';
 					// Should always be the case but just in case.
 					if (track.artist && track.artist['#text']) {
 						trackname += track.artist['#text'] + ' - ';
 					}
 					trackname += track.name;
 					msg += trackname;
-					var yturl = YT_ROOT + '?part=snippet&order=relevance&maxResults=1&q=' + encodeURIComponent(trackname) + '&key=' + Config.youtubekey;
-					var yt = new Promise(function(resolve, reject) {
+					let yturl = YT_ROOT + '?part=snippet&order=relevance&maxResults=1&q=' + encodeURIComponent(trackname) + '&key=' + Config.youtubekey;
+					let yt = new Promise(function(resolve, reject) {
 						request(yturl, function (error, response, body) {
 							if (error) {
 								errorMsg(error);
@@ -92,11 +95,12 @@ module.exports = {
 				}
 			});
 		},
-		registerlastfm: function(userstr, room, message) {
+
+		registerlastfm(userstr, room, message) {
 			if (!message) return {pmreply: "No username entered."};
 
-			var userid = toId(userstr);
-			var username = message.replace(/[^A-Za-z0-9-_]/g, '');
+			let userid = toId(userstr);
+			let username = message.replace(/[^A-Za-z0-9-_]/g, '');
 
 			Data.lastfm[userid] = username;
 

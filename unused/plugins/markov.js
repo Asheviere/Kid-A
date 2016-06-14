@@ -1,11 +1,13 @@
-var markov = require('../markov/markov.js');
-var loki = require('lokijs');
-var fs = require('fs');
+'use strict';
+
+const markov = require('../markov/markov.js');
+const loki = require('lokijs');
+const fs = require('fs');
 
 global.Markov = {};
 
 function loadMarkov() {
-	var autoload = false;
+	let autoload = false;
 	try {
 		autoload = fs.lstatSync('./data/markov.json').isFile();
 	} catch (e) {
@@ -25,18 +27,18 @@ function writeMarkov() {
 
 Databases.addDatabase('markov', loadMarkov, writeMarkov);
 
-var LIMIT = 16;
+const LIMIT = 16;
 
-var cooldown = {};
+let cooldown = {};
 
 module.exports = {
 	analyzer: {
-		parser: function(room, message) {
-			if (Config.markovWhitelist.length && Config.markovWhitelist.indexOf(room) < 0) return;
-			var words = message.split(' ');
+		parser(room, message) {
+			if (Config.markovWhitelist.length && !Config.markovWhitelist.includes(room)) return;
+			let words = message.split(' ');
 
-			var toParse = [];
-			for (var i = 0; i < words.length; i++) {
+			let toParse = [];
+			for (let i = 0; i < words.length; i++) {
 				if (!/( ?https?:\/\/.*\.[^ ]* ?)|\[.*\]|<<.*>>/.test(words[i]) && toId(words[i]).length) {
 					toParse.push(words[i].replace(/``|__|\*\*|~~/g, ''));
 				}
@@ -62,11 +64,11 @@ module.exports = {
 	},
 
 	commands: {
-		say: function (userstr, room, message) {
+		say(userstr, room, message) {
 			if (!canUse(userstr, 1)) return {pmreply: "Permission denied."};
 			if (room && cooldown[room]) return {pmreply: "Please wait before using this again."};
 
-			var generator = message;
+			let generator = message;
 			if (!generator) generator = room;
 
 			if (generator === 'staff' && !(room === 'staff' || (!room && canUse(userstr, 2)))) return {pmreply: "I'm not leaking staff to you."};
@@ -84,15 +86,16 @@ module.exports = {
 			}
 			return {reply: Markov[generator].fill(Markov[generator].pick(), LIMIT).join(' ')};
 		},
-		reply: function(userstr, room, message) {
+
+		reply(userstr, room, message) {
 			if (!canUse(userstr, 1)) return {pmreply: "Permission denied."};
 			if (room && cooldown[room]) return {pmreply: "Please wait before using this again."};
 			if (!message) return {pmreply: "Please enter a message to get a reply for."};
 
-			var generator = room;
+			let generator = room;
 			if (!generator) {
-				var rooms = Data.markov.listCollections();
-				for (var i = 0; i < rooms.length; i++) {
+				let rooms = Data.markov.listCollections();
+				for (let i = 0; i < rooms.length; i++) {
 					if (rooms[i].name === 'staff') {
 						rooms.splice(i, 1);
 						break;

@@ -1,10 +1,12 @@
-var fs = require('fs');
-var crypto = require('crypto');
+'use strict';
+
+const fs = require('fs');
+const crypto = require('crypto');
 
 module.exports = {
 	commands: {
-		eval: function(userstr, room, message) {
-			if (Config.admins.indexOf(toId(userstr)) < 0) return;
+		eval(userstr, room, message) {
+			if (!Config.admins.has(toId(userstr))) return;
 
 			var ret;
 			try {
@@ -16,7 +18,8 @@ module.exports = {
 				return {reply: '' + ret};
 			}
 		},
-		reload: function (userstr, room, message) {
+
+		reload(userstr, room, message) {
 			if (!canUse(userstr, 6)) return {pmreply: "Permission denied."};
 
 			switch (message) {
@@ -34,20 +37,21 @@ module.exports = {
 				return {pmreply: "Invalid option."};
 			}
 		},
-		console: function(userstr) {
+
+		console(userstr) {
 			if (!canUse(userstr, 6)) return {pmreply: "Permission denied."};
 
-			var fname = crypto.randomBytes(10).toString('hex');
-			var path = './public/' + fname + '.txt';
+			let filename = crypto.randomBytes(10).toString('hex');
+			let path = './public/' + filename + '.txt';
 			fs.writeFileSync(path, stdout);
-			setTimeout(() => fs.unlinkSync(path), 10 * 60 * 1000);
-			return {pmreply: 'Console output saved as ' + Server.url + fname + '.txt'};
+			return {pmreply: 'Console output saved as ' + Server.url + filename + '.txt'};
 		},
-		set: function(userstr, room, message) {
+
+		set(userstr, room, message) {
 			if (!canUse(userstr, 5)) return {pmreply: "Permission denied."};
 			if (!room) return {pmreply: "This command can't be used in PMs."};
 
-			var params = message.split(',').map(param => toId(param));
+			let params = message.split(',').map(param => toId(param));
 			if (!(params[0] in Commands)) return {pmreply: "Invalid command."};
 
 			if (params.length < 2) return {reply: "This command is currently turned " + (Settings[room] ? (Settings[room][params[0]] || 'on') : 'on') + '.'};
@@ -76,16 +80,17 @@ module.exports = {
 			Databases.writeDatabase('settings');
 			return {reply: "Usage of " + params[0] + " was turned " + (Settings[room][params[0]] ? 'off': 'on') + '.'};
 		},
-		leave: function(userstr, room) {
+
+		leave(userstr, room) {
 			if (!canUse(userstr, 5)) return {pmreply: "Permission denied."};
 			if (!room) return {pmreply: "This command can't be used in PMs."};
 
-			if (Settings.toJoin && Settings.toJoin.indexOf(room) > -1) {
+			if (Settings.toJoin && Settings.toJoin.includes(room)) {
 				Settings.toJoin.splice(Settings.toJoin.indexOf(room), 1);
 				Databases.writeDatabase('settings');
 			}
 
-			return {reply: '/leave'};
+			return {reply: '/part ' + room};
 		}
 	}
 };

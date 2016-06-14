@@ -1,9 +1,11 @@
+'use strict';
+
 global.Data = {};
 
 module.exports = {
 	databases: {},
 
-	addDatabase: function(id, loader, writer) {
+	addDatabase(id, loader, writer) {
 		if (this.databases[id]) return false;
 
 		this.databases[id] = {};
@@ -13,15 +15,15 @@ module.exports = {
 		this.loadDatabase(id);
 	},
 
-	loadDatabase: function(id) {
+	loadDatabase(id) {
 		if (!this.databases[id]) return false;
 
-		var value = this.databases[id].loader();
+		let value = this.databases[id].loader();
 
 		if (value) Data[id] = value;
 	},
 
-	writeDatabase: function(id) {
+	writeDatabase(id) {
 		if (!this.databases[id]) return false;
 
 		if (this.databases[id].writing) {
@@ -29,7 +31,7 @@ module.exports = {
 			return false;
 		}
 
-		var cooldown = this.databases[id].writer() || 0;
+		let cooldown = this.databases[id].writer() || 0;
 		setTimeout((() => {
 			this.databases[id].writing = false;
 
@@ -39,7 +41,7 @@ module.exports = {
 		}), cooldown);
 	},
 
-	reloadDatabases: function() {
+	reloadDatabases() {
 		for (var id in this.databases) {
 			this.loadDatabase(id);
 		}
