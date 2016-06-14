@@ -34,6 +34,7 @@ module.exports = {
 				return {reply: "Config reloaded successfully."};
 			case 'server':
 				server.restart();
+				return {reply: "Server restarted successfully."};
 				break;
 			default:
 				return {pmreply: "Invalid option."};
