@@ -14,7 +14,7 @@ class Server {
 		this.protocol = protocol;
 		this.host = host;
 		this.port = port;
-		this.url = protocol + '://' + host + ':' + port + '/';
+		this.url = protocol + '://' + host + (protocol === 'http' && port !== 80 ? ':' + port : '') + '/';
 
 		this.index = path.resolve(__dirname, './public');
 		this.site = connect();
