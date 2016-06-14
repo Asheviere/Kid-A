@@ -26,7 +26,7 @@ function quoteResolver(req, res) {
 	if (Data.quotes[room]) {
 		content += "<h1>" + room + ' quotes:</h1><div class="quotes">';
 		for (let i = 0; i < Data.quotes[room].length; i++) {
-			content += '<p>' + Data.quotes[room][i] + '</p>';
+			content += '<p>' + sanitize(Data.quotes[room][i]) + '</p>';
 		}
 		content += '</div>';
 	}
@@ -45,8 +45,6 @@ module.exports = {
 			if (!canUse(userstr, 2)) return {pmreply: "Permission denied."};
 			if (!message.length) return {pmreply: "Please enter a valid quote."};
 
-			let quote = sanitize(message);
-
 			if (!Data.quotes[room]) {
 				Data.quotes[room] = [];
 				Server.addPage('/' + room + '/quotes', quoteResolver);
@@ -54,11 +52,11 @@ module.exports = {
 				setTimeout(() => Server.restart(), 500);
 			};
 
-			if (Data.quotes[room].includes(quote)) {
+			if (Data.quotes[room].includes(message)) {
 				return {reply: "Quote is already added."};
 			}
 
-			Data.quotes[room].push(quote);
+			Data.quotes[room].push(message);
 			Databases.writeDatabase('quotes');
 			return {reply: "Quote has been added."};
 		},
