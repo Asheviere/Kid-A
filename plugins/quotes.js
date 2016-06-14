@@ -2,6 +2,8 @@
 
 const fs = require('fs');
 
+const server = require('../server.js');
+
 function loadQuotes() {
 	let data;
 	try {
@@ -35,7 +37,7 @@ function quoteResolver(req, res) {
 }
 
 for (let room in Data.quotes) {
-	Server.addPage('/' + room + '/quotes', quoteResolver);
+	server.addRoute('/' + room + '/quotes', quoteResolver);
 }
 
 module.exports = {
@@ -47,9 +49,9 @@ module.exports = {
 
 			if (!Data.quotes[room]) {
 				Data.quotes[room] = [];
-				Server.addPage('/' + room + '/quotes', quoteResolver);
+				server.addRoute('/' + room + '/quotes', quoteResolver);
 				// Wait 500ms to make sure everything's ready.
-				setTimeout(() => Server.restart(), 500);
+				setTimeout(() => server.restart(), 500);
 			};
 
 			if (Data.quotes[room].includes(message)) {
@@ -66,7 +68,7 @@ module.exports = {
 			if (!canUse(userstr, 1)) return {pmreply: "Permission denied."};
 
 			if (Data.quotes[room]) {
-				return {reply: "Quote page: "+ Server.url + room + "/quotes"};
+				return {reply: "Quote page: "+ server.url + room + "/quotes"};
 			} else {
 				return {pmreply: "This room has no quotes."};
 			}

@@ -1,7 +1,9 @@
 'use strict';
 
-const fs = require('fs');
 const crypto = require('crypto');
+const fs = require('fs');
+
+const server = require('../server.js');
 
 module.exports = {
 	commands: {
@@ -31,7 +33,7 @@ module.exports = {
 				Config = require('../config.js');
 				return {reply: "Config reloaded successfully."};
 			case 'server':
-				Server.restart();
+				server.restart();
 				break;
 			default:
 				return {pmreply: "Invalid option."};
@@ -44,7 +46,7 @@ module.exports = {
 			let filename = crypto.randomBytes(10).toString('hex');
 			let path = './public/' + filename + '.txt';
 			fs.writeFileSync(path, stdout);
-			return {pmreply: 'Console output saved as ' + Server.url + filename + '.txt'};
+			return {pmreply: 'Console output saved as ' + server.url + filename + '.txt'};
 		},
 
 		set(userstr, room, message) {
