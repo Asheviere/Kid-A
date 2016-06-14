@@ -1,5 +1,7 @@
 'use strict';
 
+const server = require('../server.js');
+
 const helpTopics = {
 	commands: 'commands.html'
 };
@@ -14,7 +16,7 @@ module.exports = {
 			message = toId(message);
 			if (!(message in helpTopics)) return {pmreply: "Invalid option for topic."};
 
-			return {reply: Server.url + helpTopics[message]};
+			return {reply: server.url + helpTopics[message]};
 		}
 	}
 };

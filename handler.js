@@ -1,8 +1,11 @@
 'use strict';
 
-const request = require('request');
 const fs = require('fs');
+
+const request = require('request');
 const cheerio = require('cheerio');
+
+const server = require('./server.js');
 
 const ACTION_URL = 'http://play.pokemonshowdown.com/action.php';
 
@@ -79,10 +82,8 @@ function dataResolver(req, res) {
 }
 
 for (let room in Data.data) {
-	Server.addPage('/' + room + '/data', dataResolver);
+	server.addRoute('/' + room + '/data', dataResolver);
 }
-
-Server.start();
 
 module.exports = {
 	analyzers: analyzers,
