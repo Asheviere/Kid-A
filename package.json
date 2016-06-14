@@ -14,6 +14,7 @@
   },
   "bin": "./main.js",
   "scripts": {
+	"start": "node main.js",
   	"test": "eslint *.js plugins/*.js"
   },
   "repository": {
