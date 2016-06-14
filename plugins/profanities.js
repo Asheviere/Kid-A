@@ -31,7 +31,7 @@ module.exports = {
 
 		display(room) {
 			let profanities = Data.data[room] && Data.data[room].profanities;
-			return '<p>Percentage of words said that are swear words: ' + (profanities ? (profanities.count / profanities.total * 100) : 0) + '</p>'
+			return '<p>Percentage of words said that are swear words: ' + (profanities ? (profanities.count / profanities.total * 100) : 0) + '</p>';
 		}
 	}
 };
