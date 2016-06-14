@@ -22,8 +22,10 @@ let muteTimers = {};
 function punish(userid, ips, room, val, msg) {
 	if (!punishments[room]) punishments[room] = {};
 	if (!ips) ips = [userid];
+	let max = 0;
+
 	for (let i = 0; i < ips.length; i++) {
-		let max = val;
+		max = val;
 		if (ips[i] in punishments[room]) {
 			punishments[room][ips[i]] += val;
 			if (punishments[room][ips[i]] > max) max = punishments[room][ips[i]];
