@@ -208,8 +208,8 @@ module.exports = {
 			if (this.toJoin.length) {
 				statusMsg('Joining additional rooms.');
 	
-				this.toJoin.map((room, i) => (
-					() => new Promise((resolve, reject) => {
+				this.toJoin.map((room) => (
+					() => new Promise((resolve) => {
 						Connection.send('|/join ' + room);
 						setTimeout(resolve, 500);
 					})
