@@ -168,7 +168,7 @@ module.exports = {
 	parse(message) {
 		if (!message) return;
 		let split = message.split('|');
-		if (!split[0]) split[0] = '>lobby'; // Zarel can't code
+		if (!split[0]) split[0] = '>lobby\n'; // Zarel can't code
 
 		let roomid;
 		switch (split[1]) {
@@ -207,7 +207,7 @@ module.exports = {
 
 			if (this.toJoin.length) {
 				statusMsg('Joining additional rooms.');
-	
+
 				this.toJoin.map((room) => (
 					() => new Promise((resolve) => {
 						Connection.send('|/join ' + room);
