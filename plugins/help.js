@@ -24,6 +24,15 @@ module.exports = {
 			if (!canUse(userstr, 1)) return {pmreply: "Permission denied."};
 
 			return {reply: "Source code for Kid A: " + REPO_URL};
+		},
+		data(userstr, room) {
+			if (!canUse(userstr, 1)) return {pmreply: "Permission denied."};
+
+			if (Data.data[room]) {
+				return {reply: "Chat data:" + server.url + room + '/data'};
+			} else {
+				return {reply: "This room has no data."};
+			}
 		}
 	}
 };
