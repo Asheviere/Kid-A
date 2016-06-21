@@ -41,6 +41,10 @@ module.exports = {
 				if (GOOD_WORDS.has(word.toLowerCase())) score += 2;
 
 			}
+
+			if (!Data.data[room]) Data.data[room] = {};
+			if (!Data.data[room].quality) Data.data[room].quality = 0;
+			Data.data[room].quality += score;
 		},
 
 		display(room) {
