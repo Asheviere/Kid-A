@@ -1,5 +1,7 @@
 'use strict';
 
+process.on('uncaughtException', (err) => console.log(err));
+
 // TODO: abstract logging away from the global namespace.
 global.stdout = '';
 
