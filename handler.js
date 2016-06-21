@@ -115,7 +115,7 @@ module.exports = {
 		let cmd = words.splice(0, 1)[0].substr(1);
 		if (!(cmd in Commands)) {
 			if (room) return;
-			return this.sendPM(user, 'Invalid command.');
+			return this.sendPM(username, 'Invalid command.');
 		}
 
 		let user = (!room && userstr[0] === ' ' ? '+' : userstr[0]) + username;
