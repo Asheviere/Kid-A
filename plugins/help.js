@@ -6,6 +6,8 @@ const helpTopics = {
 	commands: 'commands.html'
 };
 
+const REPO_URL = 'https://github.com/bumbadadabum/Kid-A';
+
 module.exports = {
 	commands: {
 		help(userstr, room, message) {
@@ -17,6 +19,11 @@ module.exports = {
 			if (!(message in helpTopics)) return {pmreply: "Invalid option for topic."};
 
 			return {reply: server.url + helpTopics[message]};
+		},
+		git(userstr) {
+			if (!canUse(userstr, 1)) return {pmreply: "Permission denied."};
+
+			return {reply: "Source code for Kid A: " + REPO_URL};
 		}
 	}
 };
