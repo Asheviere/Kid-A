@@ -4,7 +4,7 @@ module.exports = {
 	analyzer: {
 		parser(room, message) {
 			// FIXME: get a better URL regex!!
-			let pattern = /\.(com|org|net)/;
+			let pattern = /!(href).+\.(com|org|net)/;
 			if (!pattern.test(message)) return;
 
 			message.split(' ')
