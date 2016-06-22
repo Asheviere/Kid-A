@@ -22,7 +22,7 @@ module.exports = {
 			if (message.length > 100) score += 1;
 
 			// Correct punctuation
-			if (/[A-Z].+[\.\?\!]/.test(lower)) score += 5;
+			if (/[A-Z].+[\.\?\!]/.test(message)) score += 5;
 
 			for (let i = 0; i < AWFUL_MEMES.length; i++) {
 				if (lower.includes(AWFUL_MEMES[i])) score -= 20;
