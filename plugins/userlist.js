@@ -80,7 +80,7 @@ module.exports = {
 			if (!room) return {pmreply: "This command can't be used in PMs."};
 			let params = message.split(',').map(param => param.trim());
 
-			if (!params.length) params = [userstr.substr(1)];
+			if (!params[0]) params = [userstr.substr(1)];
 
 			let userid = toId(params[0]);
 
