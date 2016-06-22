@@ -28,7 +28,7 @@ module.exports = {
 			if (!canUse(userstr, 2)) return {pmreply: "Permission denied."};
 			let params = message.split(',').map(param => param.trim());
 
-			if (!params.length) return {pmreply: "No user supplied."};
+			if (!params.length) return {reply: "No user supplied."};
 
 			if (!Data.userlist[room]) Data.userlist[room] = {};
 
@@ -52,11 +52,11 @@ module.exports = {
 			if (!canUse(userstr, 2)) return {pmreply: "Permission denied."};
 			let params = message.split(',').map(param => param.trim());
 
-			if (!params.length) return {pmreply: "No user supplied."};
+			if (!params.length) return {reply: "No user supplied."};
 
 			let userid = toId(params[0]);
 
-			if (!(Data.userlist[room] && Data.userlist[room][userid])) return {pmreply: "User not found in this room's userlist."};
+			if (!(Data.userlist[room] && Data.userlist[room][userid])) return {reply: "User not found in this room's userlist."};
 
 			if (params.length === 1) {
 				delete Data.userlist[room][userid];
@@ -66,7 +66,7 @@ module.exports = {
 
 			for (let i = 1; i < params.length; i++) {
 				let val = toId(params[i]);
-				if (!(val in Data.userlist[room][userid])) return {pmreply: "Field not found: " + val};
+				if (!(val in Data.userlist[room][userid])) return {reply: "Field not found: " + val};
 
 				delete Data.userlist[room][userid][val];
 				if (!Object.keys(Data.userlist[room][userid]).length) delete Data.userlist[room][userid];
@@ -84,7 +84,7 @@ module.exports = {
 
 			let userid = toId(params[0]);
 
-			if (!(Data.userlist[room] && Data.userlist[room][userid])) return {pmreply: "User not found in this room's userlist."};
+			if (!(Data.userlist[room] && Data.userlist[room][userid])) return {reply: "User not found in this room's userlist."};
 
 			if (params.length === 1) {
 				let output = [];
@@ -95,7 +95,7 @@ module.exports = {
 			}
 
 			let field = toId(params[1]);
-			if (!(field in Data.userlist[room][userid])) return {pmreply: "Field not found."};
+			if (!(field in Data.userlist[room][userid])) return {reply: "Field not found."};
 
 			return {reply: field + ": " + Data.userlist[room][userid][field]};
 		}
