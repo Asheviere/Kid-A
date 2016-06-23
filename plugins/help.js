@@ -34,7 +34,7 @@ module.exports = {
 				if (Config.privateRooms.has(room)) {
 					fname = utils.generateTempFile(Handler.generateDataPage(room), 15);
 				} else {
-					fname = room + "/quotes";
+					fname = room + "/data";
 				}
 				return {reply: "Chat data: " + server.url + fname};
 			}
