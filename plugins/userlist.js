@@ -98,6 +98,6 @@ module.exports = {
 			if (!(field in Data.userlist[room][userid])) return {reply: "Field not found."};
 
 			return {reply: field + ": " + Data.userlist[room][userid][field]};
-		}
-	}
+		},
+	},
 };

@@ -78,7 +78,7 @@ function addBuffer(userid, room, message) {
 }
 
 module.exports = {
-	commands : {
+	commands: {
 		moderation(userstr, room, message) {
 			if (!canUse(userstr, 5)) return {pmreply: "Permission denied."};
 			if (!room) return {pmreply: "This command can't be used in PMs."};
@@ -112,7 +112,7 @@ module.exports = {
 			default:
 				return {pmreply: "Invalid value. Use 'on' or 'off'."};
 			}
-		}
+		},
 	},
 
 	analyzer: {
@@ -170,6 +170,6 @@ module.exports = {
 				}
 				return;
 			}
-		}
-	}
+		},
+	},
 };

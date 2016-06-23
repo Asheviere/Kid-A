@@ -3,7 +3,7 @@
 const server = require('../server.js');
 
 const helpTopics = {
-	commands: 'commands.html'
+	commands: 'commands.html',
 };
 
 const REPO_URL = 'https://github.com/bumbadadabum/Kid-A';
@@ -28,11 +28,9 @@ module.exports = {
 		data(userstr, room) {
 			if (!canUse(userstr, 1)) return {pmreply: "Permission denied."};
 
-			if (Data.data[room]) {
-				return {reply: "Chat data: " + server.url + room + '/data'};
-			} else {
-				return {reply: "This room has no data."};
-			}
-		}
-	}
+			if (Data.data[room]) return {reply: "Chat data: " + server.url + room + '/data'};
+
+			return {reply: "This room has no data."};
+		},
+	},
 };

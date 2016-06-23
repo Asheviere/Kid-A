@@ -10,15 +10,14 @@ module.exports = {
 		eval(userstr, room, message) {
 			if (!Config.admins.has(toId(userstr))) return;
 
-			var ret;
+			let ret;
 			try {
 				ret = JSON.stringify(eval(message));
 				if (ret === undefined) ret = 'undefined';
 			} catch (e) {
 				ret = 'Failed to eval ' + message + ': ' + e.toString();
-			} finally {
-				return {reply: '' + ret};
 			}
+			return {reply: '' + ret};
 		},
 
 		reload(userstr, room, message) {
@@ -93,6 +92,6 @@ module.exports = {
 			}
 
 			return {reply: '/part ' + room};
-		}
-	}
+		},
+	},
 };

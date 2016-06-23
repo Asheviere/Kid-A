@@ -39,7 +39,6 @@ module.exports = {
 				if (TWITCH_EMOTES.has(word)) score -= 3;
 				if (GENERALLY_BAD.has(word.toLowerCase())) score -= 2;
 				if (GOOD_WORDS.has(word.toLowerCase())) score += 2;
-
 			}
 
 			if (!Data.data[room]) Data.data[room] = {};
@@ -50,6 +49,6 @@ module.exports = {
 		display(room) {
 			let quality = Data.data[room] && Data.data[room].quality;
 			return '<p>Quality of this room\'s discussion: ' + (quality || 0) + '</p>';
-		}
-	}
+		},
+	},
 };

@@ -2,26 +2,26 @@
 
 const WebSocketClient = require('websocket').client;
 
-let retryTime = 10; // Time (in seconds) before the bot retries a failed connection.
+const RETRY_TIME = 10; // Time (in seconds) before the bot retries a failed connection.
 
 function connect() {
-	let client = new WebSocketClient();
+	const client = new WebSocketClient();
 
 	client.on('connectFailed', error => {
-		errorMsg('Connection failed with error: ' + error + '. Retrying in ' + retryTime + 's.');
-		setTimeout(connect, retryTime * 1000);
+		errorMsg('Connection failed with error: ' + error + '. Retrying in ' + RETRY_TIME + 's.');
+		setTimeout(connect, RETRY_TIME * 1000);
 	});
 
 	client.on('connect', connection => {
 		Connection = connection;
 		statusMsg('WebSocket Client Connected');
 		connection.on('error', error => {
-			errorMsg(error + '. Reconnecting in ' + retryTime + 's.');
-			setTimeout(connect, retryTime * 1000);
+			errorMsg(error + '. Reconnecting in ' + RETRY_TIME + 's.');
+			setTimeout(connect, RETRY_TIME * 1000);
 		});
 		connection.on('close', () => {
-			statusMsg('Closed connection, reconnecting in ' + retryTime + 's.');
-			setTimeout(connect, retryTime * 1000);
+			statusMsg('Closed connection, reconnecting in ' + RETRY_TIME + 's.');
+			setTimeout(connect, RETRY_TIME * 1000);
 		});
 		connection.on('message', message => {
 			Handler.parse(message.utf8Data);

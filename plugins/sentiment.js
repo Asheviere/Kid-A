@@ -20,6 +20,6 @@ module.exports = {
 		display(room) {
 			let roomSentiment = Data.data[room].sentiment;
 			return '<p>Average sentiment: ' + (roomSentiment ? roomSentiment.score * 1000 : 0) + '</p>';
-		}
-	}
+		},
+	},
 };

@@ -4,7 +4,7 @@ const PROFANITY_LIST = new Set([
 	'fuck', 'fucking', 'motherfucking', 'motherfucker', 'bitch', 'shit', 'shitting', 'cock', 'dick', 'pussy', 'roastie', 'cunt',
 	'autist', 'aspie', 'retard', 'cuck', 'cuckold', 'whore',
 	'nigger', 'fag', 'faggot', 'meanie', 'poopyhead', 'kike', 'spic', 'sandnigger', 'pinoy', 'nigga', 'mexican',
-	'tymp', 'tympy', 'tympani'
+	'tymp', 'tympy', 'tympani',
 ]);
 
 module.exports = {
@@ -32,6 +32,6 @@ module.exports = {
 		display(room) {
 			let profanities = Data.data[room] && Data.data[room].profanities;
 			return '<p>Percentage of words said that are swear words: ' + (profanities ? (profanities.count / profanities.total * 100) : 0) + '</p>';
-		}
-	}
+		},
+	},
 };

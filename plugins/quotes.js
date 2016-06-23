@@ -52,7 +52,7 @@ module.exports = {
 				server.addRoute('/' + room + '/quotes', quoteResolver);
 				// Wait 500ms to make sure everything's ready.
 				setTimeout(() => server.restart(), 500);
-			};
+			}
 
 			if (Data.quotes[room].includes(message)) {
 				return {reply: "Quote is already added."};
@@ -69,9 +69,9 @@ module.exports = {
 
 			if (Data.quotes[room]) {
 				return {reply: "Quote page: "+ server.url + room + "/quotes"};
-			} else {
-				return {pmreply: "This room has no quotes."};
 			}
+
+			return {pmreply: "This room has no quotes."};
 		},
 
 		randquote(userstr, room) {
@@ -80,9 +80,9 @@ module.exports = {
 
 			if (Data.quotes[room]) {
 				return {reply: Data.quotes[room][Math.floor(Math.random() * Data.quotes[room].length)]};
-			} else {
-				return {pmreply: "This room has no quotes."};
 			}
-		}
-	}
+
+			return {pmreply: "This room has no quotes."};
+		},
+	},
 };

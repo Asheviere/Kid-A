@@ -32,18 +32,18 @@ module.exports = {
 		}
 
 		let cooldown = this.databases[id].writer() || 0;
-		setTimeout((() => {
+		setTimeout(() => {
 			this.databases[id].writing = false;
 
 			if (this.databases[id].writePending) {
 				this.writedataBase(id);
 			}
-		}), cooldown);
+		}, cooldown);
 	},
 
 	reloadDatabases() {
-		for (var id in this.databases) {
+		for (let id in this.databases) {
 			this.loadDatabase(id);
 		}
-	}
+	},
 };

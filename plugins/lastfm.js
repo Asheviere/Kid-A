@@ -90,9 +90,9 @@ module.exports = {
 					});
 				} else if (data.error) {
 					return {reply: msg + data.message + '.'};
-				} else {
-					return {reply: msg + message + ' doesn\'t seem to have listened to anything recently.'};
 				}
+
+				return {reply: msg + message + ' doesn\'t seem to have listened to anything recently.'};
 			});
 		},
 
@@ -107,6 +107,6 @@ module.exports = {
 			Databases.writeDatabase('lastfm');
 
 			return {pmreply: "You've been registered as " + username + "."};
-		}
-	}
+		},
+	},
 };

@@ -28,6 +28,6 @@ module.exports = {
 			}
 			output += '</ul>';
 			return output;
-		}
-	}
+		},
+	},
 };

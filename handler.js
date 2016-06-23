@@ -179,11 +179,11 @@ module.exports = {
 
 			request.post(ACTION_URL, {
 				headers: {
-					'Content-Type': 'application/x-www-form-urlencoded'
+					'Content-Type': 'application/x-www-form-urlencoded',
 				},
-				body: 'act=login&name=' + Config.username + '&pass=' + Config.password + '&challstr=' + challstr
+				body: 'act=login&name=' + Config.username + '&pass=' + Config.password + '&challstr=' + challstr,
 			}, (error, response, body) => {
-				if (!error && response.statusCode == 200) {
+				if (!error && response.statusCode === 200) {
 					if (body[0] === ']') {
 						try {
 							body = JSON.parse(body.substr(1));
@@ -209,7 +209,7 @@ module.exports = {
 				statusMsg('Joining additional rooms.');
 
 				this.toJoin.map((room) => (
-					() => new Promise((resolve) => {
+					new Promise((resolve) => {
 						Connection.send('|/join ' + room);
 						setTimeout(resolve, 500);
 					})
@@ -280,5 +280,5 @@ module.exports = {
 			}
 		}
 		Databases.writeDatabase('data');
-	}
+	},
 };
