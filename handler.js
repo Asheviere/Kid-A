@@ -68,20 +68,11 @@ fs.readdirSync('./plugins')
 
 function dataResolver(req, res) {
 	let room = req.originalUrl.split('/')[1];
-	let content = '<!DOCTYPE html><html><head><link rel="stylesheet" type="text/css" href="../style.css"><title>' + room + ' - Kid A</title></head><body><div class="container">';
-	content += "<h1>" + room + ' data:</h1><div class="quotes">';
-	for (let i in analyzers) {
-		content += '<div class="analyzer">';
-		if (analyzers[i].display && (!analyzers[i].rooms || analyzers[i].rooms.includes(room))) {
-			content += analyzers[i].display(room);
-		}
-		content += '</div>';
-	}
-	content += '</div></body></html>';
-	res.end(content);
+	res.end(module.exports.generateDataPage(room));
 }
 
 for (let room in Data.data) {
+	if (Config.privateRooms.has(room)) continue;
 	server.addRoute('/' + room + '/data', dataResolver);
 }
 
@@ -280,5 +271,18 @@ module.exports = {
 			}
 		}
 		Databases.writeDatabase('data');
+	},
+
+	generateDataPage(room) {
+		let content = '<!DOCTYPE html><html><head><link rel="stylesheet" type="text/css" href="../style.css"><title>' + room + ' - Kid A</title></head><body><div class="container">';
+		content += "<h1>" + room + ' data:</h1><div class="quotes">';
+		for (let i in analyzers) {
+			content += '<div class="analyzer">';
+			if (analyzers[i].display && (!analyzers[i].rooms || analyzers[i].rooms.includes(room))) {
+				content += analyzers[i].display(room);
+			}
+			content += '</div>';
+		}
+		return content + '</div></body></html>';
 	},
 };

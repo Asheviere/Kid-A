@@ -1,8 +1,6 @@
 'use strict';
 
-const crypto = require('crypto');
-const fs = require('fs');
-
+const utils = require('../utils.js');
 const server = require('../server.js');
 
 module.exports = {
@@ -42,10 +40,7 @@ module.exports = {
 		console(userstr) {
 			if (!canUse(userstr, 6)) return {pmreply: "Permission denied."};
 
-			let filename = crypto.randomBytes(10).toString('hex');
-			let path = './public/' + filename + '.txt';
-			fs.writeFileSync(path, stdout);
-			return {pmreply: 'Console output saved as ' + server.url + filename + '.txt'};
+			return {pmreply: 'Console output saved as ' + server.url + utils.generateTempFile(stdout, 10)};
 		},
 
 		set(userstr, room, message) {

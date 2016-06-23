@@ -1,5 +1,6 @@
 'use strict';
 
+const utils = require('../utils.js');
 const server = require('../server.js');
 
 const helpTopics = {
@@ -28,7 +29,15 @@ module.exports = {
 		data(userstr, room) {
 			if (!canUse(userstr, 1)) return {pmreply: "Permission denied."};
 
-			if (Data.data[room]) return {reply: "Chat data: " + server.url + room + '/data'};
+			if (Data.data[room]) {
+				let fname;
+				if (Config.privateRooms.has(room)) {
+					fname = utils.generateTempFile(Handler.generateDataPage(room), 15);
+				} else {
+					fname = room + "/quotes";
+				}
+				return {reply: "Chat data: " + server.url + fname};
+			}
 
 			return {reply: "This room has no data."};
 		},

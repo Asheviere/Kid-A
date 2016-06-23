@@ -2,6 +2,7 @@
 
 const fs = require('fs');
 
+const utils = require('../utils.js');
 const server = require('../server.js');
 
 function loadQuotes() {
@@ -22,8 +23,7 @@ function writeQuotes() {
 
 Databases.addDatabase('quotes', loadQuotes, writeQuotes);
 
-function quoteResolver(req, res) {
-	let room = req.originalUrl.split('/')[1];
+function generateQuotePage(room) {
 	let content = '<!DOCTYPE html><html><head><link rel="stylesheet" type="text/css" href="../style.css"><title>' + room + ' - Kid A</title></head><body><div class="container">';
 	if (Data.quotes[room]) {
 		content += "<h1>" + room + ' quotes:</h1><div class="quotes">';
@@ -32,11 +32,16 @@ function quoteResolver(req, res) {
 		}
 		content += '</div>';
 	}
-	content += '</div></body></html>';
-	res.end(content);
+	return content + '</div></body></html>';
+}
+
+function quoteResolver(req, res) {
+	let room = req.originalUrl.split('/')[1];
+	res.end(generateQuotePage(room));
 }
 
 for (let room in Data.quotes) {
+	if (Config.privateRooms.has(room)) continue;
 	server.addRoute('/' + room + '/quotes', quoteResolver);
 }
 
@@ -49,9 +54,11 @@ module.exports = {
 
 			if (!Data.quotes[room]) {
 				Data.quotes[room] = [];
-				server.addRoute('/' + room + '/quotes', quoteResolver);
-				// Wait 500ms to make sure everything's ready.
-				setTimeout(() => server.restart(), 500);
+				if (!Config.privateRooms.has(room)) {
+					server.addRoute('/' + room + '/quotes', quoteResolver);
+					// Wait 500ms to make sure everything's ready.
+					setTimeout(() => server.restart(), 500);
+				}
 			}
 
 			if (Data.quotes[room].includes(message)) {
@@ -68,7 +75,13 @@ module.exports = {
 			if (!canUse(userstr, 1)) return {pmreply: "Permission denied."};
 
 			if (Data.quotes[room]) {
-				return {reply: "Quote page: "+ server.url + room + "/quotes"};
+				let fname;
+				if (Config.privateRooms.has(room)) {
+					fname = utils.generateTempFile(generateQuotePage(room), 15);
+				} else {
+					fname = room + "/quotes";
+				}
+				return {reply: "Quote page: "+ server.url + fname};
 			}
 
 			return {pmreply: "This room has no quotes."};
