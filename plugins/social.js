@@ -29,6 +29,7 @@ module.exports = {
 			if (room in motdTimers) clearTimeout(motdTimers[room]);
 
 			motdTimers[room] = setTimeout(() => delete motds[room], DAY);
+			motds[room] = message;
 
 			return {reply: "The motd was successfully set."};
 		},
