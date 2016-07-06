@@ -6,7 +6,7 @@
     "globals": {
 		"Config": false, "toId": false, "Tools": false, "Data": false, "errorMsg": false, "statusMsg": false,
         "Handler": false, "consoleMsg": false, "output": false, "stdout": false, "Databases": false, "Connection": false,
-        "pmMsg": false, "Settings": false, "canUse": false, "forceQuit": false, "Commands": false, "sanitize": false, "Server": false
+        "pmMsg": false, "Settings": false, "canUse": false, "forceQuit": false, "Commands": false, "sanitize": false, "Server": false, "Options": false
 	},
     "parserOptions": {
 		"ecmaVersion": 6,

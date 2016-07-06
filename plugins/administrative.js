@@ -48,9 +48,21 @@ module.exports = {
 			if (!room) return {pmreply: "This command can't be used in PMs."};
 
 			let params = message.split(',').map(param => toId(param));
-			if (!(params[0] in Commands)) return {pmreply: "Invalid command."};
 
-			if (params.length < 2) return {reply: "This command is currently turned " + (Settings[room] ? (Settings[room][params[0]] || 'on') : 'on') + '.'};
+			// Very dirty, but works for now. TODO: elegance.
+			let type;
+			if (params[0] in Commands) {
+				type = 'command';
+			} else if (Options.has(params[0])) {
+				type = 'option';
+			} else {
+				return {pmreply: "Invalid command or option."};
+			}
+
+			if (params.length < 2) {
+				if (type === 'command') return {reply: "Usage of the command " + params[0] + " is turned " + (Settings[room] ? Settings[room][params[1]] || 'on' : 'on') + '.'};
+				if (type === 'option') {reply: "The option " + params[0] + " is turned " + (Settings[room] ? Settings[room][params[1]] || 'off' : 'off') + '.';}
+			}
 
 			if (!Settings[room]) {
 				Settings[room] = {};
@@ -61,20 +73,28 @@ module.exports = {
 			case 'true':
 			case 'yes':
 			case 'enable':
-				delete Settings[room][params[0]];
+				if (type === 'command') {
+					delete Settings[room][params[0]];
+				} else if (type === 'option') {
+					Settings[room][params[0]] = 'on';
+				}
 				break;
 			case 'off':
 			case 'false':
 			case 'no':
 			case 'disable':
-				Settings[room][params[0]] = 'off';
+				if (type === 'command') {
+					Settings[room][params[0]] = 'off';
+				} else if (type === 'option') {
+					delete Settings[room][params[0]];
+				}
 				break;
 			default:
 				return {pmreply: "Invalid value. Use 'on' or 'off'."};
 			}
 
 			Databases.writeDatabase('settings');
-			return {reply: "Usage of " + params[0] + " was turned " + (Settings[room][params[0]] ? 'off': 'on') + '.'};
+			return {reply: "The " + type + " '" + params[0] + "' was turned " + (Settings[room][params[0]] ? Settings[room][params[0]] : (type === 'command' ? 'on' : 'off')) + '.'};
 		},
 
 		leave(userstr, room) {

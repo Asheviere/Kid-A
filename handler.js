@@ -51,6 +51,7 @@ Databases.addDatabase('data', loadData, writeData);
 let plugins = {};
 let analyzers = {};
 global.Commands = {};
+global.Options = new Set();
 
 fs.readdirSync('./plugins')
 	.filter((file) => file.endsWith('.js') && !Config.blacklistedPlugins.has(file.slice(0, -3)))
@@ -62,6 +63,11 @@ fs.readdirSync('./plugins')
 		if (plugin.commands) {
 			Object.keys(plugin.commands).forEach((c) => {
 				Commands[c] = plugin.commands[c];
+			});
+		}
+		if (plugin.options) {
+			plugin.options.forEach((o) => {
+				Options.add(o);
 			});
 		}
 	});
