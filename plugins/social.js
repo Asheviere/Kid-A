@@ -20,7 +20,7 @@ module.exports = {
 				if (!canUse(userstr, 1)) return {pmreply: "Permission denied."};
 				if (!(room in motds)) return {reply: "This room does not have a motd set."};
 
-				return {reply: (Settings[room] && Settings[room].announcemotd ? '/wall' : '') + "This room's motd is: " + motds[room]};
+				return {reply: (Settings[room] && Settings[room].announcemotd ? '/wall ' : '') + "This room's motd is: " + motds[room]};
 			}
 
 			if (!canUse(userstr, 3)) return {pmreply: "Permission denied."};
