@@ -32,7 +32,7 @@ module.exports = {
 			if (Data.data[room]) {
 				let fname;
 				if (Config.privateRooms.has(room)) {
-					fname = utils.generateTempFile(Handler.generateDataPage(room), 15);
+					fname = utils.generateTempFile(Handler.generateDataPage(room), 15, true);
 				} else {
 					fname = room + "/data";
 				}
