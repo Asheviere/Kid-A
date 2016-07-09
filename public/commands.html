@@ -26,16 +26,13 @@
                 or for you to be the owner of the bot.
             </p>
             <p class="helptopic">
-				<span>set (command) [on/off]:</span>
-                Turns the usage of a command on or off in this room. Requires Room Owner in the room.
+				<span>set (command/option) [on/off]:</span>
+                If supplied with an option, turns that option on or off. If supplied with the name of a command, turns the usage of a command on or off instead. Requires Room Owner in the room.
             </p>
             <p class="helptopic">
 				<span>leave:</span>
                 Makes the bot leave, and take the room off of autojoin (if autojoin is provided by inviting the bot).
-                If the bot is set to autojoin by Config, the bot will leave, but rejoin next restart. Requires Room
-                Owner in
-                the
-                room.
+                If the bot is set to autojoin by Config, the bot will leave, but rejoin next restart. Requires Room Owner in the room.
             </p>
         </div>
         <div>
@@ -100,7 +97,8 @@
             <h2 id="social">Social:</h2>
             <p class="helptopic">
 				<span>motd:</span>
-                Displays the current message of the day for the room. This command can be used in PM by specifying the room after the command.
+                Displays the current message of the day for the room. This command can be used in PM by specifying the room after the command.<br/>
+				Options: announcemotd - use /wall when displaying the motd.
             </p>
             <p class="helptopic">
 				<span>motd (motd):</span>
