@@ -52,6 +52,7 @@ let plugins = {};
 let analyzers = {};
 global.Commands = {};
 global.Options = new Set();
+global.Userlists = {};
 
 fs.readdirSync('./plugins')
 	.filter((file) => file.endsWith('.js') && !Config.blacklistedPlugins.has(file.slice(0, -3)))
@@ -141,6 +142,22 @@ module.exports = {
 		}
 	},
 
+	addUser(user, room) {
+		if (!(room in Userlists)) {
+			if (Array.isArray(user)) {
+				Userlists[room] = new Set(user);
+				return true;
+			}
+			Userlists[room] = new Set();
+		}
+		return Userlists[room].add(toId(user));
+	},
+
+	removeUser(user, room) {
+		if (!(room in Userlists)) return false;
+		return Userlists[room].delete(toId(user));
+	},
+
 	parseIP(html) {
 		let userid = toId(html('.username').text());
 		let split = html.root().html().split('>');
@@ -165,9 +182,7 @@ module.exports = {
 	parse(message) {
 		if (!message) return;
 		let split = message.split('|');
-		if (!split[0]) split[0] = '>lobby\n'; // Zarel can't code
-
-		let roomid;
+		let roomid = split[0].slice(1, -1) || 'lobby';
 		switch (split[1]) {
 		case 'challstr':
 			statusMsg('Received challstr, logging in...');
@@ -216,6 +231,9 @@ module.exports = {
 				);
 			}
 			break;
+		case 'init':
+			this.addUser(split[6].split(',').map(username => toId(username)), roomid);
+			break;
 		case 'pm':
 			if (toId(split[2]) === toId(Config.username)) return false;
 
@@ -239,7 +257,6 @@ module.exports = {
 		case 'c':
 			if (toId(split[2]) === Config.username) return;
 
-			roomid = split[0].slice(1, -1);
 			split[3] = split.splice(3).join('|');
 			if (split[3].startsWith(Config.commandSymbol)) {
 				this.parseCommand(split[2], roomid, split[3]);
@@ -249,7 +266,6 @@ module.exports = {
 		case 'c:':
 			if (toId(split[3]) === Config.username) return;
 
-			roomid = split[0].slice(1, -1);
 			split[4] = split.splice(4).join('|');
 			if (split[4].startsWith(Config.commandSymbol)) {
 				this.parseCommand(split[3], roomid, split[4]);
