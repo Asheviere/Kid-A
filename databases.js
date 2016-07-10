@@ -20,7 +20,7 @@ module.exports = {
 
 		let value = this.databases[id].loader();
 
-		if (value) Data[id] = value;
+		Data[id] = value || {};
 	},
 
 	writeDatabase(id) {
