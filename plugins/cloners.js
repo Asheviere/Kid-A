@@ -113,7 +113,7 @@ class WifiList {
 			let param = params[i].split(':').map(param => param.trim());
 			if (param.length !== 2) return {reply: "Syntax error in " + params[i]};
 			param[0] = toId(param[0]);
-			if (param[0] === 'username') return {reply: "Usernames can't be changed. Delete and re-add the user instead."};
+			if (param[0] === 'username' || param[0] === 'lastdate') return {reply: "Usernames can't be changed. Delete and re-add the user instead."};
 			if (!(param[0] in COLUMN_KEYS)) return {reply: "Invalid key: " + param[0]};
 			Data[this.name][userid][param[0]] = param[1];
 		}
@@ -144,7 +144,7 @@ module.exports = {
 			if (room !== WIFI_ROOM) return {pmreply: "This command can only be used in the Wi-Fi room."};
 			if (!canUse(userstr, 4)) return {pmreply: "Permission denied."};
 
-			let params = message.split(',').map(param => param.trim());
+			let params = message.split((message.includes('|') ? '|' : ',')).map(param => param.trim());
 			return clonerList.addUser(userstr.substr(1), params);
 		},
 		removecloner(userstr, room, message) {
@@ -155,7 +155,7 @@ module.exports = {
 		},
 		updatecloner(userstr, room, message) {
 			if (room !== WIFI_ROOM) return {pmreply: "This command can only be used in the Wi-Fi room."};
-			let params = message.split(',').map(param => param.trim());
+			let params = message.split((message.includes('|') ? '|' : ',')).map(param => param.trim());
 			let userid = toId(params[0]);
 
 			if (!(userid in Data.cloners)) return {pmreply: "User is not on the cloner list."};
@@ -187,7 +187,7 @@ module.exports = {
 			if (room !== WIFI_ROOM) return {pmreply: "This command can only be used in the Wi-Fi room."};
 			if (!canUse(userstr, 4)) return {pmreply: "Permission denied."};
 
-			let params = message.split(',').map(param => param.trim());
+			let params = message.split((message.includes('|') ? '|' : ',')).map(param => param.trim());
 			return trainerList.addUser(userstr.substr(1), params);
 		},
 		removetrainer(userstr, room, message) {
@@ -198,7 +198,7 @@ module.exports = {
 		},
 		updatetrainer(userstr, room, message) {
 			if (room !== WIFI_ROOM) return {pmreply: "This command can only be used in the Wi-Fi room."};
-			let params = message.split(',').map(param => param.trim());
+			let params = message.split((message.includes('|') ? '|' : ',')).map(param => param.trim());
 			let userid = toId(params[0]);
 
 			if (!(userid in Data.trainers)) return {pmreply: "User is not on the trainer list."};

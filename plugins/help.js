@@ -5,6 +5,7 @@ const server = require('../server.js');
 
 const helpTopics = {
 	commands: 'commands.html',
+	wifi: 'wifi.html',
 };
 
 const REPO_URL = 'https://github.com/bumbadadabum/Kid-A';
