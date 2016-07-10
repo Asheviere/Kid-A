@@ -206,7 +206,7 @@ module.exports = {
 
 			return trainerList.updateUser(userstr.substr(1), params);
 		},
-		evadd(userstr, room, message) {
+		traineractivity(userstr, room, message) {
 			if (room !== WIFI_ROOM) return {pmreply: "This command can only be used in the Wi-Fi room."};
 			if (!canUse(userstr, 4)) return {pmreply: "Permission denied."};
 
