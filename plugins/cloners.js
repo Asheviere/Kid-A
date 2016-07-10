@@ -62,7 +62,7 @@ class WifiList {
 						let date = new Date(parseInt(Data[this.name][i][j]));
 						content += '<td>' + date.toDateString() + '</td>';
 					} else {
-						content += '<td>' + Data[this.name][i][j] + '</td>';
+						content += '<td>' + sanitize(Data[this.name][i][j]) + '</td>';
 					}
 				}
 				content += '</tr>';
@@ -73,7 +73,7 @@ class WifiList {
 		let generateOnlinePage = (req, res) => {
 			let content = '<!DOCTYPE html><html><head><link rel="stylesheet" type="text/css" href="../style.css"><title>Online ' + this.name + ' list - Kid A</title></head><body><div class="container"><h2>Online ' + this.name + ':</h2><ul>';
 			for (let i in Data[this.name]) {
-				if (Userlists[WIFI_ROOM] && Userlists[WIFI_ROOM].has(i)) content += '<li>' + Data[this.name][i].username + '</li>';
+				if (Userlists[WIFI_ROOM] && Userlists[WIFI_ROOM].has(i)) content += '<li>' + sanitize(Data[this.name][i].username) + '</li>';
 			}
 			res.end(content + '</ul></div></body></html>');
 		};
