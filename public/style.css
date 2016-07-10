@@ -22,6 +22,30 @@ h2 {
     margin: 0px;
     text-decoration: underline #dd2c00;
 }
+table {
+    margin-top:10px;
+    margin-bottom:10px;
+    margin-left:auto;
+    margin-right:auto;
+    border-collapse: collapse;
+}
+th, td {
+   border-bottom: 1px solid #d5d5d5;
+   font-size:12pt;
+   text-align:center;
+}
+th {
+   padding:13px;
+   font-size:15pt;
+   background: #1a237e;
+   color: white;
+}
+td {
+   padding:7px;
+}
+tr:hover {
+    background-color: #fafafa
+}
 .note {
     font-size: 9pt;
     opacity: 0.7;
@@ -50,5 +74,5 @@ h2 {
 	opacity: 0.87;
 }
 .analyzer p {
-	
+
 }
