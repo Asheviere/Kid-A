@@ -18,13 +18,13 @@ exports.avatar = 246;
 exports.commandSymbol = '.';
 
 // Names of  the administrators of the bot.
-exports.admins = new Set([]);
+exports.admins = new Set();
 
 // Blacklisted plugins. Accepts filenames.
-exports.blacklistedPlugins = new Set([]);
+exports.blacklistedPlugins = new Set();
 
 // Rooms that shouldn't show up in on public pages.
-exports.privateRooms = new Set([]);
+exports.privateRooms = new Set();
 
 // Whether the bot can (and should) check IPs instead of usernames for room moderation.
 exports.checkIps = 'true';
