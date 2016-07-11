@@ -53,7 +53,7 @@ class WifiList {
 		Databases.addDatabase(this.name, loadList, writeList);
 
 		let generatePage = (req, res) => {
-			let content = '<!DOCTYPE html><html><head><link rel="stylesheet" type="text/css" href="../style.css"><title>' + this.name + ' list - Kid A</title></head><body><div class="container"><table>';
+			let content = '<!DOCTYPE html><html><head><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="../style.css"><title>' + this.name + ' list - Kid A</title></head><body><div class="container"><table>';
 			content += '<tr class="header"><th>' + this.columnNames.join('</th><th>') + '</th></tr>';
 			for (let i in Data[this.name]) {
 				content += '<tr>';
@@ -71,7 +71,7 @@ class WifiList {
 		};
 
 		let generateOnlinePage = (req, res) => {
-			let content = '<!DOCTYPE html><html><head><link rel="stylesheet" type="text/css" href="../style.css"><title>Online ' + this.name + ' list - Kid A</title></head><body><div class="container"><h2>Online ' + this.name + ':</h2><ul>';
+			let content = '<!DOCTYPE html><html><head><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="../style.css"><title>Online ' + this.name + ' list - Kid A</title></head><body><div class="container"><h2>Online ' + this.name + ':</h2><ul>';
 			for (let i in Data[this.name]) {
 				if (Userlists[WIFI_ROOM] && Userlists[WIFI_ROOM].has(i)) content += '<li>' + sanitize(Data[this.name][i].username) + '</li>';
 			}

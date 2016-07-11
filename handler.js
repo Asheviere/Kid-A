@@ -296,7 +296,7 @@ module.exports = {
 	},
 
 	generateDataPage(room) {
-		let content = '<!DOCTYPE html><html><head><link rel="stylesheet" type="text/css" href="../style.css"><title>' + room + ' - Kid A</title></head><body><div class="container">';
+		let content = '<!DOCTYPE html><html><head><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="../style.css"><title>' + room + ' - Kid A</title></head><body><div class="container">';
 		content += "<h1>" + room + ' data:</h1><div class="quotes">';
 		for (let i in analyzers) {
 			content += '<div class="analyzer">';

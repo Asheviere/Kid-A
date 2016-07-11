@@ -24,7 +24,7 @@ function writeQuotes() {
 Databases.addDatabase('quotes', loadQuotes, writeQuotes);
 
 function generateQuotePage(room) {
-	let content = '<!DOCTYPE html><html><head><link rel="stylesheet" type="text/css" href="../style.css"><title>' + room + ' - Kid A</title></head><body><div class="container">';
+	let content = '<!DOCTYPE html><html><head><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="../style.css"><title>' + room + ' - Kid A</title></head><body><div class="container">';
 	if (Data.quotes[room]) {
 		content += "<h1>" + room + ' quotes:</h1><div class="quotes">';
 		for (let i = 0; i < Data.quotes[room].length; i++) {
