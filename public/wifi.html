@@ -39,7 +39,7 @@
 		<div>
 			<h2 id="trainers">Trainer list:</h2>
 			<p class="helptopic">
-				<span>addtrainer (username, fc, ign, notes):</span>
+				<span>addtrainer (username, fc, ign, evs, levels, collateral, notes):</span>
 				Adds a trainer to the trainer list. If you wish to have commas in any of the fields, use '|' as the separator instead of ','. Requires Room Moderator.
 			</p>
 			<p class="helptopic">
@@ -48,7 +48,7 @@
 			</p>
 			<p class="helptopic">
 				<span>updatetrainer (username, [key: value, key: value]):</span>
-				Updates the information of a trainer. Possible values for keys are: <strong>fc, ign, notes</strong>. If you wish to have commas in any of the fields, use '|' as the separator instead of ','. Trainers can update their own info, and Room Moderators can edit any cloner's info.
+				Updates the information of a trainer. Possible values for keys are: <strong>fc, ign, evs, levels, collateral, notes</strong>. If you wish to have commas in any of the fields, use '|' as the separator instead of ','. Trainers can update their own info, and Room Moderators can edit any trainer's info.
 			</p>
 			<p class="helptopic">
 				<span>traineractivity (username):</span>
@@ -57,6 +57,30 @@
 			<p class="helptopic">
 				<span>purgetrainers:</span>
 				Removes all trainers from the list that haven't done a giveaway in the past 30 days. Requires Room Owner.
+			</p>
+		</div>
+
+		<div>
+			<h2 id="scammers">Scammer list:</h2>
+			<p class="helptopic">
+				<span>addscammer (main, alts, fc, ign, evidence, reason, status):</span>
+				Adds a scammer to the scammer list. If you wish to have commas in any of the fields, use '|' as the separator instead of ','. Requires Room Moderator.
+			</p>
+			<p class="helptopic">
+				<span>removescammer (username):</span>
+				Removes a scammer from the scammer list. Requires Room Moderator.
+			</p>
+			<p class="helptopic">
+				<span>updatescammer (username, [key: value, key: value]):</span>
+				Updates the information of a scammer. Possible values for keys are: <strong>alts, fc, ign, evidence, reason, status, addedby</strong>. If you wish to have commas in any of the fields, use '|' as the separator instead of ','. Room Moderators can edit any scammer's info.
+			</p>
+			<p class="helptopic">
+				<span>addscammeralt (username, alt1[, alt2, alt3...]):</span>
+				Adds an alt to the scammer's entry. Requires Room Moderator.
+			</p>
+			<p class="helptopic">
+				<span>checkfc (fc):</span>
+				Checks if the given FC is on the scammer list. Works in PM.
 			</p>
 		</div>
     </div>

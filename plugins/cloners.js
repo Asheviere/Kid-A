@@ -6,15 +6,21 @@ const server = require('../server.js');
 
 const MONTH = 30 * 24 * 60 * 60 * 1000;
 
-const COLUMN_KEYS = ['username', 'fc', 'ign', 'notes', 'lastdate'];
-
 const WIFI_ROOM = 'wifi';
 
+let oldFCs;
+try {
+	oldFCs = require('../data/fclist.json');
+} catch (e) {}
+
+if (!Array.isArray(oldFCs)) oldFCs = [];
+
 class WifiList {
-	constructor(name, file, columnNames) {
+	constructor(name, file, columnNames, columnKeys, noOnlinePage) {
 		this.name = name;
 		this.file = file;
 		this.columnNames = columnNames;
+		this.columnKeys = columnKeys.push('date');
 
 		let loadList = () => {
 			let users = Object.create(null);
@@ -32,8 +38,8 @@ class WifiList {
 
 				let userid = toId(row[0]);
 				users[userid] = {};
-				for (let i = 0; i < COLUMN_KEYS.length; i++) {
-					users[userid][COLUMN_KEYS[i]] = row[i];
+				for (let i = 0; i < this.columnKeys.length; i++) {
+					users[userid][this.columnKeys[i]] = row[i];
 				}
 			}
 
@@ -70,27 +76,30 @@ class WifiList {
 			res.end(content + '</table></div></body></html>');
 		};
 
-		let generateOnlinePage = (req, res) => {
-			let content = '<!DOCTYPE html><html><head><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="../style.css"><title>Online ' + this.name + ' list - Kid A</title></head><body><div class="container"><h2>Online ' + this.name + ':</h2><ul>';
-			for (let i in Data[this.name]) {
-				if (Userlists[WIFI_ROOM] && Userlists[WIFI_ROOM].has(i)) content += '<li>' + sanitize(Data[this.name][i].username) + '</li>';
-			}
-			res.end(content + '</ul></div></body></html>');
-		};
-
 		server.addRoute('/' + WIFI_ROOM + '/' + this.name, generatePage);
-		server.addRoute('/' + WIFI_ROOM + '/o' + this.name, generateOnlinePage);
+
+		if (!noOnlinePage) {
+			let generateOnlinePage = (req, res) => {
+				let content = '<!DOCTYPE html><html><head><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="../style.css"><title>Online ' + this.name + ' list - Kid A</title></head><body><div class="container"><h2>Online ' + this.name + ':</h2><ul>';
+				for (let i in Data[this.name]) {
+					if (Userlists[WIFI_ROOM] && Userlists[WIFI_ROOM].has(i)) content += '<li>' + sanitize(Data[this.name][i].username) + '</li>';
+				}
+				res.end(content + '</ul></div></body></html>');
+			};
+
+			server.addRoute('/' + WIFI_ROOM + '/o' + this.name, generateOnlinePage);
+		}
 	}
 
 	addUser(user, params) {
-		if (params.length !== COLUMN_KEYS.length - 1) return {reply: "Invalid amount of arguments"};
+		if (params.length !== this.columnKeys.length - 1) return {reply: "Invalid amount of arguments"};
 		if (toId(params[0]) in Data[this.name]) return {reply: "'" + params[0] + "' is already a " + this.name.slice(0, -1) + "."};
 
 		let userid = toId(params[0]);
 		Data[this.name][userid] = {};
 		params.push(Date.now());
-		for (let i = 0; i < COLUMN_KEYS.length; i++) {
-			Data[this.name][userid][COLUMN_KEYS[i]] = params[i];
+		for (let i = 0; i < this.columnKeys.length; i++) {
+			Data[this.name][userid][this.columnKeys[i]] = params[i];
 		}
 		fs.appendFileSync(this.file, params.join('\t') + '\n');
 
@@ -113,8 +122,8 @@ class WifiList {
 			let param = params[i].split(':').map(param => param.trim());
 			if (param.length !== 2) return {reply: "Syntax error in " + params[i]};
 			param[0] = toId(param[0]);
-			if (param[0] === 'username' || param[0] === 'lastdate') return {reply: "Usernames can't be changed. Delete and re-add the user instead."};
-			if (!(param[0] in COLUMN_KEYS)) return {reply: "Invalid key: " + param[0]};
+			if (param[0] === 'username' || param[0] === 'date') return {reply: "This column can't be changed."};
+			if (!(param[0] in this.columnKeys)) return {reply: "Invalid key: " + param[0]};
 			Data[this.name][userid][param[0]] = param[1];
 		}
 
@@ -135,8 +144,9 @@ class WifiList {
 	}
 }
 
-const clonerList = new WifiList('cloners', './data/cloners.tsv', ['PS Username', 'Friend code', 'IGN', 'Notes', 'Date of last giveaway']);
-const trainerList = new WifiList('trainers', './data/trainers.tsv', ['PS Username', 'Friend code', 'IGN', 'Notes', 'Date of last EV training']);
+const clonerList = new WifiList('cloners', './data/cloners.tsv', ['PS Username', 'Friend code', 'IGN', 'Notes', 'Date of last giveaway'], ['username', 'fc', 'ign', 'notes']);
+const trainerList = new WifiList('trainers', './data/trainers.tsv', ['PS Username', 'Friend code', 'IGN', 'EV Spread Type', 'Level Training', 'Collateral', 'Notes', 'Date of last EV training'], ['username', 'fc', 'ign', 'evs', 'levels', 'collateral', 'notes']);
+const scammerList = new WifiList('scammers', './data/scammers.tsv', ['PS Username', 'Alts', 'Friend code', 'IGN', 'Evidence', 'Reason', 'Status', 'Added by', 'Date added'], ['username', 'alts', 'fc', 'ign', 'evidence', 'reason', 'status', 'addedby']);
 
 module.exports = {
 	commands: {
@@ -219,11 +229,62 @@ module.exports = {
 
 			return {reply: "Trainer list updated."};
 		},
-		purgetrainer(userstr, room) {
+		purgetrainers(userstr, room) {
 			if (room !== WIFI_ROOM) return {pmreply: "This command can only be used in the Wi-Fi room."};
 			if (!canUse(userstr, 5)) return {pmreply: "Permission denied."};
 
 			return trainerList.purgeList();
+		},
+
+		addscammer(userstr, room, message) {
+			if (room !== WIFI_ROOM) return {pmreply: "This command can only be used in the Wi-Fi room."};
+			if (!canUse(userstr, 4)) return {pmreply: "Permission denied."};
+
+			let params = message.split((message.includes('|') ? '|' : ',')).map(param => param.trim());
+			return scammerList.addUser(userstr.substr(1), params.push(userstr.substr(1)));
+		},
+		removescammer(userstr, room, message) {
+			if (room !== WIFI_ROOM) return {pmreply: "This command can only be used in the Wi-Fi room."};
+			if (!canUse(userstr, 4)) return {pmreply: "Permission denied."};
+
+			return scammerList.removeUser(userstr.substr(1), toId(message));
+		},
+		updatescammer(userstr, room, message) {
+			if (room !== WIFI_ROOM) return {pmreply: "This command can only be used in the Wi-Fi room."};
+			if (!canUse(userstr, 4)) return {pmreply: "Permission denied."};
+
+			let params = message.split((message.includes('|') ? '|' : ',')).map(param => param.trim());
+			let userid = toId(params[0]);
+
+			if (!(userid in Data.scammers)) return {pmreply: "User is not on the scammer list."};
+
+			return scammerList.updateUser(userstr.substr(1), params);
+		},
+		addscammeralt(userstr, room, message) {
+			if (room !== WIFI_ROOM) return {pmreply: "This command can only be used in the Wi-Fi room."};
+			if (!canUse(userstr, 4)) return {pmreply: "Permission denied."};
+
+			let params = message.split(',').map(param => param.trim());
+			let userid = toId(params[0]);
+
+			if (!(userid in Data.scammers)) return {pmreply: "User is not on the scammer list."};
+
+			return scammerList.updateUser(userstr.substr(1), [userid, 'alts:' + Data.scammers[userid].alts + ', ' + params.slice(1).join(', ')]);
+		},
+		checkfc(userstr, room, message) {
+			if (!canUse(userstr, 1)) return {pmreply: "Permission denied."};
+			let id = toId(message);
+			if (!(id.length === 12 && parseInt(id))) return {reply: "Invalid input."};
+
+			let fc = id.substr(0, 4) + '-' + id.substr(4, 4) + '-' + id.substr(8, 4);
+
+			if (oldFCs.indexOf(fc) > -1) return {reply: "This FC is on the old scammers list."};
+
+			for (let i in Data.scammers) {
+				if (Data.scammers[i].fc === fc) return {reply: "This IP belongs to " + Data.scammers[i].username + ", who was put on the list for '" + Data.scammers[i].reason + "'."};
+			}
+
+			return {reply: "This FC was not found on the scammers list."};
 		},
 	},
 };
