@@ -14,6 +14,7 @@ try {
 } catch (e) {}
 
 if (!Array.isArray(oldFCs)) oldFCs = [];
+oldFCs = new Set(oldFCs);
 
 class WifiList {
 	constructor(name, file, columnNames, columnKeys, noOnlinePage) {
@@ -278,7 +279,7 @@ module.exports = {
 
 			let fc = id.substr(0, 4) + '-' + id.substr(4, 4) + '-' + id.substr(8, 4);
 
-			if (oldFCs.indexOf(fc) > -1) return {reply: "This FC is on the old scammers list."};
+			if (oldFCs.has(fc)) return {reply: "This FC is on the old scammers list."};
 
 			for (let i in Data.scammers) {
 				if (Data.scammers[i].fc === fc) return {reply: "This IP belongs to " + Data.scammers[i].username + ", who was put on the list for '" + Data.scammers[i].reason + "'."};
