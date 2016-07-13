@@ -123,7 +123,7 @@ class WifiList {
 			if (param.length !== 2) return {reply: "Syntax error in " + params[i]};
 			param[0] = toId(param[0]);
 			if (param[0] === 'username' || param[0] === 'date') return {reply: "This column can't be changed."};
-			if (!(param[0] in this.columnKeys)) return {reply: "Invalid key: " + param[0]};
+			if (this.columnKeys.indexOf(param[0]) < 0) return {reply: "Invalid key: " + param[0]};
 			Data[this.name][userid][param[0]] = param[1];
 		}
 
