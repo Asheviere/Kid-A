@@ -240,8 +240,8 @@ module.exports = {
 			if (room !== WIFI_ROOM) return {pmreply: "This command can only be used in the Wi-Fi room."};
 			if (!canUse(userstr, 4)) return {pmreply: "Permission denied."};
 
-			let params = message.split((message.includes('|') ? '|' : ',')).map(param => param.trim());
-			return scammerList.addUser(userstr.substr(1), params.push(userstr.substr(1)));
+			let params = message.split((message.includes('|') ? '|' : ',')).map(param => param.trim()).push(userstr.substr(1));
+			return scammerList.addUser(userstr.substr(1), params);
 		},
 		removescammer(userstr, room, message) {
 			if (room !== WIFI_ROOM) return {pmreply: "This command can only be used in the Wi-Fi room."};
