@@ -8,20 +8,17 @@ const MONTH = 30 * 24 * 60 * 60 * 1000;
 
 const WIFI_ROOM = 'wifi';
 
-let oldFCs;
-try {
-	oldFCs = require('../data/fclist.json');
-} catch (e) {}
-
-if (!Array.isArray(oldFCs)) oldFCs = [];
-oldFCs = new Set(oldFCs);
-
 class WifiList {
-	constructor(name, file, columnNames, columnKeys, noOnlinePage) {
+	constructor(name, file, columnNames, columnKeys, noOnlinePage, noTime) {
 		this.name = name;
 		this.file = file;
 		this.columnNames = columnNames;
-		this.columnKeys = columnKeys.push('date');
+		this.columnKeys = columnKeys;
+		this.noTime = noTime;
+
+		if (!noTime) {
+			columnKeys.push('date');
+		}
 
 		let loadList = () => {
 			let users = Object.create(null);
@@ -65,7 +62,7 @@ class WifiList {
 			for (let i in Data[this.name]) {
 				content += '<tr>';
 				for (let j in Data[this.name][i]) {
-					if (j === 'lastdate') {
+					if (j === 'date') {
 						let date = new Date(parseInt(Data[this.name][i][j]));
 						content += '<td>' + date.toDateString() + '</td>';
 					} else {
@@ -98,7 +95,9 @@ class WifiList {
 
 		let userid = toId(params[0]);
 		Data[this.name][userid] = {};
-		params.push(Date.now());
+		if (!this.noTime) {
+			params.push(Date.now());
+		}
 		for (let i = 0; i < this.columnKeys.length; i++) {
 			Data[this.name][userid][this.columnKeys[i]] = params[i];
 		}
@@ -147,7 +146,7 @@ class WifiList {
 
 const clonerList = new WifiList('cloners', './data/cloners.tsv', ['PS Username', 'Friend code', 'IGN', 'Notes', 'Date of last giveaway'], ['username', 'fc', 'ign', 'notes']);
 const trainerList = new WifiList('trainers', './data/trainers.tsv', ['PS Username', 'Friend code', 'IGN', 'EV Spread Type', 'Level Training', 'Collateral', 'Notes', 'Date of last EV training'], ['username', 'fc', 'ign', 'evs', 'levels', 'collateral', 'notes']);
-const scammerList = new WifiList('scammers', './data/scammers.tsv', ['PS Username', 'Alts', 'Friend code', 'IGN', 'Evidence', 'Reason', 'Status', 'Added by', 'Date added'], ['username', 'alts', 'fc', 'ign', 'evidence', 'reason', 'status', 'addedby']);
+const scammerList = new WifiList('scammers', './data/scammers.tsv', ['PS Username', 'Alts', 'Friend code', 'IGN', 'Evidence', 'Reason', 'Added by'], ['username', 'alts', 'fc', 'ign', 'evidence', 'reason', 'addedby'], true, true);
 
 module.exports = {
 	commands: {
@@ -278,8 +277,6 @@ module.exports = {
 			if (!(id.length === 12 && parseInt(id))) return {reply: "Invalid input."};
 
 			let fc = id.substr(0, 4) + '-' + id.substr(4, 4) + '-' + id.substr(8, 4);
-
-			if (oldFCs.has(fc)) return {reply: "This FC is on the old scammers list."};
 
 			for (let i in Data.scammers) {
 				if (Data.scammers[i].fc === fc) return {reply: "This IP belongs to " + Data.scammers[i].username + ", who was put on the list for '" + Data.scammers[i].reason + "'."};
