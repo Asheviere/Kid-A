@@ -117,7 +117,7 @@ class WifiList {
 	}
 
 	updateUser(user, params) {
-		let userid = toId(user);
+		let userid = toId(params[0]);
 		for (let i = 1; i < params.length; i++) {
 			let param = params[i].split(':').map(param => param.trim());
 			if (param.length !== 2) return {reply: "Syntax error in " + params[i]};
@@ -128,7 +128,7 @@ class WifiList {
 		}
 
 		Databases.writeDatabase(this.name);
-		Connection.send(WIFI_ROOM + '|/modnote ' + user + ' updated ' + (toId(user) === toId(params[0]) ? 'their' : toId(params[0]) + "'s'") + ' ' + this.name.slice(0, -1) + ' info.');
+		Connection.send(WIFI_ROOM + '|/modnote ' + user + ' updated ' + (toId(user) === userid ? 'their' : userid + "'s'") + ' ' + this.name.slice(0, -1) + ' info.');
 		return {reply: "User successfully updated."};
 	}
 
