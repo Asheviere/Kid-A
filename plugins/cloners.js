@@ -90,7 +90,7 @@ class WifiList {
 	}
 
 	addUser(user, params) {
-		if (params.length !== this.columnKeys.length - 1) return {reply: "Invalid amount of arguments"};
+		if (params.length !== this.columnKeys.length - (this.noTime ? 0 : 1)) return {reply: "Invalid amount of arguments"};
 		if (toId(params[0]) in Data[this.name]) return {reply: "'" + params[0] + "' is already a " + this.name.slice(0, -1) + "."};
 
 		let userid = toId(params[0]);
