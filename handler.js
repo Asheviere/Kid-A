@@ -154,7 +154,7 @@ module.exports = {
 			}
 			return true;
 		}
-		Userlists[room][toId(user)] = toId(user);
+		Userlists[room][toId(user)] = [user[0], toId(user)];
 	},
 
 	removeUser(user, room) {
