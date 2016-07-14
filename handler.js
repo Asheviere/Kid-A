@@ -144,18 +144,22 @@ module.exports = {
 
 	addUser(user, room) {
 		if (!(room in Userlists)) {
-			if (Array.isArray(user)) {
-				Userlists[room] = new Set(user);
-				return true;
-			}
-			Userlists[room] = new Set();
+			Userlists[room] = {};
 		}
-		return Userlists[room].add(toId(user));
+
+		if (Array.isArray(user)) {
+			Userlists[room] = {};
+			for (let i = 0; i < user.length; i++) {
+				Userlists[room][toId(user[i])] = [user[i][0], toId(user[i])];
+			}
+			return true;
+		}
+		Userlists[room][toId(user)] = toId(user);
 	},
 
 	removeUser(user, room) {
 		if (!(room in Userlists)) return false;
-		return Userlists[room].delete(toId(user));
+		delete Userlists[room][toId(user)];
 	},
 
 	parseIP(html) {
@@ -231,8 +235,18 @@ module.exports = {
 				);
 			}
 			break;
+		case 'J':
+			this.addUser(split[2], roomid);
+			break;
+		case 'L':
+			this.removeUser(split[2], roomid);
+			break;
+		case 'N':
+			this.addUser(split[2], roomid);
+			this.removeUser(split[3], roomid);
+			break;
 		case 'init':
-			this.addUser(split[6].split(',').map(username => toId(username)), roomid);
+			this.addUser(split[6].trim().split(',').slice(1), roomid);
 			break;
 		case 'pm':
 			if (toId(split[2]) === toId(Config.username)) return false;

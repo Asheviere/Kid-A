@@ -80,7 +80,7 @@ class WifiList {
 			let generateOnlinePage = (req, res) => {
 				let content = '<!DOCTYPE html><html><head><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="../style.css"><title>Online ' + this.name + ' list - Kid A</title></head><body><div class="container"><h2>Online ' + this.name + ':</h2><ul>';
 				for (let i in Data[this.name]) {
-					if (Userlists[WIFI_ROOM] && Userlists[WIFI_ROOM].has(i)) content += '<li>' + sanitize(Data[this.name][i].username) + '</li>';
+					if (Userlists[WIFI_ROOM] && (i in Userlists[WIFI_ROOM])) content += '<li>' + sanitize(Data[this.name][i].username) + '</li>';
 				}
 				res.end(content + '</ul></div></body></html>');
 			};
