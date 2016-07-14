@@ -10,13 +10,13 @@
     <div>
         <h1>Wi-Fi room commands in Kid A:</h1>
 
-        <p class="note"><strong>NOTE:</strong> These commands can only be used in the Wi-Fi room.</p>
+        <p class="note"><strong>NOTE:</strong> These commands can only be used in the Wi-Fi room or in PM.</p>
 
         <div>
             <h2 id="cloners">Cloner list:</h2>
             <p class="helptopic">
                 <span>addcloner (username, fc, ign, notes):</span>
-                Adds a cloner to the cloner list. If you wish to have commas in any of the fields, use '|' as the separator instead of ','. Requires Room Moderator.
+                Adds a cloner to the cloner list. If you wish to have commas in any of the fields, use '|' as the separator instead of ','. Requires Room Owner or cloner whitelist.
             </p>
             <p class="helptopic">
 				<span>removecloner (username):</span>
@@ -24,11 +24,11 @@
             </p>
             <p class="helptopic">
 				<span>updatecloner (username, [key: value, key: value]):</span>
-                Updates the information of a cloner. Possible values for keys are: <strong>fc, ign, notes</strong>. If you wish to have commas in any of the fields, use '|' as the separator instead of ','. Cloners can update their own info, and Room Moderators can edit any cloner's info.
+                Updates the information of a cloner. Possible values for keys are: <strong>fc, ign, notes</strong>. If you wish to have commas in any of the fields, use '|' as the separator instead of ','. Cloners can update their own info, and Room Owners or cloner whitelisted users can edit any cloner's info.
             </p>
             <p class="helptopic">
 				<span>clonerga (username):</span>
-                Approves a cloner's monthly giveaway, and updates the date on the list. Requires Room Moderator.
+                Approves a cloner's monthly giveaway, and updates the date on the list. Requires Room Owner or cloner whitelist.
             </p>
 			<p class="helptopic">
 				<span>purgecloners:</span>
@@ -40,7 +40,7 @@
 			<h2 id="trainers">Trainer list:</h2>
 			<p class="helptopic">
 				<span>addtrainer (username, fc, ign, evs, levels, collateral, notes):</span>
-				Adds a trainer to the trainer list. If you wish to have commas in any of the fields, use '|' as the separator instead of ','. Requires Room Moderator.
+				Adds a trainer to the trainer list. If you wish to have commas in any of the fields, use '|' as the separator instead of ','. Requires Room Owner or trainer whitelist.
 			</p>
 			<p class="helptopic">
 				<span>removetrainer (username):</span>
@@ -48,11 +48,11 @@
 			</p>
 			<p class="helptopic">
 				<span>updatetrainer (username, [key: value, key: value]):</span>
-				Updates the information of a trainer. Possible values for keys are: <strong>fc, ign, evs, levels, collateral, notes</strong>. If you wish to have commas in any of the fields, use '|' as the separator instead of ','. Trainers can update their own info, and Room Moderators can edit any trainer's info.
+				Updates the information of a trainer. Possible values for keys are: <strong>fc, ign, evs, levels, collateral, notes</strong>. If you wish to have commas in any of the fields, use '|' as the separator instead of ','. Trainers can update their own info, and Room Owners or trainer whitelisted users can edit any trainer's info.
 			</p>
 			<p class="helptopic">
 				<span>traineractivity (username):</span>
-				Approves a trainer's monthly EV training, and updates the date on the list. Requires Room Moderator.
+				Approves a trainer's monthly EV training, and updates the date on the list. Requires Room Owner or trainer whitelist.
 			</p>
 			<p class="helptopic">
 				<span>purgetrainers:</span>
@@ -64,7 +64,7 @@
 			<h2 id="scammers">Scammer list:</h2>
 			<p class="helptopic">
 				<span>addscammer (main, alts, fc, ign, evidence, reason):</span>
-				Adds a scammer to the scammer list. If you wish to have commas in any of the fields, use '|' as the separator instead of ','. Requires Room Moderator.
+				Adds a scammer to the scammer list. If you wish to have commas in any of the fields, use '|' as the separator instead of ','. Requires Room Driver.
 			</p>
 			<p class="helptopic">
 				<span>removescammer (username):</span>
@@ -72,15 +72,15 @@
 			</p>
 			<p class="helptopic">
 				<span>updatescammer (username, [key: value, key: value]):</span>
-				Updates the information of a scammer. Possible values for keys are: <strong>alts, fc, ign, evidence, reason, addedby</strong>. If you wish to have commas in any of the fields, use '|' as the separator instead of ','. Room Moderators can edit any scammer's info.
+				Updates the information of a scammer. Possible values for keys are: <strong>alts, fc, ign, evidence, reason, addedby</strong>. If you wish to have commas in any of the fields, use '|' as the separator instead of ','. Room Drivers can edit any scammer's info.
 			</p>
 			<p class="helptopic">
 				<span>addscammeralt (username, alt1[, alt2, alt3...]):</span>
-				Adds an alt to the scammer's entry. Requires Room Moderator.
+				Adds an alt to the scammer's entry. Requires Room Driver.
 			</p>
 			<p class="helptopic">
 				<span>checkfc (fc):</span>
-				Checks if the given FC is on the scammer list. Works in PM.
+				Checks if the given FC is on the scammer list.
 			</p>
 		</div>
     </div>
