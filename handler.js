@@ -163,7 +163,7 @@ module.exports = {
 	},
 
 	parseIP(html) {
-		let userid = toId(html('.username').text());
+		let userid = toId(html('strong[class=username]').text());
 		let split = html.root().html().split('>');
 		let ips;
 		let previousNames;
@@ -286,9 +286,9 @@ module.exports = {
 			}
 			this.analyze(roomid, split[4], split[3]);
 			break;
-		case 'raw':
+		case 'html':
 			let html = cheerio.load(split.slice(2).join('|'));
-			if (html('.username').text() && Config.checkIps && split[0].substr(1).trim() !== 'staff') {
+			if (html('strong[class=username]').text().trim() && Config.checkIps && split[0].substr(1).trim() !== 'staff') {
 				this.parseIP(html);
 			}
 			break;
