@@ -144,7 +144,9 @@ class WifiList {
 		let removed = [];
 		let now = Date.now();
 		for (let i in Data[this.name]) {
-			if (now - Data[this.name][i].lastdate > MONTH) removed.push(i);
+			if (parseInt(Data[this.name][i].date)) {
+				if (now - Data[this.name][i].date > MONTH) removed.push(i);
+			}
 		}
 		removed.forEach(userid => delete Data[this.name][userid]);
 		Databases.writeDatabase(this.name);
