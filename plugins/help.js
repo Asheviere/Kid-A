@@ -15,7 +15,7 @@ module.exports = {
 		help(userstr, room, message) {
 			if (!canUse(userstr, 1)) return {pmreply: "Permission denied."};
 
-			if (!message) return {reply: "Available help topics: " + Object.keys(helpTopics).join(', ')};
+			if (!message) return {reply: "Usage: ``.help <topic>``. Available help topics: " + Object.keys(helpTopics).join(', ')};
 
 			message = toId(message);
 			if (!(message in helpTopics)) return {pmreply: "Invalid option for topic."};
