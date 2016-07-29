@@ -4,6 +4,10 @@ const fs = require('fs');
 
 const request = require('request');
 
+const databases = require('../databases.js');
+
+let lastfmdata;
+
 function loadLastfmData() {
 	let data;
 	try {
@@ -16,11 +20,12 @@ function loadLastfmData() {
 }
 
 function writeLastfmData() {
-	let toWrite = JSON.stringify(Data.lastfm);
+	let toWrite = JSON.stringify(lastfmdata);
 	fs.writeFileSync('./data/lastfm.json', toWrite);
 }
 
-Databases.addDatabase('lastfm', loadLastfmData, writeLastfmData);
+databases.addDatabase('lastfm', loadLastfmData, writeLastfmData);
+lastfmdata = databases.getDatabase('lastfm');
 
 const API_ROOT = 'http://ws.audioscrobbler.com/2.0/';
 const YT_ROOT = 'https://www.googleapis.com/youtube/v3/search';
@@ -29,13 +34,13 @@ const VIDEO_ROOT = 'https://youtu.be/';
 module.exports = {
 	commands: {
 		lastfm(userstr, room, message) {
-			if (!canUse(userstr, 1)) return {pmreply: "Permission denied."};
+			if (!canUse(userstr, 1)) return this.pmreply("Permission denied.");
 
 			if (!Config.lastfmKey) return errorMsg("No last.fm API key found.");
 
 			let userid = toId(userstr);
 			let accountname = message || userstr.substr(1);
-			if (!message && (userid in Data.lastfm)) message = Data.lastfm[userid];
+			if (!message && (userid in lastfmdata)) message = lastfmdata[userid];
 
 			let url = API_ROOT + '?method=user.getrecenttracks&user=' + message + '&limit=1&api_key=' + Config.lastfmKey + '&format=json';
 			let req = new Promise(function(resolve, reject) {
@@ -86,27 +91,27 @@ module.exports = {
 							msg += ' ' + VIDEO_ROOT + video.items[0].id.videoId;
 							msg += ' | Profile link: http://www.last.fm/user/' + message;
 						}
-						return {reply: msg};
+						return this.reply(msg);
 					});
 				} else if (data.error) {
-					return {reply: msg + data.message + '.'};
+					return this.reply(msg + data.message + '.');
 				}
 
-				return {reply: msg + message + ' doesn\'t seem to have listened to anything recently.'};
+				return this.reply(msg + message + ' doesn\'t seem to have listened to anything recently.');
 			});
 		},
 
 		registerlastfm(userstr, room, message) {
-			if (!message) return {pmreply: "No username entered."};
+			if (!message) return this.pmreply("No username entered.");
 
 			let userid = toId(userstr);
 			let username = message.replace(/[^A-Za-z0-9-_]/g, '');
 
-			Data.lastfm[userid] = username;
+			lastfmdata[userid] = username;
 
-			Databases.writeDatabase('lastfm');
+			databases.writeDatabase('lastfm');
 
-			return {pmreply: "You've been registered as " + username + "."};
+			return this.pmreply("You've been registered as " + username + ".");
 		},
 	},
 };

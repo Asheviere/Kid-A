@@ -1,5 +1,7 @@
 'use strict';
 
+const databases = require('../databases.js');
+
 function getPunishment(val) {
 	switch (val) {
 	case 1:
@@ -80,13 +82,13 @@ function addBuffer(userid, room, message) {
 module.exports = {
 	commands: {
 		moderation(userstr, room, message) {
-			if (!canUse(userstr, 5)) return {pmreply: "Permission denied."};
-			if (!room) return {pmreply: "This command can't be used in PMs."};
+			if (!canUse(userstr, 5)) return this.pmreply("Permission denied.");
+			if (!room) return this.pmreply("This command can't be used in PMs.");
 
-			if (!Settings.modRooms) Settings.modRooms = [];
+			if (!this.settings.modRooms) this.settings.modRooms = [];
 
 			message = toId(message);
-			let idx = Settings.modRooms.indexOf(room);
+			let idx = this.settings.modRooms.indexOf(room);
 
 			switch (message) {
 			case 'on':
@@ -94,29 +96,29 @@ module.exports = {
 			case 'yes':
 			case 'enable':
 				if (idx < 0) {
-					Settings.modRooms.push(room);
-					Databases.writeDatabase('settings');
-					return {reply: "Bot moderation was turned on in this room."};
+					this.settings.modRooms.push(room);
+					databases.writeDatabase('settings');
+					return this.reply("Bot moderation was turned on in this room.");
 				}
-				return {reply: "Bot moderation is already turned on."};
+				return this.reply("Bot moderation is already turned on.");
 			case 'off':
 			case 'false':
 			case 'no':
 			case 'disable':
 				if (idx > -1) {
-					Settings.modRooms.splice(idx, 1);
-					Databases.writeDatabase('settings');
-					return {reply: "Bot moderation was turned off in this room."};
+					this.settings.modRooms.splice(idx, 1);
+					databases.writeDatabase('settings');
+					return this.reply("Bot moderation was turned off in this room.");
 				}
-				return {reply: "Bot moderation is already turned off."};
+				return this.reply("Bot moderation is already turned off.");
 			default:
-				return {pmreply: "Invalid value. Use 'on' or 'off'."};
+				return this.pmreply("Invalid value. Use 'on' or 'off'.");
 			}
 		},
 	},
 
 	analyzer: {
-		rooms: Settings.modRooms,
+		rooms: databases.getDatabase('settings').modRooms,
 		parser(room, message, userstr) {
 			if (canUse(userstr, 1)) return;
 

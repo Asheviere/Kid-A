@@ -1,7 +1,5 @@
 'use strict';
 
-global.Data = {};
-
 module.exports = {
 	databases: {},
 
@@ -20,7 +18,12 @@ module.exports = {
 
 		let value = this.databases[id].loader();
 
-		Data[id] = value || {};
+		this.databases[id].data = value || {};
+	},
+
+	getDatabase(id) {
+		if (!this.databases[id]) this.loadDatabase(id);
+		return this.databases[id].data || {};
 	},
 
 	writeDatabase(id) {

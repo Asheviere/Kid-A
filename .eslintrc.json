@@ -4,9 +4,9 @@
         "node": true
     },
     "globals": {
-		"Config": false, "toId": false, "Tools": false, "Data": false, "errorMsg": false, "statusMsg": false,
-        "Handler": false, "consoleMsg": false, "output": false, "stdout": false, "Databases": false, "Connection": false,
-        "pmMsg": false, "Settings": false, "canUse": false, "forceQuit": false, "Commands": false, "sanitize": false, "Server": false, "Options": false, "Userlists": false
+		"Config": false, "toId": false, "Tools": false, "errorMsg": false, "statusMsg": false,
+        "Handler": false, "consoleMsg": false, "output": false, "stdout": false, "Connection": false,
+        "pmMsg": false, "canUse": false, "forceQuit": false, "Commands": false, "sanitize": false, "Server": false
 	},
     "parserOptions": {
 		"ecmaVersion": 6,
@@ -49,7 +49,7 @@
 		"no-case-declarations": 0,
 		"no-else-return": 1,
 		"no-fallthrough": 0,
-		"no-invalid-this": 1,
+		"no-invalid-this": 0,
 		"no-multi-spaces": 2,
 		"no-octal": 1,
 		"no-redeclare": 2,

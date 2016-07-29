@@ -1,5 +1,8 @@
 'use strict';
 
+const databases = require('../databases.js');
+const db = databases.getDatabase('data');
+
 const PROFANITY_LIST = new Set([
 	'fuck', 'fucking', 'motherfucking', 'motherfucker', 'bitch', 'shit', 'shitting', 'cock', 'dick', 'pussy', 'roastie', 'cunt',
 	'autist', 'aspie', 'retard', 'cuck', 'cuckold', 'whore',
@@ -20,17 +23,17 @@ module.exports = {
 				return tally;
 			}, 0);
 
-			if (!Data.data[room]) Data.data[room] = {};
-			if (!Data.data[room].profanities) {
-				Data.data[room].profanities = {count: profanities, total: words.length};
+			if (!db[room]) db[room] = {};
+			if (!db[room].profanities) {
+				db[room].profanities = {count: profanities, total: words.length};
 			} else {
-				Data.data[room].profanities.count += profanities;
-				Data.data[room].profanities.total += words.length;
+				db[room].profanities.count += profanities;
+				db[room].profanities.total += words.length;
 			}
 		},
 
 		display(room) {
-			let profanities = Data.data[room] && Data.data[room].profanities;
+			let profanities = db[room] && db[room].profanities;
 			return '<p>Percentage of words said that are swear words: ' + (profanities ? (profanities.count / profanities.total * 100) : 0) + '</p>';
 		},
 	},

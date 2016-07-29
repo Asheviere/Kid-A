@@ -3,15 +3,17 @@
 const fs = require('fs');
 
 const server = require('../server.js');
+const databases = require('../databases.js');
 
 const MONTH = 30 * 24 * 60 * 60 * 1000;
 
 const WIFI_ROOM = 'wifi';
 
-if (!Settings.whitelists) Settings.whitelists = {};
-if (!Settings.whitelists.cloners) Settings.whitelists.cloners = [];
-if (!Settings.whitelists.trainers) Settings.whitelists.trainers = [];
-Databases.writeDatabase('settings');
+const settings = databases.getDatabase('settings');
+if (!settings.whitelists) settings.whitelists = {};
+if (!settings.whitelists.cloners) settings.whitelists.cloners = [];
+if (!settings.whitelists.trainers) settings.whitelists.trainers = [];
+databases.writeDatabase('settings');
 
 class WifiList {
 	constructor(name, file, columnNames, columnKeys, noOnlinePage, noTime) {
@@ -51,30 +53,31 @@ class WifiList {
 
 		let writeList = () => {
 			let toWrite = this.columnNames.join('\t') + "\n";
-			for (let i in Data[this.name]) {
+			for (let i in this.data) {
 				let values = [];
-				for (let j in Data[this.name][i]) values.push(Data[this.name][i][j]);
+				for (let j in this.data[i]) values.push(this.data[i][j]);
 				toWrite += values.join('\t') + '\n';
 			}
 			fs.writeFileSync(this.file, toWrite);
 		};
 
-		Databases.addDatabase(this.name, loadList, writeList);
+		databases.addDatabase(this.name, loadList, writeList);
+		this.data = databases.getDatabase(this.name);
 
 		let generatePage = (req, res) => {
 			let content = '<!DOCTYPE html><html><head><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="../style.css"><title>' + this.name + ' list - Kid A</title></head><body><div class="container">';
-			if (Settings.whitelists[this.name]) {
-				content += '<p class="note">Editors: ' + Settings.whitelists[this.name].join(', ') + '</p>';
+			if (settings.whitelists[this.name]) {
+				content += '<p class="note">Editors: ' + settings.whitelists[this.name].join(', ') + '</p>';
 			}
 			content += '<table><tr class="header"><th>' + this.columnNames.join('</th><th>') + '</th></tr>';
-			for (let i in Data[this.name]) {
+			for (let i in this.data) {
 				content += '<tr>';
-				for (let j in Data[this.name][i]) {
-					if (j === 'date' && parseInt(Data[this.name][i][j])) {
-						let date = new Date(parseInt(Data[this.name][i][j]));
+				for (let j in this.data[i]) {
+					if (j === 'date' && parseInt(this.data[i][j])) {
+						let date = new Date(parseInt(this.data[i][j]));
 						content += '<td>' + date.toDateString() + '</td>';
 					} else {
-						content += '<td>' + sanitize(Data[this.name][i][j]) + '</td>';
+						content += '<td>' + sanitize(this.data[i][j]) + '</td>';
 					}
 				}
 				content += '</tr>';
@@ -87,8 +90,8 @@ class WifiList {
 		if (!noOnlinePage) {
 			let generateOnlinePage = (req, res) => {
 				let content = '<!DOCTYPE html><html><head><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="../style.css"><title>Online ' + this.name + ' list - Kid A</title></head><body><div class="container"><h2>Online ' + this.name + ':</h2><ul>';
-				for (let i in Data[this.name]) {
-					if (Userlists[WIFI_ROOM] && (i in Userlists[WIFI_ROOM])) content += '<li>' + sanitize(Data[this.name][i].username) + '</li>';
+				for (let i in this.data) {
+					if (this.userlists[WIFI_ROOM] && (i in this.userlists[WIFI_ROOM])) content += '<li>' + sanitize(this.data[i].username) + '</li>';
 				}
 				res.end(content + '</ul></div></body></html>');
 			};
@@ -98,59 +101,59 @@ class WifiList {
 	}
 
 	addUser(user, params) {
-		if (params.length !== this.columnKeys.length - (this.noTime ? 0 : 1)) return {reply: "Invalid amount of arguments"};
-		if (toId(params[0]) in Data[this.name]) return {reply: "'" + params[0] + "' is already a " + this.name.slice(0, -1) + "."};
+		if (params.length !== this.columnKeys.length - (this.noTime ? 0 : 1)) return "Invalid amount of arguments";
+		if (toId(params[0]) in this.data) return "'" + params[0] + "' is already a " + this.name.slice(0, -1) + ".";
 
 		let userid = toId(params[0]);
-		Data[this.name][userid] = {};
+		this.data[userid] = {};
 		if (!this.noTime) {
 			params.push(Date.now());
 		}
 		for (let i = 0; i < this.columnKeys.length; i++) {
-			Data[this.name][userid][this.columnKeys[i]] = params[i];
+			this.data[userid][this.columnKeys[i]] = params[i];
 		}
 		fs.appendFileSync(this.file, params.join('\t') + '\n');
 
 		Connection.send(WIFI_ROOM + '|/modnote ' + user + ' added ' + toId(params[0]) + ' to the ' + this.name.slice(0, -1) + ' list.');
 
-		return {reply: "'" + params[0] + "' was successfully added to the " + this.name.slice(0, -1) + " list."};
+		return "'" + params[0] + "' was successfully added to the " + this.name.slice(0, -1) + " list.";
 	}
 
 	removeUser(user, target) {
-		if (!(target in Data[this.name])) return {reply: "User is not on the " + this.name.slice(0, -1) + " list."};
-		delete Data[this.name][target];
-		Databases.writeDatabase(this.name);
+		if (!(target in this.data)) return "User is not on the " + this.name.slice(0, -1) + " list.";
+		delete this.data[target];
+		databases.writeDatabase(this.name);
 		Connection.send(WIFI_ROOM + '|/modnote ' + user + ' deleted ' + target + ' from the ' + this.name.slice(0, -1) + ' list.');
-		return {reply: "User successfully removed."};
+		return "User successfully removed.";
 	}
 
 	updateUser(user, params) {
 		let userid = toId(params[0]);
 		for (let i = 1; i < params.length; i++) {
 			let param = params[i].split(':').map(param => param.trim());
-			if (param.length !== 2) return {reply: "Syntax error in " + params[i]};
+			if (param.length !== 2) return "Syntax error in " + params[i];
 			param[0] = toId(param[0]);
-			if (param[0] === 'username' || param[0] === 'date') return {reply: "This column can't be changed."};
-			if (this.columnKeys.indexOf(param[0]) < 0) return {reply: "Invalid key: " + param[0]};
-			Data[this.name][userid][param[0]] = param[1];
+			if (param[0] === 'username' || param[0] === 'date') return "This column can't be changed.";
+			if (this.columnKeys.indexOf(param[0]) < 0) return "Invalid key: " + param[0];
+			this.data[userid][param[0]] = param[1];
 		}
 
-		Databases.writeDatabase(this.name);
+		databases.writeDatabase(this.name);
 		Connection.send(WIFI_ROOM + '|/modnote ' + user + ' updated ' + (toId(user) === userid ? 'their' : userid + "'s'") + ' ' + this.name.slice(0, -1) + ' info.');
-		return {reply: "User successfully updated."};
+		return "User successfully updated.";
 	}
 
 	purgeList() {
 		let removed = [];
 		let now = Date.now();
-		for (let i in Data[this.name]) {
-			if (parseInt(Data[this.name][i].date)) {
-				if (now - Data[this.name][i].date > MONTH) removed.push(i);
+		for (let i in this.data) {
+			if (parseInt(this.data[i].date)) {
+				if (now - this.data[i].date > MONTH) removed.push(i);
 			}
 		}
-		removed.forEach(userid => delete Data[this.name][userid]);
-		Databases.writeDatabase(this.name);
-		return {reply: "/modnote The following users were purged from the " + this.name.slice(0, -1) + " list: " + removed.join(', ')};
+		removed.forEach(userid => delete this.data[userid]);
+		databases.writeDatabase(this.name);
+		return this.reply("/modnote The following users were purged from the " + this.name.slice(0, -1) + " list: " + removed.join(', '));
 	}
 }
 
@@ -163,382 +166,382 @@ module.exports = {
 		addcloner(userstr, room, message) {
 			let userid = toId(userstr);
 			if (!room) {
-				 if (Userlists[WIFI_ROOM]) {
-					if (userid in Userlists[WIFI_ROOM]) {
-						userstr = Userlists[WIFI_ROOM][userid].join('');
+				 if (this.userlists[WIFI_ROOM]) {
+					if (userid in this.userlists[WIFI_ROOM]) {
+						userstr = this.userlists[WIFI_ROOM][userid].join('');
 					} else {
-						return {reply: "You need to be in the Wi-Fi room to use this command."};
+						return this.reply("You need to be in the Wi-Fi room to use this command.");
 					}
 				 } else {
 					 errorMsg("Someone tried to use a wifi room command without the bot being in the wifi room. Either make the bot join wifi, or remove cloners.js");
-					 return {reply: "Something went wrong! The bot's owner has been notified."};
+					 return this.reply("Something went wrong! The bot's owner has been notified.");
 				 }
 			} else if (room !== WIFI_ROOM) {
-				return {pmreply: "This command can only be used in the Wi-Fi room."};
+				return this.pmreply("This command can only be used in the Wi-Fi room.");
 			}
-			if (!(canUse(userstr, 5) || Settings.whitelists.cloners.indexOf(userid) > -1)) return {pmreply: "Permission denied."};
+			if (!(canUse(userstr, 5) || this.settings.whitelists.cloners.indexOf(userid) > -1)) return this.pmreply("Permission denied.");
 
 			let params = message.split((message.includes('|') ? '|' : ',')).map(param => param.trim());
-			return clonerList.addUser(userstr.substr(1), params);
+			return this.reply(clonerList.addUser(userstr.substr(1), params));
 		},
 		removecloner(userstr, room, message) {
 			let userid = toId(userstr);
 			if (!room) {
-				 if (Userlists[WIFI_ROOM]) {
-					if (userid in Userlists[WIFI_ROOM]) {
-						userstr = Userlists[WIFI_ROOM][userid].join('');
+				 if (this.userlists[WIFI_ROOM]) {
+					if (userid in this.userlists[WIFI_ROOM]) {
+						userstr = this.userlists[WIFI_ROOM][userid].join('');
 					} else {
-						return {reply: "You need to be in the Wi-Fi room to use this command."};
+						return this.reply("You need to be in the Wi-Fi room to use this command.");
 					}
 				 } else {
 					 errorMsg("Someone tried to use a wifi room command without the bot being in the wifi room. Either make the bot join wifi, or remove cloners.js");
-					 return {reply: "Something went wrong! The bot's owner has been notified."};
+					 return this.reply("Something went wrong! The bot's owner has been notified.");
 				 }
 			} else if (room !== WIFI_ROOM) {
-				return {pmreply: "This command can only be used in the Wi-Fi room."};
+				return this.pmreply("This command can only be used in the Wi-Fi room.");
 			}
-			if (!(canUse(userstr, 5) || Settings.whitelists.cloners.indexOf(userid) > -1)) return {pmreply: "Permission denied."};
+			if (!(canUse(userstr, 5) || this.settings.whitelists.cloners.indexOf(userid) > -1)) return this.pmreply("Permission denied.");
 
-			return clonerList.removeUser(userstr.substr(1), toId(message));
+			return this.reply(clonerList.removeUser(userstr.substr(1), toId(message)));
 		},
 		updatecloner(userstr, room, message) {
 			let userid = toId(userstr);
 			if (!room) {
-				 if (Userlists[WIFI_ROOM]) {
-					if (userid in Userlists[WIFI_ROOM]) {
-						userstr = Userlists[WIFI_ROOM][userid].join('');
+				 if (this.userlists[WIFI_ROOM]) {
+					if (userid in this.userlists[WIFI_ROOM]) {
+						userstr = this.userlists[WIFI_ROOM][userid].join('');
 					} else {
-						return {reply: "You need to be in the Wi-Fi room to use this command."};
+						return this.reply("You need to be in the Wi-Fi room to use this command.");
 					}
 				 } else {
 					 errorMsg("Someone tried to use a wifi room command without the bot being in the wifi room. Either make the bot join wifi, or remove cloners.js");
-					 return {reply: "Something went wrong! The bot's owner has been notified."};
+					 return this.reply("Something went wrong! The bot's owner has been notified.");
 				 }
 			} else if (room !== WIFI_ROOM) {
-				return {pmreply: "This command can only be used in the Wi-Fi room."};
+				return this.pmreply("This command can only be used in the Wi-Fi room.");
 			}
 			let params = message.split((message.includes('|') ? '|' : ',')).map(param => param.trim());
 			let targetId = toId(params[0]);
 
-			if (!(targetId in Data.cloners)) return {pmreply: "User is not on the cloner list."};
-			if (!(canUse(userstr, 5) || Settings.whitelists.cloners.indexOf(userid) > -1 || userid === targetId)) return {pmreply: "Permission denied."};
+			if (!(targetId in clonerList.data)) return this.pmreply("User is not on the cloner list.");
+			if (!(canUse(userstr, 5) || this.settings.whitelists.cloners.indexOf(userid) > -1 || userid === targetId)) return this.pmreply("Permission denied.");
 
-			return clonerList.updateUser(userstr.substr(1), params);
+			return this.reply(clonerList.updateUser(userstr.substr(1), params));
 		},
 		clonerga(userstr, room, message) {
 			let userid = toId(userstr);
 			if (!room) {
-				 if (Userlists[WIFI_ROOM]) {
-					if (userid in Userlists[WIFI_ROOM]) {
-						userstr = Userlists[WIFI_ROOM][userid].join('');
+				 if (this.userlists[WIFI_ROOM]) {
+					if (userid in this.userlists[WIFI_ROOM]) {
+						userstr = this.userlists[WIFI_ROOM][userid].join('');
 					} else {
-						return {reply: "You need to be in the Wi-Fi room to use this command."};
+						return this.reply("You need to be in the Wi-Fi room to use this command.");
 					}
 				 } else {
 					 errorMsg("Someone tried to use a wifi room command without the bot being in the wifi room. Either make the bot join wifi, or remove cloners.js");
-					 return {reply: "Something went wrong! The bot's owner has been notified."};
+					 return this.reply("Something went wrong! The bot's owner has been notified.");
 				 }
 			} else if (room !== WIFI_ROOM) {
-				return {pmreply: "This command can only be used in the Wi-Fi room."};
+				return this.pmreply("This command can only be used in the Wi-Fi room.");
 			}
-			if (!(canUse(userstr, 5) || Settings.whitelists.cloners.indexOf(userid) > -1)) return {pmreply: "Permission denied."};
+			if (!(canUse(userstr, 5) || this.settings.whitelists.cloners.indexOf(userid) > -1)) return this.pmreply("Permission denied.");
 
 			let targetId = toId(message);
-			if (!(targetId in Data.cloners)) return {reply: "User is not on the cloner list."};
-			Data.cloners[userid].date = Date.now();
-			Databases.writeDatabase('cloners');
+			if (!(targetId in clonerList.data)) return this.reply("User is not on the cloner list.");
+			clonerList.data[userid].date = Date.now();
+			databases.writeDatabase('cloners');
 
 			Connection.send(WIFI_ROOM + '|/modnote ' + userstr.substr(1) + ' has approved ' + targetId + "'s cloner giveaway.");
 
-			return {reply: "Cloner list updated."};
+			return this.reply("Cloner list updated.");
 		},
 		purgecloners(userstr, room) {
 			let userid = toId(userstr);
 			if (!room) {
-				 if (Userlists[WIFI_ROOM]) {
-					if (userid in Userlists[WIFI_ROOM]) {
-						userstr = Userlists[WIFI_ROOM][userid].join('');
+				 if (this.userlists[WIFI_ROOM]) {
+					if (userid in this.userlists[WIFI_ROOM]) {
+						userstr = this.userlists[WIFI_ROOM][userid].join('');
 					} else {
-						return {reply: "You need to be in the Wi-Fi room to use this command."};
+						return this.reply("You need to be in the Wi-Fi room to use this command.");
 					}
 				 } else {
 					 errorMsg("Someone tried to use a wifi room command without the bot being in the wifi room. Either make the bot join wifi, or remove cloners.js");
-					 return {reply: "Something went wrong! The bot's owner has been notified."};
+					 return this.reply("Something went wrong! The bot's owner has been notified.");
 				 }
 			} else if (room !== WIFI_ROOM) {
-				return {pmreply: "This command can only be used in the Wi-Fi room."};
+				return this.pmreply("This command can only be used in the Wi-Fi room.");
 			}
-			if (!canUse(userstr, 5)) return {pmreply: "Permission denied."};
+			if (!canUse(userstr, 5)) return this.pmreply("Permission denied.");
 
-			return clonerList.purgeList();
+			return this.reply(clonerList.purgeList());
 		},
 		whitelistcloner(userstr, room, message) {
 			let userid = toId(userstr);
 			if (!room) {
-				 if (Userlists[WIFI_ROOM]) {
-					if (userid in Userlists[WIFI_ROOM]) {
-						userstr = Userlists[WIFI_ROOM][userid].join('');
+				 if (this.userlists[WIFI_ROOM]) {
+					if (userid in this.userlists[WIFI_ROOM]) {
+						userstr = this.userlists[WIFI_ROOM][userid].join('');
 					} else {
-						return {reply: "You need to be in the Wi-Fi room to use this command."};
+						return this.reply("You need to be in the Wi-Fi room to use this command.");
 					}
 				 } else {
 					 errorMsg("Someone tried to use a wifi room command without the bot being in the wifi room. Either make the bot join wifi, or remove cloners.js");
-					 return {reply: "Something went wrong! The bot's owner has been notified."};
+					 return this.reply("Something went wrong! The bot's owner has been notified.");
 				 }
 			} else if (room !== WIFI_ROOM) {
-				return {pmreply: "This command can only be used in the Wi-Fi room."};
+				return this.pmreply("This command can only be used in the Wi-Fi room.");
 			}
-			if (!canUse(userstr, 5)) return {pmreply: "Permission denied."};
+			if (!canUse(userstr, 5)) return this.pmreply("Permission denied.");
 
-			if (Settings.whitelists.cloners.indexOf(toId(message)) > -1) return {reply: "This user is already whitelisted."};
+			if (this.settings.whitelists.cloners.indexOf(toId(message)) > -1) return this.reply("This user is already whitelisted.");
 
-			Settings.whitelists.cloners.push(toId(message));
-			Databases.writeDatabase('settings');
+			this.settings.whitelists.cloners.push(toId(message));
+			databases.writeDatabase('settings');
 			Connection.send(WIFI_ROOM + '|/modnote ' + toId(message) + ' was whitelisted for the cloner list by ' + userstr.substr(1) + '.');
-			return {reply: "User successfully whitelisted."};
+			return this.reply("User successfully whitelisted.");
 		},
 
 		addtrainer(userstr, room, message) {
 			let userid = toId(userstr);
 			if (!room) {
-				 if (Userlists[WIFI_ROOM]) {
-					if (userid in Userlists[WIFI_ROOM]) {
-						userstr = Userlists[WIFI_ROOM][userid].join('');
+				 if (this.userlists[WIFI_ROOM]) {
+					if (userid in this.userlists[WIFI_ROOM]) {
+						userstr = this.userlists[WIFI_ROOM][userid].join('');
 					} else {
-						return {reply: "You need to be in the Wi-Fi room to use this command."};
+						return this.reply("You need to be in the Wi-Fi room to use this command.");
 					}
 				 } else {
 					 errorMsg("Someone tried to use a wifi room command without the bot being in the wifi room. Either make the bot join wifi, or remove cloners.js");
-					 return {reply: "Something went wrong! The bot's owner has been notified."};
+					 return this.reply("Something went wrong! The bot's owner has been notified.");
 				 }
 			} else if (room !== WIFI_ROOM) {
-				return {pmreply: "This command can only be used in the Wi-Fi room."};
+				return this.pmreply("This command can only be used in the Wi-Fi room.");
 			}
-			if (!(canUse(userstr, 5) || Settings.whitelists.trainers.indexOf(userid) > -1)) return {pmreply: "Permission denied."};
+			if (!(canUse(userstr, 5) || this.settings.whitelists.trainers.indexOf(userid) > -1)) return this.pmreply("Permission denied.");
 
 			let params = message.split((message.includes('|') ? '|' : ',')).map(param => param.trim());
-			return trainerList.addUser(userstr.substr(1), params);
+			return this.reply(trainerList.addUser(userstr.substr(1), params));
 		},
 		removetrainer(userstr, room, message) {
 			let userid = toId(userstr);
 			if (!room) {
-				 if (Userlists[WIFI_ROOM]) {
-					if (userid in Userlists[WIFI_ROOM]) {
-						userstr = Userlists[WIFI_ROOM][userid].join('');
+				 if (this.userlists[WIFI_ROOM]) {
+					if (userid in this.userlists[WIFI_ROOM]) {
+						userstr = this.userlists[WIFI_ROOM][userid].join('');
 					} else {
-						return {reply: "You need to be in the Wi-Fi room to use this command."};
+						return this.reply("You need to be in the Wi-Fi room to use this command.");
 					}
 				 } else {
 					 errorMsg("Someone tried to use a wifi room command without the bot being in the wifi room. Either make the bot join wifi, or remove cloners.js");
-					 return {reply: "Something went wrong! The bot's owner has been notified."};
+					 return this.reply("Something went wrong! The bot's owner has been notified.");
 				 }
 			} else if (room !== WIFI_ROOM) {
-				return {pmreply: "This command can only be used in the Wi-Fi room."};
+				return this.pmreply("This command can only be used in the Wi-Fi room.");
 			}
-			if (!(canUse(userstr, 5) || Settings.whitelists.trainers.indexOf(userid) > -1)) return {pmreply: "Permission denied."};
+			if (!(canUse(userstr, 5) || this.settings.whitelists.trainers.indexOf(userid) > -1)) return this.pmreply("Permission denied.");
 
-			return trainerList.removeUser(userstr.substr(1), toId(message));
+			return this.reply(trainerList.removeUser(userstr.substr(1), toId(message)));
 		},
 		updatetrainer(userstr, room, message) {
 			let userid = toId(userstr);
 			if (!room) {
-				 if (Userlists[WIFI_ROOM]) {
-					if (userid in Userlists[WIFI_ROOM]) {
-						userstr = Userlists[WIFI_ROOM][userid].join('');
+				 if (this.userlists[WIFI_ROOM]) {
+					if (userid in this.userlists[WIFI_ROOM]) {
+						userstr = this.userlists[WIFI_ROOM][userid].join('');
 					} else {
-						return {reply: "You need to be in the Wi-Fi room to use this command."};
+						return this.reply("You need to be in the Wi-Fi room to use this command.");
 					}
 				 } else {
 					 errorMsg("Someone tried to use a wifi room command without the bot being in the wifi room. Either make the bot join wifi, or remove cloners.js");
-					 return {reply: "Something went wrong! The bot's owner has been notified."};
+					 return this.reply("Something went wrong! The bot's owner has been notified.");
 				 }
 			} else if (room !== WIFI_ROOM) {
-				return {pmreply: "This command can only be used in the Wi-Fi room."};
+				return this.pmreply("This command can only be used in the Wi-Fi room.");
 			}
 			let params = message.split((message.includes('|') ? '|' : ',')).map(param => param.trim());
 			let targetId = toId(params[0]);
 
-			if (!(targetId in Data.trainers)) return {pmreply: "User is not on the trainer list."};
-			if (!(canUse(userstr, 5) || Settings.whitelists.trainers.indexOf(userid) > -1 || userid === targetId)) return {pmreply: "Permission denied."};
+			if (!(targetId in trainerList.data)) return this.pmreply("User is not on the trainer list.");
+			if (!(canUse(userstr, 5) || this.settings.whitelists.trainers.indexOf(userid) > -1 || userid === targetId)) return this.pmreply("Permission denied.");
 
-			return trainerList.updateUser(userstr.substr(1), params);
+			return this.reply(trainerList.updateUser(userstr.substr(1), params));
 		},
 		traineractivity(userstr, room, message) {
 			let userid = toId(userstr);
 			if (!room) {
-				 if (Userlists[WIFI_ROOM]) {
-					if (userid in Userlists[WIFI_ROOM]) {
-						userstr = Userlists[WIFI_ROOM][userid].join('');
+				 if (this.userlists[WIFI_ROOM]) {
+					if (userid in this.userlists[WIFI_ROOM]) {
+						userstr = this.userlists[WIFI_ROOM][userid].join('');
 					} else {
-						return {reply: "You need to be in the Wi-Fi room to use this command."};
+						return this.reply("You need to be in the Wi-Fi room to use this command.");
 					}
 				 } else {
 					 errorMsg("Someone tried to use a wifi room command without the bot being in the wifi room. Either make the bot join wifi, or remove cloners.js");
-					 return {reply: "Something went wrong! The bot's owner has been notified."};
+					 return this.reply("Something went wrong! The bot's owner has been notified.");
 				 }
 			} else if (room !== WIFI_ROOM) {
-				return {pmreply: "This command can only be used in the Wi-Fi room."};
+				return this.pmreply("This command can only be used in the Wi-Fi room.");
 			}
-			if (!(canUse(userstr, 5) || Settings.whitelists.trainers.indexOf(userid) > -1)) return {pmreply: "Permission denied."};
+			if (!(canUse(userstr, 5) || this.settings.whitelists.trainers.indexOf(userid) > -1)) return this.pmreply("Permission denied.");
 
 			let targetId = toId(message);
-			if (!(targetId in Data.trainers)) return {reply: "User is not on the trainer list."};
-			Data.trainers[userid].date = Date.now();
-			Databases.writeDatabase('trainers');
+			if (!(targetId in trainerList.data)) return this.reply("User is not on the trainer list.");
+			trainerList.data[userid].date = Date.now();
+			databases.writeDatabase('trainers');
 
 			Connection.send(WIFI_ROOM + '|/modnote ' + userstr.substr(1) + ' has approved ' + targetId + "'s EV training.");
 
-			return {reply: "Trainer list updated."};
+			return this.reply("Trainer list updated.");
 		},
 		purgetrainers(userstr, room) {
 			let userid = toId(userstr);
 			if (!room) {
-				 if (Userlists[WIFI_ROOM]) {
-					if (userid in Userlists[WIFI_ROOM]) {
-						userstr = Userlists[WIFI_ROOM][userid].join('');
+				 if (this.userlists[WIFI_ROOM]) {
+					if (userid in this.userlists[WIFI_ROOM]) {
+						userstr = this.userlists[WIFI_ROOM][userid].join('');
 					} else {
-						return {reply: "You need to be in the Wi-Fi room to use this command."};
+						return this.reply("You need to be in the Wi-Fi room to use this command.");
 					}
 				 } else {
 					 errorMsg("Someone tried to use a wifi room command without the bot being in the wifi room. Either make the bot join wifi, or remove cloners.js");
-					 return {reply: "Something went wrong! The bot's owner has been notified."};
+					 return this.reply("Something went wrong! The bot's owner has been notified.");
 				 }
 			} else if (room !== WIFI_ROOM) {
-				return {pmreply: "This command can only be used in the Wi-Fi room."};
+				return this.pmreply("This command can only be used in the Wi-Fi room.");
 			}
-			if (!canUse(userstr, 5)) return {pmreply: "Permission denied."};
+			if (!canUse(userstr, 5)) return this.pmreply("Permission denied.");
 
-			return trainerList.purgeList();
+			return this.reply(trainerList.purgeList());
 		},
 		whitelisttrainer(userstr, room, message) {
 			let userid = toId(userstr);
 			if (!room) {
-				 if (Userlists[WIFI_ROOM]) {
-					if (userid in Userlists[WIFI_ROOM]) {
-						userstr = Userlists[WIFI_ROOM][userid].join('');
+				 if (this.userlists[WIFI_ROOM]) {
+					if (userid in this.userlists[WIFI_ROOM]) {
+						userstr = this.userlists[WIFI_ROOM][userid].join('');
 					} else {
-						return {reply: "You need to be in the Wi-Fi room to use this command."};
+						return this.reply("You need to be in the Wi-Fi room to use this command.");
 					}
 				 } else {
 					 errorMsg("Someone tried to use a wifi room command without the bot being in the wifi room. Either make the bot join wifi, or remove cloners.js");
-					 return {reply: "Something went wrong! The bot's owner has been notified."};
+					 return this.reply("Something went wrong! The bot's owner has been notified.");
 				 }
 			} else if (room !== WIFI_ROOM) {
-				return {pmreply: "This command can only be used in the Wi-Fi room."};
+				return this.pmreply("This command can only be used in the Wi-Fi room.");
 			}
-			if (!canUse(userstr, 5)) return {pmreply: "Permission denied."};
+			if (!canUse(userstr, 5)) return this.pmreply("Permission denied.");
 
-			if (Settings.whitelists.trainers.indexOf(toId(message)) > -1) return {reply: "This user is already whitelisted."};
+			if (this.settings.whitelists.trainers.indexOf(toId(message)) > -1) return this.reply("This user is already whitelisted.");
 
-			Settings.whitelists.trainers.push(toId(message));
-			Databases.writeDatabase('settings');
-			Connection.send(WIFI_ROOM + '|/modnote ' + toId(message) + ' was whitelisted for the cloner list by ' + userstr.substr(1) + '.');
-			return {reply: "User successfully whitelisted."};
+			this.settings.whitelists.trainers.push(toId(message));
+			databases.writeDatabase('settings');
+			Connection.send(WIFI_ROOM + '|/modnote ' + toId(message) + ' was whitelisted for the trainer list by ' + userstr.substr(1) + '.');
+			return this.reply("User successfully whitelisted.");
 		},
 
 		addscammer(userstr, room, message) {
 			let userid = toId(userstr);
 			if (!room) {
-				 if (Userlists[WIFI_ROOM]) {
-					if (userid in Userlists[WIFI_ROOM]) {
-						userstr = Userlists[WIFI_ROOM][userid].join('');
+				 if (this.userlists[WIFI_ROOM]) {
+					if (userid in this.userlists[WIFI_ROOM]) {
+						userstr = this.userlists[WIFI_ROOM][userid].join('');
 					} else {
-						return {reply: "You need to be in the Wi-Fi room to use this command."};
+						return this.reply("You need to be in the Wi-Fi room to use this command.");
 					}
 				 } else {
 					 errorMsg("Someone tried to use a wifi room command without the bot being in the wifi room. Either make the bot join wifi, or remove cloners.js");
-					 return {reply: "Something went wrong! The bot's owner has been notified."};
+					 return this.reply("Something went wrong! The bot's owner has been notified.");
 				 }
 			} else if (room !== WIFI_ROOM) {
-				return {pmreply: "This command can only be used in the Wi-Fi room."};
+				return this.pmreply("This command can only be used in the Wi-Fi room.");
 			}
-			if (!canUse(userstr, 3)) return {pmreply: "Permission denied."};
+			if (!canUse(userstr, 3)) return this.pmreply("Permission denied.");
 
 			let params = message.split((message.includes('|') ? '|' : ',')).map(param => param.trim());
 			params.push(userstr.substr(1));
-			return scammerList.addUser(userstr.substr(1), params);
+			return this.reply(scammerList.addUser(userstr.substr(1), params));
 		},
 		removescammer(userstr, room, message) {
 			let userid = toId(userstr);
 			if (!room) {
-				 if (Userlists[WIFI_ROOM]) {
-					if (userid in Userlists[WIFI_ROOM]) {
-						userstr = Userlists[WIFI_ROOM][userid].join('');
+				 if (this.userlists[WIFI_ROOM]) {
+					if (userid in this.userlists[WIFI_ROOM]) {
+						userstr = this.userlists[WIFI_ROOM][userid].join('');
 					} else {
-						return {reply: "You need to be in the Wi-Fi room to use this command."};
+						return this.reply("You need to be in the Wi-Fi room to use this command.");
 					}
 				 } else {
 					 errorMsg("Someone tried to use a wifi room command without the bot being in the wifi room. Either make the bot join wifi, or remove cloners.js");
-					 return {reply: "Something went wrong! The bot's owner has been notified."};
+					 return this.reply("Something went wrong! The bot's owner has been notified.");
 				 }
 			} else if (room !== WIFI_ROOM) {
-				return {pmreply: "This command can only be used in the Wi-Fi room."};
+				return this.pmreply("This command can only be used in the Wi-Fi room.");
 			}
-			if (!canUse(userstr, 3)) return {pmreply: "Permission denied."};
+			if (!canUse(userstr, 3)) return this.pmreply("Permission denied.");
 
-			return scammerList.removeUser(userstr.substr(1), toId(message));
+			return this.reply(scammerList.removeUser(userstr.substr(1), toId(message)));
 		},
 		updatescammer(userstr, room, message) {
 			let userid = toId(userstr);
 			if (!room) {
-				 if (Userlists[WIFI_ROOM]) {
-					if (userid in Userlists[WIFI_ROOM]) {
-						userstr = Userlists[WIFI_ROOM][userid].join('');
+				 if (this.userlists[WIFI_ROOM]) {
+					if (userid in this.userlists[WIFI_ROOM]) {
+						userstr = this.userlists[WIFI_ROOM][userid].join('');
 					} else {
-						return {reply: "You need to be in the Wi-Fi room to use this command."};
+						return this.reply("You need to be in the Wi-Fi room to use this command.");
 					}
 				 } else {
 					 errorMsg("Someone tried to use a wifi room command without the bot being in the wifi room. Either make the bot join wifi, or remove cloners.js");
-					 return {reply: "Something went wrong! The bot's owner has been notified."};
+					 return this.reply("Something went wrong! The bot's owner has been notified.");
 				 }
 			} else if (room !== WIFI_ROOM) {
-				return {pmreply: "This command can only be used in the Wi-Fi room."};
+				return this.pmreply("This command can only be used in the Wi-Fi room.");
 			}
-			if (!canUse(userstr, 3)) return {pmreply: "Permission denied."};
+			if (!canUse(userstr, 3)) return this.pmreply("Permission denied.");
 
 			let params = message.split((message.includes('|') ? '|' : ',')).map(param => param.trim());
 
-			if (!(toId(params[0]) in Data.scammers)) return {pmreply: "User is not on the scammer list."};
+			if (!(toId(params[0]) in scammerList.data)) return this.pmreply("User is not on the scammer list.");
 
-			return scammerList.updateUser(userstr.substr(1), params);
+			return this.reply(scammerList.updateUser(userstr.substr(1), params));
 		},
 		addscammeralt(userstr, room, message) {
 			let userid = toId(userstr);
 			if (!room) {
-				 if (Userlists[WIFI_ROOM]) {
-					if (userid in Userlists[WIFI_ROOM]) {
-						userstr = Userlists[WIFI_ROOM][userid].join('');
+				 if (this.userlists[WIFI_ROOM]) {
+					if (userid in this.userlists[WIFI_ROOM]) {
+						userstr = this.userlists[WIFI_ROOM][userid].join('');
 					} else {
-						return {reply: "You need to be in the Wi-Fi room to use this command."};
+						return this.reply("You need to be in the Wi-Fi room to use this command.");
 					}
 				 } else {
 					 errorMsg("Someone tried to use a wifi room command without the bot being in the wifi room. Either make the bot join wifi, or remove cloners.js");
-					 return {reply: "Something went wrong! The bot's owner has been notified."};
+					 return this.reply("Something went wrong! The bot's owner has been notified.");
 				 }
 			} else if (room !== WIFI_ROOM) {
-				return {pmreply: "This command can only be used in the Wi-Fi room."};
+				return this.pmreply("This command can only be used in the Wi-Fi room.");
 			}
-			if (!canUse(userstr, 3)) return {pmreply: "Permission denied."};
+			if (!canUse(userstr, 3)) return this.pmreply("Permission denied.");
 
 			let params = message.split(',').map(param => param.trim());
 			let targetId = toId(params[0]);
 
-			if (!(targetId in Data.scammers)) return {pmreply: "User is not on the scammer list."};
+			if (!(targetId in scammerList.data)) return this.pmreply("User is not on the scammer list.");
 
-			return scammerList.updateUser(userstr.substr(1), [targetId, 'alts:' + Data.scammers[targetId].alts + ', ' + params.slice(1).join(', ')]);
+			return this.reply(scammerList.updateUser(userstr.substr(1), [targetId, 'alts:' + scammerList.data[targetId].alts + ', ' + params.slice(1).join(', ')]));
 		},
 		checkfc(userstr, room, message) {
-			if (!canUse(userstr, 1)) return {pmreply: "Permission denied."};
+			if (!canUse(userstr, 1)) return this.pmreply("Permission denied.");
 			let id = toId(message);
-			if (!(id.length === 12 && parseInt(id))) return {reply: "Invalid input."};
+			if (!(id.length === 12 && parseInt(id))) return this.reply("Invalid input.");
 
 			let fc = id.substr(0, 4) + '-' + id.substr(4, 4) + '-' + id.substr(8, 4);
 
-			for (let i in Data.scammers) {
-				if (Data.scammers[i].fc === fc) return {reply: "This IP belongs to " + Data.scammers[i].username + ", who was put on the list for '" + Data.scammers[i].reason + "'."};
+			for (let i in scammerList.data) {
+				if (scammerList.data[i].fc === fc) return this.reply("This IP belongs to " + scammerList.data[i].username + ", who was put on the list for '" + scammerList.data[i].reason + "'.");
 			}
 
-			return {reply: "This FC was not found on the scammers list."};
+			return this.reply("This FC was not found on the scammers list.");
 		},
 	},
 };

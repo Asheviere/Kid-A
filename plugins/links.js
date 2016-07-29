@@ -1,5 +1,8 @@
 'use strict';
 
+const databases = require('../databases.js');
+const db = databases.getDatabase('data');
+
 module.exports = {
 	analyzer: {
 		parser(room, message) {
@@ -14,17 +17,17 @@ module.exports = {
 					let parts = link.substr(idx).split('/');
 					let hostname = parts[0];
 
-					if (!Data.data[room]) Data.data[room] = {};
-					if (!Data.data[room].links) Data.data[room].links = {};
+					if (!db[room]) db[room] = {};
+					if (!db[room].links) db[room].links = {};
 
-					Data.data[room].links[sanitize(hostname)] = Data.data[room].links[sanitize(hostname)] + 1 || 1;
+					db[room].links[sanitize(hostname)] = db[room].links[sanitize(hostname)] + 1 || 1;
 				});
 		},
 
 		display(room) {
 			let output = '<h2>Websites linked:</h2><ul>';
-			for (let site in Data.data[room].links) {
-				output += '<li>' + site + ':\t' + Data.data[room].links[site] + ' times.</li>';
+			for (let site in db[room].links) {
+				output += '<li>' + site + ':\t' + db[room].links[site] + ' times.</li>';
 			}
 			output += '</ul>';
 			return output;

@@ -1,5 +1,8 @@
 'use strict';
 
+const databases = require('../databases.js');
+const db = databases.getDatabase('data');
+
 const TWITCH_EMOTES = new Set(['Kappa', 'KappaPride', 'EleGiggle', 'PogChamp', 'BibleThump', 'BrokeBack',
 						'DansGame', 'FailFish', 'Keepo', 'Kreygasm', 'OpieOP', 'PJSalt', 'ResidentSleeper',
 						'TriHard', 'ANELE', 'NotLikeThis', 'LUL', 'FeelsBadMan']);
@@ -41,13 +44,13 @@ module.exports = {
 				if (GOOD_WORDS.has(word.toLowerCase())) score += 2;
 			}
 
-			if (!Data.data[room]) Data.data[room] = {};
-			if (!Data.data[room].quality) Data.data[room].quality = 0;
-			Data.data[room].quality += score;
+			if (!db[room]) db[room] = {};
+			if (!db[room].quality) db[room].quality = 0;
+			db[room].quality += score;
 		},
 
 		display(room) {
-			let quality = Data.data[room] && Data.data[room].quality;
+			let quality = db[room] && db[room].quality;
 			return '<p>Quality of this room\'s discussion: ' + (quality || 0) + '</p>';
 		},
 	},

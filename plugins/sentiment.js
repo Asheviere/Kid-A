@@ -2,6 +2,9 @@
 
 const sentiment = require('sentiment');
 
+const databases = require('../databases.js');
+const db = databases.getDatabase('data');
+
 module.exports = {
 	analyzer: {
 		parser(room, message) {
@@ -11,14 +14,14 @@ module.exports = {
 			let smt = sentiment(message);
 			if (!smt.words.length) return false;
 
-			if (!Data.data[room]) Data.data[room] = {};
-			if (!Data.data[room].sentiment) Data.data[room].sentiment = {score: smt.score, n: 1};
+			if (!db[room]) db[room] = {};
+			if (!db[room].sentiment) db[room].sentiment = {score: smt.score, n: 1};
 
-			Data.data[room].sentiment.score = (Data.data[room].sentiment.score + smt.score) / ++Data.data[room].sentiment.n;
+			db[room].sentiment.score = (db[room].sentiment.score + smt.score) / ++db[room].sentiment.n;
 		},
 
 		display(room) {
-			let roomSentiment = Data.data[room].sentiment;
+			let roomSentiment = db[room].sentiment;
 			return '<p>Average sentiment: ' + (roomSentiment ? roomSentiment.score * 1000 : 0) + '</p>';
 		},
 	},
