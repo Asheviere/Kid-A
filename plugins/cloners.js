@@ -2,6 +2,7 @@
 
 const fs = require('fs');
 
+const handler = require('../handler.js');
 const server = require('../server.js');
 const databases = require('../databases.js');
 
@@ -22,6 +23,7 @@ class WifiList {
 		this.columnNames = columnNames;
 		this.columnKeys = columnKeys;
 		this.noTime = noTime;
+		if (!noOnlinePage) this.userlists = handler.userlists;
 
 		if (!noTime) {
 			columnKeys.push('date');

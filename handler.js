@@ -32,11 +32,11 @@ function writeSettings() {
 databases.addDatabase('settings', loadSettings, writeSettings);
 
 settings = databases.getDatabase('settings');
-const userlists = {};
 
 module.exports = {
 	ipQueue: [],
-	chatHandler: commandParser.new(userlists, settings),
+	userlists: {},
+	chatHandler: commandParser.new(this.userlists, settings),
 
 	checkIp(userid, resolver) {
 		Connection.send('|/ip ' + userid);
@@ -58,23 +58,23 @@ module.exports = {
 	},
 
 	addUser(user, room) {
-		if (!(room in userlists)) {
-			userlists[room] = {};
+		if (!(room in this.userlists)) {
+			this.userlists[room] = {};
 		}
 
 		if (Array.isArray(user)) {
-			userlists[room] = {};
+			this.userlists[room] = {};
 			for (let i = 0; i < user.length; i++) {
-				userlists[room][toId(user[i])] = [user[i][0], toId(user[i])];
+				this.userlists[room][toId(user[i])] = [user[i][0], toId(user[i])];
 			}
 			return true;
 		}
-		userlists[room][toId(user)] = [user[0], toId(user)];
+		this.userlists[room][toId(user)] = [user[0], toId(user)];
 	},
 
 	removeUser(user, room) {
-		if (!(room in userlists)) return false;
-		delete userlists[room][toId(user)];
+		if (!(room in this.userlists)) return false;
+		delete this.userlists[room][toId(user)];
 	},
 
 	parseIP(html) {
