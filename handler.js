@@ -33,10 +33,12 @@ databases.addDatabase('settings', loadSettings, writeSettings);
 
 settings = databases.getDatabase('settings');
 
+const userlists = {};
+
 module.exports = {
 	ipQueue: [],
-	userlists: {},
-	chatHandler: commandParser.new(this.userlists, settings),
+	userlists: userlists,
+	chatHandler: commandParser.new(userlists, settings),
 
 	checkIp(userid, resolver) {
 		Connection.send('|/ip ' + userid);
