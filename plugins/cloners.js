@@ -2,7 +2,6 @@
 
 const fs = require('fs');
 
-const handler = require('../handler.js');
 const server = require('../server.js');
 const databases = require('../databases.js');
 
@@ -23,7 +22,6 @@ class WifiList {
 		this.columnNames = columnNames;
 		this.columnKeys = columnKeys;
 		this.noTime = noTime;
-		if (!noOnlinePage) this.userlists = handler.userlists;
 
 		if (!noTime) {
 			columnKeys.push('date');
@@ -93,7 +91,7 @@ class WifiList {
 			let generateOnlinePage = (req, res) => {
 				let content = '<!DOCTYPE html><html><head><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="../style.css"><title>Online ' + this.name + ' list - Kid A</title></head><body><div class="container"><h2>Online ' + this.name + ':</h2><ul>';
 				for (let i in this.data) {
-					if (this.userlists[WIFI_ROOM] && (i in this.userlists[WIFI_ROOM])) content += '<li>' + sanitize(this.data[i].username) + '</li>';
+					if (Handler.userlists[WIFI_ROOM] && (i in Handler.userlists[WIFI_ROOM])) content += '<li>' + sanitize(this.data[i].username) + '</li>';
 				}
 				res.end(content + '</ul></div></body></html>');
 			};
