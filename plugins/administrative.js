@@ -52,7 +52,7 @@ module.exports = {
 
 			// Very dirty, but works for now. TODO: elegance.
 			let type;
-			if (params[0] in Commands) {
+			if (params[0] in this.commands) {
 				type = 'command';
 			} else if (this.options.has(params[0])) {
 				type = 'option';

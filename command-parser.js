@@ -11,10 +11,12 @@ function sendPM(userid, message) {
 }
 
 class CommandWrapper {
-	constructor(userlists, data, settings) {
+	constructor(userlists, data, settings, commands, options) {
 		this.userlists = userlists;
 		this.data = data;
 		this.settings = settings;
+		this.commands = commands;
+		this.options = options;
 	}
 
 	run(cmd, userstr, room, message) {
@@ -135,7 +137,7 @@ class ChatHandler {
 			sendPM(username, 'Invalid command.');
 		}
 
-		const wrapper = new CommandWrapper(this.userlists, this.data, this.settings);
+		const wrapper = new CommandWrapper(this.userlists, this.data, this.settings, this.commands, this.options);
 
 		let user = (!room && userstr[0] === ' ' ? '+' : userstr[0]) + username;
 		if (this.settings[room] && this.settings[room][cmd] === 'off') return;
