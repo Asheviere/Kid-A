@@ -61,7 +61,7 @@ module.exports = {
 			return req.then(data => {
 				let msg = '';
 				if (htmlbox) {
-					msg += '<table><tr><td style="padding:5px;">';
+					msg += '<table><tr><td style="padding-right:5px;">';
 				}
 				if (data.recenttracks && data.recenttracks.track && data.recenttracks.track.length) {
 					let track = data.recenttracks.track[0];
