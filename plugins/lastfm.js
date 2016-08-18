@@ -61,7 +61,7 @@ module.exports = {
 			return req.then(data => {
 				let msg = '';
 				if (htmlbox) {
-					msg += '<table><tr><td>';
+					msg += '<table><tr><td style="padding:5px;">';
 				}
 				if (data.recenttracks && data.recenttracks.track && data.recenttracks.track.length) {
 					let track = data.recenttracks.track[0];
@@ -118,7 +118,7 @@ module.exports = {
 							msg += trackname;
 						}
 
-						if (htmlbox) msg = (room ? '/addhtmlbox' : '/pminfobox') + ' ' + msg + '</td></tr></table>';
+						if (htmlbox) msg = '/addhtmlbox ' + msg + '</td></tr></table>';
 						return this.reply(msg);
 					});
 				} else if (data.error) {
