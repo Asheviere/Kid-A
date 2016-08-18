@@ -134,7 +134,7 @@ class ChatHandler {
 		const cmd = words.splice(0, 1)[0].substr(1);
 		if (!(cmd in this.commands)) {
 			if (room) return;
-			sendPM(username, 'Invalid command.');
+			return sendPM(username, 'Invalid command.');
 		}
 
 		const wrapper = new CommandWrapper(this.userlists, this.data, this.settings, this.commands, this.options);
