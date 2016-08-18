@@ -32,6 +32,7 @@ const YT_ROOT = 'https://www.googleapis.com/youtube/v3/search';
 const VIDEO_ROOT = 'https://youtu.be/';
 
 module.exports = {
+	options: ['lastfmhtmlbox'],
 	commands: {
 		lastfm(userstr, room, message) {
 			if (!canUse(userstr, 1)) return this.pmreply("Permission denied.");
@@ -41,6 +42,9 @@ module.exports = {
 			let userid = toId(userstr);
 			let accountname = message || userstr.substr(1);
 			if (!message && (userid in lastfmdata)) message = lastfmdata[userid];
+			if (!message) message = userid;
+
+			let htmlbox = this.settings[room] && this.settings[room].lastfmhtmlbox;
 
 			let url = API_ROOT + '?method=user.getrecenttracks&user=' + message + '&limit=1&api_key=' + Config.lastfmKey + '&format=json';
 			let req = new Promise(function(resolve, reject) {
@@ -56,15 +60,17 @@ module.exports = {
 
 			return req.then(data => {
 				let msg = '';
-				if (Config.useHTMLboxes) {
+				if (htmlbox) {
 					msg += '<table><tr><td>';
 				}
 				if (data.recenttracks && data.recenttracks.track && data.recenttracks.track.length) {
 					let track = data.recenttracks.track[0];
-					if (Config.useHTMLboxes) {
+					if (htmlbox) {
 						if (track.image && track.image.length) {
 							let imageIdx = (track.image.length >= 3 ? 2 : track.image.length - 1);
-							msg += '<img src="' + track.image[imageIdx]['#text'] + '" width=75 height=75>';
+							if (track.image[imageIdx]['#text']) {
+								msg += '<img src="' + track.image[imageIdx]['#text'] + '" width=75 height=75>';
+							}
 						}
 						msg += '</td><td>';
 						msg += '<a href="http://www.last.fm/user/' + message + '"><b>' + accountname + '</b></a>';
@@ -76,14 +82,14 @@ module.exports = {
 					} else {
 						msg += " was last seen listening to: ";
 					}
-					if (Config.useHTMLboxes) msg += '<br/>';
+					if (htmlbox) msg += '<br/>';
 					let trackname = '';
 					// Should always be the case but just in case.
 					if (track.artist && track.artist['#text']) {
 						trackname += track.artist['#text'] + ' - ';
 					}
 					trackname += track.name;
-					if (!Config.useHTMLboxes) msg += trackname;
+					if (!htmlbox) msg += trackname;
 					let yturl = YT_ROOT + '?part=snippet&order=relevance&maxResults=1&q=' + encodeURIComponent(trackname) + '&key=' + Config.youtubeKey;
 					let yt = new Promise(function(resolve, reject) {
 						request(yturl, function (error, response, body) {
@@ -101,25 +107,25 @@ module.exports = {
 							errorMsg(video.error.message);
 							msg = 'Something went wrong with the youtube API.';
 						} else if (video.items && video.items.length && video.items[0].id) {
-							if (Config.useHTMLboxes) {
+							if (htmlbox) {
 								msg += '<a href="' + VIDEO_ROOT + video.items[0].id.videoId + '">' + trackname + '</a>';
 							} else {
 								msg += ' ' + VIDEO_ROOT + video.items[0].id.videoId;
 								msg += ' | Profile link: http://www.last.fm/user/' + message;
 							}
-						} else if (Config.useHTMLboxes) {
+						} else if (htmlbox) {
 							// Since the htmlbox doesn't actually write down the trackname yet.
 							msg += trackname;
 						}
 
-						if (Config.useHTMLboxes) msg = (room ? '/addhtmlbox' : '/pminfobox') + ' ' + msg + '</td></tr></table>';
+						if (htmlbox) msg = (room ? '/addhtmlbox' : '/pminfobox') + ' ' + msg + '</td></tr></table>';
 						return this.reply(msg);
 					});
 				} else if (data.error) {
-					return this.reply(msg + data.message + '.');
+					return this.reply(data.message + '.');
 				}
 
-				return this.reply(msg + message + ' doesn\'t seem to have listened to anything recently.');
+				return this.reply(message + ' doesn\'t seem to have listened to anything recently.');
 			});
 		},
 

@@ -29,9 +29,6 @@ exports.privateRooms = new Set();
 // Whether the bot can (and should) check IPs instead of usernames for room moderation.
 exports.checkIps = 'true';
 
-// Whether the bot can (and should) use HTMLboxes for certain commands.
-exports.useHTMLboxes = 'true';
-
 // Last.fm API key, used for the lastfm feature.
 exports.lastfmKey = '';
 
