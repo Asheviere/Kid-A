@@ -56,22 +56,35 @@ module.exports = {
 
 			return req.then(data => {
 				let msg = '';
+				if (Config.useHTMLboxes) {
+					msg += '<table><tr><td>';
+				}
 				if (data.recenttracks && data.recenttracks.track && data.recenttracks.track.length) {
-					msg += accountname;
 					let track = data.recenttracks.track[0];
+					if (Config.useHTMLboxes) {
+						if (track.image && track.image.length) {
+							let imageIdx = (track.image.length >= 3 ? 2 : track.image.length - 1);
+							msg += '<img src="' + track.image[imageIdx]['#text'] + '" width=75 height=75>';
+						}
+						msg += '</td><td>';
+						msg += '<a href="http://www.last.fm/user/' + message + '"><b>' + accountname + '</b></a>';
+					} else {
+						msg += accountname;
+					}
 					if (track['@attr'] && track['@attr'].nowplaying) {
 						msg += " is now listening to: ";
 					} else {
 						msg += " was last seen listening to: ";
 					}
+					if (Config.useHTMLboxes) msg += '<br/>';
 					let trackname = '';
 					// Should always be the case but just in case.
 					if (track.artist && track.artist['#text']) {
 						trackname += track.artist['#text'] + ' - ';
 					}
 					trackname += track.name;
-					msg += trackname;
-					let yturl = YT_ROOT + '?part=snippet&order=relevance&maxResults=1&q=' + encodeURIComponent(trackname) + '&key=' + Config.youtubekey;
+					if (!Config.useHTMLboxes) msg += trackname;
+					let yturl = YT_ROOT + '?part=snippet&order=relevance&maxResults=1&q=' + encodeURIComponent(trackname) + '&key=' + Config.youtubeKey;
 					let yt = new Promise(function(resolve, reject) {
 						request(yturl, function (error, response, body) {
 							if (error) {
@@ -88,9 +101,18 @@ module.exports = {
 							errorMsg(video.error.message);
 							msg = 'Something went wrong with the youtube API.';
 						} else if (video.items && video.items.length && video.items[0].id) {
-							msg += ' ' + VIDEO_ROOT + video.items[0].id.videoId;
-							msg += ' | Profile link: http://www.last.fm/user/' + message;
+							if (Config.useHTMLboxes) {
+								msg += '<a href="' + VIDEO_ROOT + video.items[0].id.videoId + '">' + trackname + '</a>';
+							} else {
+								msg += ' ' + VIDEO_ROOT + video.items[0].id.videoId;
+								msg += ' | Profile link: http://www.last.fm/user/' + message;
+							}
+						} else if (Config.useHTMLboxes) {
+							// Since the htmlbox doesn't actually write down the trackname yet.
+							msg += trackname;
 						}
+
+						if (Config.useHTMLboxes) msg = (room ? '/addhtmlbox' : '/pminfobox') + ' ' + msg + '</td></tr></table>';
 						return this.reply(msg);
 					});
 				} else if (data.error) {
