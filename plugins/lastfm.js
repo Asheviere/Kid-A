@@ -170,7 +170,7 @@ module.exports = {
 							}
 						}
 						msg += '</td><td>';
-						msg += '<a href="' + track.artist.url + '">' + artist + '</a> - <a href="' + track.url + '">' + name + '</a><br/>';
+						msg += '<b><a href="' + track.artist.url + '">' + artist + '</a> - <a href="' + track.url + '">' + name + '</a></b><br/>';
 					} else {
 						msg += trackname;
 					}
