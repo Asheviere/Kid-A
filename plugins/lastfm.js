@@ -129,6 +129,87 @@ module.exports = {
 			});
 		},
 
+		track(userstr, room, message) {
+			if (!canUse(userstr, 1)) return this.pmreply("Permission denied.");
+
+			if (!Config.lastfmKey) return errorMsg("No last.fm API key found.");
+
+			let parts = message.split('-').map(param => encodeURIComponent(param.trim()));
+			if (parts.length !== 2) return this.pmreply("Invalid syntax. Format: ``.track Artist - Song name``");
+
+			let htmlbox = this.settings[room] && this.settings[room].lastfmhtmlbox;
+
+			let url = API_ROOT + '?method=track.getInfo&api_key=' + Config.lastfmKey + '&artist=' + parts[0] + '&track=' + parts[1] + '&autocorrect=1&format=json';
+			let req = new Promise(function(resolve, reject) {
+				request(url, function (error, response, body) {
+					if (error) {
+						errorMsg(error);
+						reject(error);
+					} else {
+						resolve(JSON.parse(body));
+					}
+				});
+			});
+
+			return req.then(data => {
+				let msg = '';
+				if (htmlbox) {
+					msg += '<table><tr><td style="padding-right:5px;">';
+				}
+				if (data.track) {
+					let track = data.track;
+					let name = track.name;
+					let artist = track.artist.name || "Unknown Artist";
+					let trackname = artist + ' - ' + name;
+					if (htmlbox) {
+						if (track.album && track.album.image && track.album.image.length) {
+							let img = track.album.image;
+							let imageIdx = (img.length >= 3 ? 2 : img.length - 1);
+							if (img[imageIdx]['#text']) {
+								msg += '<a href="' + track.album.url + '"><img src="' + img[imageIdx]['#text'] + '" width=75 height=75></a>';
+							}
+						}
+						msg += '</td><td>';
+					} else {
+						msg += trackname;
+					}
+					if (htmlbox) msg += '<br/>';
+					let yturl = YT_ROOT + '?part=snippet&order=relevance&maxResults=1&q=' + encodeURIComponent(trackname) + '&key=' + Config.youtubeKey;
+
+					let yt = new Promise(function(resolve, reject) {
+						request(yturl, function (error, response, body) {
+							if (error) {
+								errorMsg(error);
+								reject(error);
+							} else {
+								resolve(JSON.parse(body));
+							}
+						});
+					});
+					return yt.then(video => {
+						if (video.error) {
+							errorMsg(video.error.message);
+							msg = 'Something went wrong with the youtube API.';
+						} else if (video.items && video.items.length && video.items[0].id) {
+							if (htmlbox) {
+								msg += '<a href="' + VIDEO_ROOT + video.items[0].id.videoId + '">' + trackname + '</a>';
+							} else {
+								msg += ' ' + VIDEO_ROOT + video.items[0].id.videoId;
+							}
+						} else if (htmlbox) {
+							// Since the htmlbox doesn't actually write down the trackname yet.
+							msg += trackname;
+						}
+
+						if (htmlbox) msg = '/addhtmlbox ' + msg + '</td></tr></table>';
+						return this.reply(msg);
+					});
+				}
+
+				return this.reply(data.message + '.');
+			});
+		},
+
 		registerlastfm(userstr, room, message) {
 			if (!message) return this.pmreply("No username entered.");
 
