@@ -158,7 +158,7 @@ module.exports = {
 				}
 				if (data.track) {
 					let track = data.track;
-					let name = track.name;
+					let name = track.name || "Untitled";
 					let artist = track.artist.name || "Unknown Artist";
 					let trackname = artist + ' - ' + name;
 					if (htmlbox) {
@@ -170,10 +170,10 @@ module.exports = {
 							}
 						}
 						msg += '</td><td>';
+						msg += '<a href="' + track.artist.url + '">' + artist + '</a> - <a href="' + track.url + '">' + name + '</a><br/>';
 					} else {
 						msg += trackname;
 					}
-					if (htmlbox) msg += '<br/>';
 					let yturl = YT_ROOT + '?part=snippet&order=relevance&maxResults=1&q=' + encodeURIComponent(trackname) + '&key=' + Config.youtubeKey;
 
 					let yt = new Promise(function(resolve, reject) {
@@ -192,7 +192,7 @@ module.exports = {
 							msg = 'Something went wrong with the youtube API.';
 						} else if (video.items && video.items.length && video.items[0].id) {
 							if (htmlbox) {
-								msg += '<a href="' + VIDEO_ROOT + video.items[0].id.videoId + '">' + trackname + '</a>';
+								msg += '<a href="' + VIDEO_ROOT + video.items[0].id.videoId + '">Youtube link</a>';
 							} else {
 								msg += ' ' + VIDEO_ROOT + video.items[0].id.videoId;
 							}
