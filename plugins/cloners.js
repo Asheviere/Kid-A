@@ -248,7 +248,7 @@ module.exports = {
 
 			let targetId = toId(message);
 			if (!(targetId in clonerList.data)) return this.reply("User is not on the cloner list.");
-			clonerList.data[userid].date = Date.now();
+			clonerList.data[targetId].date = Date.now();
 			databases.writeDatabase('cloners');
 
 			Connection.send(WIFI_ROOM + '|/modnote ' + userstr.substr(1) + ' has approved ' + targetId + "'s cloner giveaway.");
@@ -386,7 +386,7 @@ module.exports = {
 
 			let targetId = toId(message);
 			if (!(targetId in trainerList.data)) return this.reply("User is not on the trainer list.");
-			trainerList.data[userid].date = Date.now();
+			trainerList.data[targetId].date = Date.now();
 			databases.writeDatabase('trainers');
 
 			Connection.send(WIFI_ROOM + '|/modnote ' + userstr.substr(1) + ' has approved ' + targetId + "'s EV training.");
