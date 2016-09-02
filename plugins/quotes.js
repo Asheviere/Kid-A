@@ -81,7 +81,7 @@ module.exports = {
 			if (quotedata[room]) {
 				let fname;
 				if (Config.privateRooms.has(room)) {
-					fname = utils.generateTempFile(generateQuotePage(room), 15);
+					fname = utils.generateTempFile(generateQuotePage(room), 15, true);
 				} else {
 					fname = room + "/quotes";
 				}
