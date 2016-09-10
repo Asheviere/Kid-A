@@ -70,7 +70,15 @@ class WifiList {
 				content += '<p class="note">Editors: ' + settings.whitelists[this.name].join(', ') + '</p>';
 			}
 			content += '<table><tr class="header"><th>' + this.columnNames.join('</th><th>') + '</th></tr>';
-			for (let i in this.data) {
+			let keys = Object.keys(this.data).sort((a, b) => {
+				if ('date' in this.columnKeys && !parseInt(this.data[a].date)) return -1;
+				if ('date' in this.columnKeys && !parseInt(this.data[b].date)) return 1;
+				if (a[0] < b[0]) return -1;
+				if (a[0] > b[0]) return 1;
+				return 0;
+			});
+			for (let iter = 0; iter < keys.length; iter++) {
+				let i = keys[iter];
 				content += '<tr>';
 				for (let j in this.data[i]) {
 					if (j === 'date' && parseInt(this.data[i][j])) {
