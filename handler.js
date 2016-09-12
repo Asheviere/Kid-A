@@ -37,6 +37,7 @@ const userlists = {};
 
 module.exports = {
 	ipQueue: [],
+	toJoin: [],
 	userlists: userlists,
 	chatHandler: commandParser.new(userlists, settings),
 
@@ -48,13 +49,16 @@ module.exports = {
 	setup() {
 		Connection.send('|/avatar ' + Config.avatar);
 
-		this.toJoin = Config.rooms;
+		Array.prototype.push.apply(this.toJoin, Config.rooms);
 
 		if (settings.toJoin) {
-			this.toJoin = this.toJoin.concat(settings.toJoin);
+			Array.prototype.push.apply(
+				this.toJoin,
+				settings.toJoin.filter(r => !this.toJoin.includes(r))
+			);
 		}
 
-		Connection.send('|/autojoin ' + this.toJoin.splice(0, 11).join(','));
+		Connection.send('|/autojoin ' + this.toJoin.slice(0, 11).join(','));
 
 		statusMsg('Setup done.');
 	},
@@ -138,19 +142,16 @@ module.exports = {
 
 			statusMsg('Logged in as ' + split[2] + '.');
 
-			if (this.toJoin.length) {
-				statusMsg('Joining additional rooms.');
+			if (this.toJoin.length > 11) {
+				statusMsg('Joining additional rooms...');
 
-				this.toJoin.map((room) => (
-					new Promise((resolve) => {
-						Connection.send('|/join ' + room);
-						setTimeout(resolve, 500);
-					})
-				)).reduce(
-					(thenable, p) => thenable.then(p),
-					Promise.resolve()
-				);
+				for (let i = 11; i < this.toJoin.length; i++) {
+					setTimeout((_i) => {
+						Connection.send('|/join ' + this.toJoin[_i]);
+					}, (i - 11) * 600, i);
+				}
 			}
+
 			break;
 		case 'J':
 			this.addUser(split[2], roomid);
