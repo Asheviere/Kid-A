@@ -73,6 +73,12 @@ class WifiList {
 			let keys = Object.keys(this.data).sort((a, b) => {
 				if ('date' in this.data[a] && !parseInt(this.data[a].date)) return -1;
 				if ('date' in this.data[b] && !parseInt(this.data[b].date)) return 1;
+				let i = 0;
+				while (a[i] === b[i]) {
+					i++;
+					if (i === a.length) return -1;
+					if (i === b.length) return 1;
+				}
 				if (a[0] < b[0]) return -1;
 				if (a[0] > b[0]) return 1;
 				return 0;
