@@ -7,7 +7,7 @@ const databases = require('./databases.js');
 
 
 function sendPM(userid, message) {
-	Connection.send('|/w ' + userid + ', ' + message);
+	Connection.send('|/pm ' + userid + ', ' + message);
 }
 
 class CommandWrapper {
@@ -113,7 +113,7 @@ class ChatHandler {
 				}
 			}
 			pmMsg('PM from ' + (userstr[0] === ' ' ? userstr.substr(1) : userstr) + ': ' + message);
-			Connection.send("|/reply Hi I'm a chatbot made by bumbadadabum. I moderate rooms, provide chat analytics, and have a few other neat features. For help with using the bot, use ``.help`` for a list of available topics.");
+			sendPM(userstr, "Hi I'm a chatbot made by bumbadadabum. I moderate rooms, provide chat analytics, and have a few other neat features. For help with using the bot, use ``.help`` for a list of available topics.");
 		}
 	}
 
