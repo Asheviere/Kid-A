@@ -79,8 +79,8 @@ class WifiList {
 					if (i === a.length) return -1;
 					if (i === b.length) return 1;
 				}
-				if (a[0] < b[0]) return -1;
-				if (a[0] > b[0]) return 1;
+				if (a[i] < b[i]) return -1;
+				if (a[i] > b[i]) return 1;
 				return 0;
 			});
 			for (let iter = 0; iter < keys.length; iter++) {
@@ -147,7 +147,7 @@ class WifiList {
 			let param = params[i].split(':').map(param => param.trim());
 			if (param.length !== 2) return "Syntax error in " + params[i];
 			param[0] = toId(param[0]);
-			if (param[0] === 'username' || param[0] === 'date') return "This column can't be changed.";
+			if (param[0] === 'username') return "This column can't be changed.";
 			if (this.columnKeys.indexOf(param[0]) < 0) return "Invalid key: " + param[0];
 			this.data[userid][param[0]] = param[1];
 		}
@@ -314,6 +314,33 @@ module.exports = {
 			Connection.send(WIFI_ROOM + '|/modnote ' + toId(message) + ' was whitelisted for the cloner list by ' + userstr.substr(1) + '.');
 			return this.reply("User successfully whitelisted.");
 		},
+		unwhitelistcloner(userstr, room, message) {
+			let userid = toId(userstr);
+			if (!room) {
+				 if (this.userlists[WIFI_ROOM]) {
+					if (userid in this.userlists[WIFI_ROOM]) {
+						userstr = this.userlists[WIFI_ROOM][userid].join('');
+					} else {
+						return this.reply("You need to be in the Wi-Fi room to use this command.");
+					}
+				 } else {
+					 errorMsg("Someone tried to use a wifi room command without the bot being in the wifi room. Either make the bot join wifi, or remove cloners.js");
+					 return this.reply("Something went wrong! The bot's owner has been notified.");
+				 }
+			} else if (room !== WIFI_ROOM) {
+				return this.pmreply("This command can only be used in the Wi-Fi room.");
+			}
+			if (!canUse(userstr, 5)) return this.pmreply("Permission denied.");
+
+			let i = this.settings.whitelists.cloners.indexOf(toId(message));
+
+			if (i < 0) return this.reply("This user isn't whitelisted.");
+
+			this.settings.whitelists.cloners.splice(i, 1);
+			databases.writeDatabase('settings');
+			Connection.send(WIFI_ROOM + '|/modnote ' + toId(message) + ' was unwhitelisted for the cloner list by ' + userstr.substr(1) + '.');
+			return this.reply("User successfully removed from the whitelist.");
+		},
 
 		addtrainer(userstr, room, message) {
 			let userid = toId(userstr);
@@ -451,6 +478,33 @@ module.exports = {
 			databases.writeDatabase('settings');
 			Connection.send(WIFI_ROOM + '|/modnote ' + toId(message) + ' was whitelisted for the trainer list by ' + userstr.substr(1) + '.');
 			return this.reply("User successfully whitelisted.");
+		},
+		unwhitelisttrainer(userstr, room, message) {
+			let userid = toId(userstr);
+			if (!room) {
+				 if (this.userlists[WIFI_ROOM]) {
+					if (userid in this.userlists[WIFI_ROOM]) {
+						userstr = this.userlists[WIFI_ROOM][userid].join('');
+					} else {
+						return this.reply("You need to be in the Wi-Fi room to use this command.");
+					}
+				 } else {
+					 errorMsg("Someone tried to use a wifi room command without the bot being in the wifi room. Either make the bot join wifi, or remove cloners.js");
+					 return this.reply("Something went wrong! The bot's owner has been notified.");
+				 }
+			} else if (room !== WIFI_ROOM) {
+				return this.pmreply("This command can only be used in the Wi-Fi room.");
+			}
+			if (!canUse(userstr, 5)) return this.pmreply("Permission denied.");
+
+			let i = this.settings.whitelists.trainers.indexOf(toId(message));
+
+			if (i < 0) return this.reply("This user isn't whitelisted.");
+
+			this.settings.whitelists.trainers.splice(i, 1);
+			databases.writeDatabase('settings');
+			Connection.send(WIFI_ROOM + '|/modnote ' + toId(message) + ' was unwhitelisted for the trainer list by ' + userstr.substr(1) + '.');
+			return this.reply("User successfully removed from the whitelist.");
 		},
 
 		addscammer(userstr, room, message) {
