@@ -54,8 +54,8 @@ module.exports = {
 			let split = message.split(',').map(param => param.trim());
 			if (!room) {
 				if (split.length < 3) return this.pmreply("Invalid amount of arguments.");
-				room = toId(split.splice(0,1));
-				if (room !== WIFI_ROOM || room !== BREEDING_ROOM) return this.pmreply("This command can only be used in the wifi or breeding room.");
+				room = toId(split.splice(0,1)[0]);
+				if (room !== WIFI_ROOM && room !== BREEDING_ROOM) return this.pmreply("This command can only be used in the wifi or breeding room.");
 				if (this.userlists[room]) {
 					if (toId(userstr) in this.userlists[room]) {
 						userstr = this.userlists[room][toId(userstr)].join('');
@@ -83,14 +83,15 @@ module.exports = {
 				faqMessage.replace('{' + i + '}', special[i]);
 			}
 			faqList[toId(split[0])] = faqMessage;
+			databases.writeDatabase('faqs');
 			return this.reply("Faq topic " + split[0] + " added.");
 		},
 		removefaq(userstr, room, message) {
 			let split = message.split(',').map(param => param.trim());
 			if (!room) {
 				if (split.length < 2) return this.pmreply("Invalid amount of arguments.");
-				room = toId(split.splice(0,1));
-				if (room !== WIFI_ROOM || room !== BREEDING_ROOM) return this.pmreply("This command can only be used in the wifi or breeding room.");
+				room = toId(split.splice(0,1)[0]);
+				if (room !== WIFI_ROOM && room !== BREEDING_ROOM) return this.pmreply("This command can only be used in the wifi or breeding room.");
 				if (this.userlists[room]) {
 					if (toId(userstr) in this.userlists[room]) {
 						userstr = this.userlists[room][toId(userstr)].join('');
@@ -115,6 +116,7 @@ module.exports = {
 			split[0] = toId(split[0]);
 			if (!(split[0] in faqList)) return this.pmreply("Invalid option for topic.");
 			delete faqList[split[0]];
+			databases.writeDatabase('faqs');
 			return this.reply("Faq topic " + split[0] + " deleted.");
 		},
 	},
