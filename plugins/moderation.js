@@ -151,7 +151,7 @@ module.exports = {
 			let capsString = message.replace(/[^A-Za-z]/g, '').match(/[A-Z]/g);
 			let len = toId(message).length;
 
-			if (len >= 8 && capsString && (capsString.length / len) >= 0.8) {
+			if (len >= 10 && capsString && (capsString.length / len) >= 0.8) {
 				if (Config.checkIps) {
 					Handler.checkIp(userid, (userid, ips) => {
 						punish(userid, ips, room, 1, 'Bot moderation: caps');
@@ -162,7 +162,7 @@ module.exports = {
 				return;
 			}
 
-			if (/(.)\1{7,}/gi.test(message) || /(..+)\1{4,}/gi.test(message)) {
+			if (/(.)\1{7,}/gi.test(message) || (/(..+)\1{4,}/gi.test(message) && !/(\d+\/)+/gi.test(message))) {
 				if (Config.checkIps) {
 					Handler.checkIp(userid, (userid, ips) => {
 						punish(userid, ips, room, 1, 'Bot moderation: stretching');
