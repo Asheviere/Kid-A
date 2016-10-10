@@ -6,8 +6,8 @@ const server = require('../server.js');
 
 module.exports = {
 	commands: {
-		eval(userstr, room, message) {
-			if (!Config.admins.has(toId(userstr))) return;
+		eval(message) {
+			if (!Config.admins.has(this.userid)) return;
 
 			let ret;
 			try {
@@ -19,8 +19,8 @@ module.exports = {
 			return this.reply('' + ret);
 		},
 
-		reload(userstr, room, message) {
-			if (!canUse(userstr, 6)) return this.pmreply("Permission denied.");
+		reload(message) {
+			if (!this.canUse(6)) return this.pmreply("Permission denied.");
 
 			switch (message) {
 			case 'data':
@@ -38,15 +38,15 @@ module.exports = {
 			}
 		},
 
-		console(userstr) {
-			if (!canUse(userstr, 6)) return this.pmreply("Permission denied.");
+		console() {
+			if (!this.canUse(6)) return this.pmreply("Permission denied.");
 
 			return this.pmreply('Console output saved as ' + server.url + utils.generateTempFile(stdout, 10));
 		},
 
-		set(userstr, room, message) {
-			if (!canUse(userstr, 5)) return this.pmreply("Permission denied.");
-			if (!room) return this.pmreply("This command can't be used in PMs.");
+		set(message) {
+			if (!this.canUse(5)) return this.pmreply("Permission denied.");
+			if (!this.room) return this.pmreply("This command can't be used in PMs.");
 
 			let params = message.split(',').map(param => toId(param));
 
@@ -61,12 +61,12 @@ module.exports = {
 			}
 
 			if (params.length < 2) {
-				if (type === 'command') return this.reply("Usage of the command " + params[0] + " is turned " + (this.settings[room] ? this.settings[room][params[1]] || 'on' : 'on') + '.');
-				if (type === 'option') this.reply("The option " + params[0] + " is turned " + (this.settings[room] ? this.settings[room][params[1]] || 'off' : 'off') + '.');
+				if (type === 'command') return this.reply("Usage of the command " + params[0] + " is turned " + (this.settings[this.room] ? this.settings[this.room][params[1]] || 'on' : 'on') + '.');
+				if (type === 'option') this.reply("The option " + params[0] + " is turned " + (this.settings[this.room] ? this.settings[this.room][params[1]] || 'off' : 'off') + '.');
 			}
 
-			if (!this.settings[room]) {
-				this.settings[room] = {};
+			if (!this.settings[this.room]) {
+				this.settings[this.room] = {};
 			}
 
 			switch (params[1]) {
@@ -75,9 +75,9 @@ module.exports = {
 			case 'yes':
 			case 'enable':
 				if (type === 'command') {
-					delete this.settings[room][params[0]];
+					delete this.settings[this.room][params[0]];
 				} else if (type === 'option') {
-					this.settings[room][params[0]] = 'on';
+					this.settings[this.room][params[0]] = 'on';
 				}
 				break;
 			case 'off':
@@ -85,9 +85,9 @@ module.exports = {
 			case 'no':
 			case 'disable':
 				if (type === 'command') {
-					this.settings[room][params[0]] = 'off';
+					this.settings[this.room][params[0]] = 'off';
 				} else if (type === 'option') {
-					delete this.settings[room][params[0]];
+					delete this.settings[this.room][params[0]];
 				}
 				break;
 			default:
@@ -95,11 +95,11 @@ module.exports = {
 			}
 
 			databases.writeDatabase('settings');
-			return this.reply("The " + type + " '" + params[0] + "' was turned " + (this.settings[room][params[0]] ? this.settings[room][params[0]] : (type === 'command' ? 'on' : 'off')) + '.');
+			return this.reply("The " + type + " '" + params[0] + "' was turned " + (this.settings[this.room][params[0]] ? this.settings[this.room][params[0]] : (type === 'command' ? 'on' : 'off')) + '.');
 		},
 
 		leave(userstr, room) {
-			if (!canUse(userstr, 5)) return this.pmreply("Permission denied.");
+			if (!this.canUse(5)) return this.pmreply("Permission denied.");
 			if (!room) return this.pmreply("This command can't be used in PMs.");
 
 			if (this.settings.toJoin && this.settings.toJoin.includes(room)) {

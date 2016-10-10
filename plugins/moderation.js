@@ -81,14 +81,14 @@ function addBuffer(userid, room, message) {
 
 module.exports = {
 	commands: {
-		moderation(userstr, room, message) {
-			if (!canUse(userstr, 5)) return this.pmreply("Permission denied.");
-			if (!room) return this.pmreply("This command can't be used in PMs.");
+		moderation(message) {
+			if (!this.canUse(5)) return this.pmreply("Permission denied.");
+			if (!this.room) return this.pmreply("This command can't be used in PMs.");
 
 			if (!this.settings.modRooms) this.settings.modRooms = [];
 
 			message = toId(message);
-			let idx = this.settings.modRooms.indexOf(room);
+			let idx = this.settings.modRooms.indexOf(this.room);
 
 			switch (message) {
 			case 'on':
@@ -96,7 +96,7 @@ module.exports = {
 			case 'yes':
 			case 'enable':
 				if (idx < 0) {
-					this.settings.modRooms.push(room);
+					this.settings.modRooms.push(this.room);
 					databases.writeDatabase('settings');
 					return this.reply("Bot moderation was turned on in this room.");
 				}
@@ -120,7 +120,7 @@ module.exports = {
 	analyzer: {
 		rooms: databases.getDatabase('settings').modRooms,
 		parser(room, message, userstr) {
-			if (canUse(userstr, 1)) return;
+			if (userstr[0] !== ' ') return;
 
 			let userid = toId(userstr);
 

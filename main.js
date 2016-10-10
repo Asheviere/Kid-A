@@ -10,25 +10,6 @@ global.output = string => {
 	console.log(string);
 };
 
-global.canUse = function(userstr, permission) {
-	if (Config.admins.has(toId(userstr))) return true;
-	switch (userstr[0]) {
-	case '~':
-		return (permission < 7);
-	case '#':
-	case '&':
-		return (permission < 6);
-	case '@':
-		return (permission < 5);
-	case '%':
-		return (permission < 4);
-	case '+':
-		return (permission < 2);
-	default:
-		return !permission;
-	}
-};
-
 global.toId = text => text.toLowerCase().replace(/[^a-z0-9]/g, '');
 
 global.sanitize = text => ('' + text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;').replace(/\//g, '&#x2f;');

@@ -20,10 +20,12 @@ class CommandWrapper {
 	}
 
 	run(cmd, userstr, room, message) {
+		this.auth = userstr[0];
+		this.username = userstr.substr(1);
 		this.userid = toId(userstr);
 		this.room = room;
 		// I could refactor everything to enforce use of this.userstr and this.userid, but I'll keep this around for now, until I feel productive enough to refactor everything.
-		cmd.apply(this, [userstr, room, message]);
+		this.commands[cmd].apply(this, [userstr, room, message]);
 	}
 
 	reply(message) {
@@ -35,6 +37,39 @@ class CommandWrapper {
 
 	pmreply(message) {
 		sendPM(this.userid, message);
+	}
+
+	getRoomAuth(room) {
+		if (this.userlists[room]) {
+			if (this.userid in this.userlists[room]) {
+				[this.auth, this.username] = this.userlists[room][this.userid];
+				return true;
+			}
+			this.reply(`You need to be in the ${room} room to use this command.`);
+			return false;
+		}
+		errorMsg(`Someone tried to use a ${room} room command without the bot being in the ${room} room. Either make the bot join ${room}, or remove the command.`);
+		this.reply("Something went wrong! The bot's owner has been notified.");
+		return false;
+	}
+
+	canUse(permission) {
+		if (Config.admins.has(this.userid)) return true;
+		switch (this.auth) {
+		case '~':
+			return (permission < 7);
+		case '#':
+		case '&':
+			return (permission < 6);
+		case '@':
+			return (permission < 5);
+		case '%':
+			return (permission < 4);
+		case '+':
+			return (permission < 2);
+		default:
+			return !permission;
+		}
 	}
 }
 
@@ -141,7 +176,7 @@ class ChatHandler {
 
 		let user = (!room && userstr[0] === ' ' ? '+' : userstr[0]) + username;
 		if (this.settings[room] && this.settings[room][cmd] === 'off') return;
-		wrapper.run(this.commands[cmd], user, room, words.join(' '));
+		wrapper.run(cmd, user, room, words.join(' '));
 	}
 
 	generateDataPage(room) {

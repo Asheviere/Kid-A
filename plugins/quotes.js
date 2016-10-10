@@ -51,39 +51,39 @@ for (let room in quotedata) {
 
 module.exports = {
 	commands: {
-		quote(userstr, room, message) {
-			if (!room) return this.pmreply("This command can't be used in PMs.");
-			if (!canUse(userstr, 2)) return this.pmreply("Permission denied.");
+		quote(message) {
+			if (!this.room) return this.pmreply("This command can't be used in PMs.");
+			if (!this.canUse(2)) return this.pmreply("Permission denied.");
 			if (!message.length) return this.pmreply("Please enter a valid quote.");
 
-			if (!quotedata[room]) {
-				quotedata[room] = [];
-				if (!Config.privateRooms.has(room)) {
-					server.addRoute('/' + room + '/quotes', quoteResolver);
+			if (!quotedata[this.room]) {
+				quotedata[this.room] = [];
+				if (!Config.privateRooms.has(this.room)) {
+					server.addRoute('/' + this.room + '/quotes', quoteResolver);
 					// Wait 500ms to make sure everything's ready.
 					setTimeout(() => server.restart(), 500);
 				}
 			}
 
-			if (quotedata[room].includes(message)) {
+			if (quotedata[this.room].includes(message)) {
 				return this.reply("Quote is already added.");
 			}
 
-			quotedata[room].push(message);
+			quotedata[this.room].push(message);
 			databases.writeDatabase('quotes');
 			return this.reply("Quote has been added.");
 		},
 
-		quotes(userstr, room) {
-			if (!room) return this.pmreply("This command can't be used in PMs.");
-			if (!canUse(userstr, 1)) return this.pmreply("Permission denied.");
+		quotes() {
+			if (!this.room) return this.pmreply("This command can't be used in PMs.");
+			if (!this.canUse(1)) return this.pmreply("Permission denied.");
 
-			if (quotedata[room]) {
+			if (quotedata[this.room]) {
 				let fname;
-				if (Config.privateRooms.has(room)) {
-					fname = utils.generateTempFile(generateQuotePage(room), 15, true);
+				if (Config.privateRooms.has(this.room)) {
+					fname = utils.generateTempFile(generateQuotePage(this.room), 15, true);
 				} else {
-					fname = room + "/quotes";
+					fname = this.room + "/quotes";
 				}
 				return this.reply("Quote page: "+ server.url + fname);
 			}
@@ -91,12 +91,12 @@ module.exports = {
 			return this.pmreply("This room has no quotes.");
 		},
 
-		randquote(userstr, room) {
-			if (!room) return this.pmreply("This command can't be used in PMs.");
-			if (!canUse(userstr, 1)) return this.pmreply("Permission denied.");
+		randquote() {
+			if (!this.room) return this.pmreply("This command can't be used in PMs.");
+			if (!this.canUse(1)) return this.pmreply("Permission denied.");
 
-			if (quotedata[room]) {
-				return this.reply(quotedata[room][Math.floor(Math.random() * quotedata[room].length)]);
+			if (quotedata[this.room]) {
+				return this.reply(quotedata[this.room][Math.floor(Math.random() * quotedata[this.room].length)]);
 			}
 
 			return this.pmreply("This room has no quotes.");

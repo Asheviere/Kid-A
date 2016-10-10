@@ -34,17 +34,16 @@ const VIDEO_ROOT = 'https://youtu.be/';
 module.exports = {
 	options: ['lastfmhtmlbox'],
 	commands: {
-		lastfm(userstr, room, message) {
-			if (!canUse(userstr, 1)) return this.pmreply("Permission denied.");
+		lastfm(message) {
+			if (!this.canUse(1)) return this.pmreply("Permission denied.");
 
 			if (!Config.lastfmKey) return errorMsg("No last.fm API key found.");
 
-			let userid = toId(userstr);
-			let accountname = message || userstr.substr(1);
-			if (!message && (userid in lastfmdata)) message = lastfmdata[userid];
-			if (!message) message = userid;
+			let accountname = message || this.username;
+			if (!message && (this.userid in lastfmdata)) message = lastfmdata[this.userid];
+			if (!message) message = this.userid;
 
-			let htmlbox = this.settings[room] && this.settings[room].lastfmhtmlbox;
+			let htmlbox = this.settings[this.room] && this.settings[this.room].lastfmhtmlbox;
 
 			let url = API_ROOT + '?method=user.getrecenttracks&user=' + message + '&limit=1&api_key=' + Config.lastfmKey + '&format=json';
 			let req = new Promise(function(resolve, reject) {
@@ -129,15 +128,15 @@ module.exports = {
 			});
 		},
 
-		track(userstr, room, message) {
-			if (!canUse(userstr, 1)) return this.pmreply("Permission denied.");
+		track(message) {
+			if (!this.canUse(1)) return this.pmreply("Permission denied.");
 
 			if (!Config.lastfmKey) return errorMsg("No last.fm API key found.");
 
 			let parts = message.split('-').map(param => encodeURIComponent(param.trim()));
 			if (parts.length !== 2) return this.pmreply("Invalid syntax. Format: ``.track Artist - Song name``");
 
-			let htmlbox = this.settings[room] && this.settings[room].lastfmhtmlbox;
+			let htmlbox = this.settings[this.room] && this.settings[this.room].lastfmhtmlbox;
 
 			let url = API_ROOT + '?method=track.getInfo&api_key=' + Config.lastfmKey + '&artist=' + parts[0] + '&track=' + parts[1] + '&autocorrect=1&format=json';
 			let req = new Promise(function(resolve, reject) {

@@ -9,40 +9,40 @@ let motdTimers = {};
 module.exports = {
 	options: ['announcemotd'],
 	commands: {
-		motd(userstr, room, message) {
-			if (!room) {
+		motd(message) {
+			if (!this.room) {
 				if (!message) return this.reply("No room specified.");
-				room = message;
+				this.room = message;
 				message = null;
 			}
 
 			if (!message) {
-				if (!canUse(userstr, 1)) return this.pmreply("Permission denied.");
-				if (!(room in motds)) return this.reply("This room does not have a motd set.");
+				if (!this.canUse(1)) return this.pmreply("Permission denied.");
+				if (!(this.room in motds)) return this.reply("This room does not have a motd set.");
 
-				return this.reply((this.settings[room] && this.settings[room].announcemotd ? '/wall ' : '') + "This room's motd is: " + motds[room]);
+				return this.reply((this.settings[this.room] && this.settings[this.room].announcemotd ? '/wall ' : '') + "This room's motd is: " + motds[this.room]);
 			}
 
-			if (!canUse(userstr, 3)) return this.pmreply("Permission denied.");
+			if (!this.canUse(3)) return this.pmreply("Permission denied.");
 
 			if (message.length > 200) return this.reply("Message too long.");
 
-			if (room in motdTimers) clearTimeout(motdTimers[room]);
+			if (this.room in motdTimers) clearTimeout(motdTimers[this.room]);
 
-			motdTimers[room] = setTimeout(() => delete motds[room], DAY);
-			motds[room] = message;
+			motdTimers[this.room] = setTimeout(() => delete motds[this.room], DAY);
+			motds[this.room] = message;
 
 			return this.reply("The motd was successfully set.");
 		},
 
-		clearmotd(userstr, room) {
-			if (!canUse(userstr, 3)) return this.pmreply("Permission denied.");
-			if (!(room in motds)) return this.reply("This room does not have a motd set.");
+		clearmotd() {
+			if (!this.canUse(3)) return this.pmreply("Permission denied.");
+			if (!(this.room in motds)) return this.reply("This room does not have a motd set.");
 
 			// Failsafe
-			if (room in motdTimers) clearTimeout(motdTimers[room]);
+			if (this.room in motdTimers) clearTimeout(motdTimers[this.room]);
 
-			delete motds[room];
+			delete motds[this.room];
 
 			return this.reply("The motd was successfully cleared.");
 		},

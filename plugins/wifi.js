@@ -32,13 +32,13 @@ faqdata = databases.getDatabase('faqs');
 
 module.exports = {
 	commands: {
-		faq(userstr, room, message) {
-			if (!canUse(userstr, 1)) return this.pmreply("Permission denied.");
-			if (!room) room = WIFI_ROOM;
+		faq(message) {
+			if (!this.canUse(1)) return this.pmreply("Permission denied.");
+			if (!this.room) this.room = WIFI_ROOM;
 			let faqList = {};
-			if (room === WIFI_ROOM) {
+			if (this.room === WIFI_ROOM) {
 				faqList = faqdata.wifi;
-			} else if (room === BREEDING_ROOM) {
+			} else if (this.room === BREEDING_ROOM) {
 				faqList = faqdata.breeding;
 			} else {
 				return this.pmreply("This command can only be used in the wifi or breeding room.");
@@ -50,28 +50,19 @@ module.exports = {
 
 			return this.reply(faqList[message]);
 		},
-		addfaq(userstr, room, message) {
+		addfaq(message) {
 			let split = message.split(',').map(param => param.trim());
-			if (!room) {
+			if (!this.room) {
 				if (split.length < 3) return this.pmreply("Invalid amount of arguments.");
-				room = toId(split.splice(0,1)[0]);
-				if (room !== WIFI_ROOM && room !== BREEDING_ROOM) return this.pmreply("This command can only be used in the wifi or breeding room.");
-				if (this.userlists[room]) {
-					if (toId(userstr) in this.userlists[room]) {
-						userstr = this.userlists[room][toId(userstr)].join('');
-					} else {
-						return this.reply("You need to be in the " + room + " room to use this command.");
-					}
-				} else {
-					errorMsg("Someone tried to use a wifi and breeding room command without the bot being in the wifi and breeding rooms. Either make the bot join wifi and breeding, or remove wifi.js");
-					return this.reply("Something went wrong! The bot's owner has been notified.");
-				}
+				this.room = toId(split.splice(0, 1)[0]);
+				if (this.room !== WIFI_ROOM && this.room !== BREEDING_ROOM) return this.pmreply("This command can only be used in the wifi or breeding room.");
+				if (!this.getRoomAuth(this.room)) return;
 			}
-			if (!canUse(userstr, 5)) return this.pmreply("Permission denied.");
+			if (!this.canUse(5)) return this.pmreply("Permission denied.");
 			let faqList = {};
-			if (room === WIFI_ROOM) {
+			if (this.room === WIFI_ROOM) {
 				faqList = faqdata.wifi;
-			} else if (room === BREEDING_ROOM) {
+			} else if (this.room === BREEDING_ROOM) {
 				faqList = faqdata.breeding;
 			} else {
 				return this.pmreply("This command can only be used in the wifi or breeding room.");
@@ -86,28 +77,19 @@ module.exports = {
 			databases.writeDatabase('faqs');
 			return this.reply("Faq topic " + split[0] + " added.");
 		},
-		removefaq(userstr, room, message) {
+		removefaq(message) {
 			let split = message.split(',').map(param => param.trim());
-			if (!room) {
+			if (!this.room) {
 				if (split.length < 2) return this.pmreply("Invalid amount of arguments.");
-				room = toId(split.splice(0,1)[0]);
-				if (room !== WIFI_ROOM && room !== BREEDING_ROOM) return this.pmreply("This command can only be used in the wifi or breeding room.");
-				if (this.userlists[room]) {
-					if (toId(userstr) in this.userlists[room]) {
-						userstr = this.userlists[room][toId(userstr)].join('');
-					} else {
-						return this.reply("You need to be in the " + room + " room to use this command.");
-					}
-				} else {
-					errorMsg("Someone tried to use a wifi and breeding room command without the bot being in the wifi and breeding rooms. Either make the bot join wifi and breeding, or remove wifi.js");
-					return this.reply("Something went wrong! The bot's owner has been notified.");
-				}
+				this.room = toId(split.splice(0, 1)[0]);
+				if (this.room !== WIFI_ROOM && this.room !== BREEDING_ROOM) return this.pmreply("This command can only be used in the wifi or breeding room.");
+				if (!this.getRoomAuth(this.room)) return;
 			}
-			if (!canUse(userstr, 5)) return this.pmreply("Permission denied.");
+			if (!this.canUse(5)) return this.pmreply("Permission denied.");
 			let faqList = {};
-			if (room === WIFI_ROOM) {
+			if (this.room === WIFI_ROOM) {
 				faqList = faqdata.wifi;
-			} else if (room === BREEDING_ROOM) {
+			} else if (this.room === BREEDING_ROOM) {
 				faqList = faqdata.breeding;
 			} else {
 				return this.pmreply("This command can only be used in the wifi or breeding room.");

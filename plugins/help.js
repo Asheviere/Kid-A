@@ -13,8 +13,8 @@ const REPO_URL = 'https://github.com/bumbadadabum/Kid-A';
 
 module.exports = {
 	commands: {
-		help(userstr, room, message) {
-			if (!canUse(userstr, 1)) return this.pmreply("Permission denied.");
+		help(message) {
+			if (!this.canUse(1)) return this.pmreply("Permission denied.");
 
 			if (!message) return this.reply("Usage: ``.help <topic>``. Available help topics: " + Object.keys(helpTopics).join(', '));
 			message = toId(message);
@@ -22,20 +22,20 @@ module.exports = {
 
 			return this.reply(server.url + helpTopics[message]);
 		},
-		git(userstr) {
-			if (!canUse(userstr, 1)) return this.pmreply("Permission denied.");
+		git() {
+			if (!this.canUse(1)) return this.pmreply("Permission denied.");
 
 			return this.reply("Source code for Kid A: " + REPO_URL);
 		},
-		data(userstr, room) {
-			if (!canUse(userstr, 1)) return this.pmreply("Permission denied.");
+		data() {
+			if (!this.canUse(1)) return this.pmreply("Permission denied.");
 
-			if (databases.getDatabase('data')[room]) {
+			if (databases.getDatabase('data')[this.room]) {
 				let fname;
-				if (Config.privateRooms.has(room)) {
-					fname = utils.generateTempFile(Handler.generateDataPage(room), 15, true);
+				if (Config.privateRooms.has(this.room)) {
+					fname = utils.generateTempFile(Handler.generateDataPage(this.room), 15, true);
 				} else {
-					fname = room + "/data";
+					fname = this.room + "/data";
 				}
 				return this.reply("Chat data: " + server.url + fname);
 			}
