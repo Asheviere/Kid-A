@@ -34,11 +34,11 @@ module.exports = {
 	commands: {
 		faq(message) {
 			if (!this.canUse(1)) return this.pmreply("Permission denied.");
-			if (!this.room) this.room = WIFI_ROOM;
+			let room = this.room || WIFI_ROOM;
 			let faqList = {};
-			if (this.room === WIFI_ROOM) {
+			if (room === WIFI_ROOM) {
 				faqList = faqdata.wifi;
-			} else if (this.room === BREEDING_ROOM) {
+			} else if (room === BREEDING_ROOM) {
 				faqList = faqdata.breeding;
 			} else {
 				return this.pmreply("This command can only be used in the wifi or breeding room.");
