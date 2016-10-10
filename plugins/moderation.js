@@ -40,7 +40,7 @@ function punish(userid, ips, room, val, msg) {
 		}, 1000 * 60 * 15);
 	}
 
-	if (max === '1') {
+	if (max === 1) {
 		Connection.send(room + '|/' + userid + ', ' + msg);
 	} else {
 		Connection.send(room + '|/' + getPunishment(max) + ' ' + userid + ', Bot moderation: ' + msg);
