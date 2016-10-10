@@ -166,7 +166,9 @@ module.exports = {
 				return;
 			}
 
-			if (/(.)\1{7,}/gi.test(message) || (/(..+)\1{4,}/gi.test(message) && !/(\d+\/)+/gi.test(message))) {
+			let stretchString = message.replace(/  +/g, ' ');
+
+			if (/(.)\1{7,}/gi.test(stretchString) || (/(..+)\1{4,}/gi.test(stretchString) && !/(\d+\/)+/gi.test(stretchString))) {
 				if (Config.checkIps) {
 					Handler.checkIp(userid, (userid, ips) => {
 						punish(userid, ips, room, 1, 'Do not stretch.');
