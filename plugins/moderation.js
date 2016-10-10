@@ -40,7 +40,11 @@ function punish(userid, ips, room, val, msg) {
 		}, 1000 * 60 * 15);
 	}
 
-	Connection.send(room + '|/' + getPunishment(max) + ' ' + userid + ',' + msg);
+	if (max === '1') {
+		Connection.send(room + '|/' + userid + ', ' + msg);
+	} else {
+		Connection.send(room + '|/' + getPunishment(max) + ' ' + userid + ', Bot moderation: ' + msg);
+	}
 
 	if (max >= 3 && Config.checkIps) {
 		if (!mutes[userid]) mutes[userid] = [];
@@ -139,10 +143,10 @@ module.exports = {
 			if (msgs >= 5 || identical >= 3) {
 				if (Config.checkIps) {
 					Handler.checkIp(userid, (userid, ips) => {
-						punish(userid, ips, room, 2, 'Bot moderation: flooding');
+						punish(userid, ips, room, 2, 'Do not flood the chat.');
 					});
 				} else {
-					punish(userid, [userid], room, 2, 'Bot moderation: flooding');
+					punish(userid, [userid], room, 2, 'Do not flood the chat.');
 				}
 				return;
 			}
@@ -154,10 +158,10 @@ module.exports = {
 			if (len >= 10 && capsString && (capsString.length / len) >= 0.8) {
 				if (Config.checkIps) {
 					Handler.checkIp(userid, (userid, ips) => {
-						punish(userid, ips, room, 1, 'Bot moderation: caps');
+						punish(userid, ips, room, 1, 'Do not abuse caps.');
 					});
 				} else {
-					punish(userid, [userid], room, 1, 'Bot moderation: caps');
+					punish(userid, [userid], room, 1, 'Do not abuse caps.');
 				}
 				return;
 			}
@@ -165,10 +169,10 @@ module.exports = {
 			if (/(.)\1{7,}/gi.test(message) || (/(..+)\1{4,}/gi.test(message) && !/(\d+\/)+/gi.test(message))) {
 				if (Config.checkIps) {
 					Handler.checkIp(userid, (userid, ips) => {
-						punish(userid, ips, room, 1, 'Bot moderation: stretching');
+						punish(userid, ips, room, 1, 'Do not stretch.');
 					});
 				} else {
-					punish(userid, [userid], room, 1, 'Bot moderation: stretching');
+					punish(userid, [userid], room, 1, 'Do not stretch.');
 				}
 				return;
 			}
