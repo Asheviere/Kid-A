@@ -24,8 +24,7 @@ class CommandWrapper {
 		this.username = userstr.substr(1);
 		this.userid = toId(userstr);
 		this.room = room;
-		// I could refactor everything to enforce use of this.userstr and this.userid, but I'll keep this around for now, until I feel productive enough to refactor everything.
-		this.commands[cmd].apply(this, [userstr, room, message]);
+		this.commands[cmd].apply(this, [message]);
 	}
 
 	reply(message) {
