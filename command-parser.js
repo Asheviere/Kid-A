@@ -10,6 +10,25 @@ function sendPM(userid, message) {
 	Connection.send('|/pm ' + userid + ', ' + message);
 }
 
+function canUse(permission, userid, auth) {
+	if (Config.admins.has(userid)) return true;
+	switch (auth) {
+	case '~':
+		return (permission < 7);
+	case '#':
+	case '&':
+		return (permission < 6);
+	case '@':
+		return (permission < 5);
+	case '%':
+		return (permission < 4);
+	case '+':
+		return (permission < 2);
+	default:
+		return !permission;
+	}
+}
+
 class CommandWrapper {
 	constructor(userlists, data, settings, commands, options) {
 		this.userlists = userlists;
@@ -17,6 +36,8 @@ class CommandWrapper {
 		this.settings = settings;
 		this.commands = commands;
 		this.options = options;
+
+		this.canUse = permission => canUse(permission, this.userid, this.auth);
 	}
 
 	run(cmd, userstr, room, message) {
@@ -50,25 +71,6 @@ class CommandWrapper {
 		errorMsg(`Someone tried to use a ${room} room command without the bot being in the ${room} room. Either make the bot join ${room}, or remove the command.`);
 		this.reply("Something went wrong! The bot's owner has been notified.");
 		return false;
-	}
-
-	canUse(permission) {
-		if (Config.admins.has(this.userid)) return true;
-		switch (this.auth) {
-		case '~':
-			return (permission < 7);
-		case '#':
-		case '&':
-			return (permission < 6);
-		case '@':
-			return (permission < 5);
-		case '%':
-			return (permission < 4);
-		case '+':
-			return (permission < 2);
-		default:
-			return !permission;
-		}
 	}
 }
 
@@ -137,7 +139,7 @@ class ChatHandler {
 		} else if (room) {
 			this.analyze(userstr, room, message);
 		} else {
-			if (canUse(userstr, 2) && message.startsWith('/invite')) {
+			if (canUse(2, toId(userstr), userstr[0]) && message.startsWith('/invite')) {
 				let toJoin = message.substr(8);
 				if (!(Config.rooms.includes(toJoin) || (this.settings.toJoin && this.settings.toJoin.includes(toJoin)))) {
 					if (!this.settings.toJoin) this.settings.toJoin = [];
