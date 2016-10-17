@@ -43,6 +43,12 @@ th {
    background: #1a237e;
    color: white;
 }
+.online {
+    background-color: #aac4f3;
+}
+.online:hover {
+    background-color: #9ab4e3;
+}
 td {
    padding:7px;
    word-wrap: break-word;
@@ -77,6 +83,9 @@ tr:hover {
 	font-size: 9pt;
 	opacity: 0.87;
 }
-.analyzer p {
-
+.popup {
+    padding: 8px;
+    margin: 4px;
+    max-width: 20%;
+    background: #e8eaf6;
 }

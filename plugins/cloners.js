@@ -65,11 +65,12 @@ class WifiList {
 		this.data = databases.getDatabase(this.name);
 
 		let generatePage = (req, res) => {
-			let content = '<!DOCTYPE html><html><head><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="../style.css"><title>' + this.name + ' list - Kid A</title></head><body><div class="container">';
+			let content = '<!DOCTYPE html><html><head><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="../style.css"><title>' + this.name + ' list - Kid A</title><script src="/scripts/cloners.js"></script></head><body><div class="container">';
 			if (settings.whitelists[this.name]) {
 				content += '<p class="note">Editors: ' + settings.whitelists[this.name].join(', ') + '</p>';
 			}
-			content += '<table><tr class="header"><th>' + this.columnNames.join('</th><th>') + '</th></tr>';
+			content += '<div class="popup"><input type="checkbox" onclick="toggleFilter(this)">Only show online cloners.</div>';
+			content += '<table><tr class="header" onclick="filter()"><th>' + this.columnNames.join('</th><th>') + '</th></tr>';
 			let keys = Object.keys(this.data).sort((a, b) => {
 				if ('date' in this.data[a] && !parseInt(this.data[a].date)) return -1;
 				if ('date' in this.data[b] && !parseInt(this.data[b].date)) return 1;
@@ -85,7 +86,11 @@ class WifiList {
 			});
 			for (let iter = 0; iter < keys.length; iter++) {
 				let i = keys[iter];
-				content += '<tr>';
+				if (Handler.userlists[WIFI_ROOM] && (i in Handler.userlists[WIFI_ROOM])) {
+					content += '<tr class="online">';
+				} else {
+					content += '<tr>';
+				}
 				for (let j in this.data[i]) {
 					if (j === 'date' && parseInt(this.data[i][j])) {
 						let date = new Date(parseInt(this.data[i][j]));
@@ -100,18 +105,6 @@ class WifiList {
 		};
 
 		server.addRoute('/' + WIFI_ROOM + '/' + this.name, generatePage);
-
-		if (!noOnlinePage) {
-			let generateOnlinePage = (req, res) => {
-				let content = '<!DOCTYPE html><html><head><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="../style.css"><title>Online ' + this.name + ' list - Kid A</title></head><body><div class="container"><h2>Online ' + this.name + ':</h2><ul>';
-				for (let i in this.data) {
-					if (Handler.userlists[WIFI_ROOM] && (i in Handler.userlists[WIFI_ROOM])) content += '<li>' + sanitize(this.data[i].username) + '</li>';
-				}
-				res.end(content + '</ul></div></body></html>');
-			};
-
-			server.addRoute('/' + WIFI_ROOM + '/o' + this.name, generateOnlinePage);
-		}
 	}
 
 	addUser(user, params) {
