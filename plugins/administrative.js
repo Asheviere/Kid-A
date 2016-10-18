@@ -1,8 +1,23 @@
 'use strict';
 
-const utils = require('../utils.js');
 const databases = require('../databases.js');
 const server = require('../server.js');
+
+function parseConsole(req, res) {
+	let query = server.parseURL(req.url);
+	let token = query.token;
+	if (!token) return res.end('Please attach an access token. (You should get one when you type .console)');
+	let data = server.getAccessToken(token);
+	if (!data) return res.end('Invalid access token.');
+	if (data.console) {
+		if (data.ip && req.ip !== data.ip) server.removeAccessToken(token);
+		res.end(stdout);
+	} else {
+		res.end('Permission denied.');
+	}
+}
+
+server.addRoute('/console', parseConsole);
 
 module.exports = {
 	commands: {
@@ -41,7 +56,15 @@ module.exports = {
 		console() {
 			if (!this.canUse(6)) return this.pmreply("Permission denied.");
 
-			return this.pmreply('Console output saved as ' + server.url + utils.generateTempFile(stdout, 10));
+			if (Config.checkIps) {
+				Handler.checkIp(this.userid, (userid, ips) => {
+					let token = server.createAccessToken({console: true, ip: ips[0]});
+					return this.pmreply(`Console output: ${server.url}console?token=${token}`);
+				});
+			} else {
+				let token = server.createAccessToken({console: true});
+				return this.pmreply(`Console output: ${server.url}console?token=${token}`);
+			}
 		},
 
 		set(message) {

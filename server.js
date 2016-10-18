@@ -2,6 +2,7 @@
 
 const path = require('path');
 const url = require('url');
+const crypto = require('crypto');
 
 const connect = require('connect');
 const serveStatic = require('serve-static');
@@ -23,6 +24,8 @@ class Server {
 
 		this.isRestarting = false;
 		this.restartPending = false;
+
+		this.accessTokens = new Map();
 
 		statusMsg('Server started successfully.');
 	}
@@ -82,6 +85,35 @@ class Server {
 				this.restart();
 			}
 		});
+	}
+
+	createAccessToken(data) {
+		let token = crypto.randomBytes(5).toString('hex');
+		this.accessTokens.set(token, data);
+		return token;
+	}
+
+	getAccessToken(token) {
+		return this.accessTokens.get(token);
+	}
+
+	removeAccessToken(token) {
+		return this.accessTokens.delete(token);
+	}
+
+	parseURL(url) {
+		let split = url.split('?');
+		if (split.length === 1) return {};
+		let query = split[1];
+		let parts = query.split('&');
+		let output = {};
+		for (let i = 0; i < parts.length; i++) {
+			let elem = parts[i].split('=');
+			if (elem.length === 2) {
+				output[elem[0]] = elem[1];
+			}
+		}
+		return output;
 	}
 }
 
