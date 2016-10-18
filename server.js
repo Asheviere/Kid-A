@@ -41,10 +41,10 @@ class Server {
 			let {path} = url.parse(req.url);
 			let buffer = '<h1>404 Not Found</h1>';
 			if (path.endsWith('/data')) {
-				let room = path.substr(6);
+				let room = path.slice(1, -5);
 				buffer += '<p>Data for the room "' + room + '" could not be found.</p>';
 			} else if (path.endsWith('/quotes')) {
-				let room = path.substr(8);
+				let room = path.slice(1, -7);
 				buffer += '<p>Quotes for the room "' + room + '" could not be found.</p>';
 			}
 			res.end(buffer);
