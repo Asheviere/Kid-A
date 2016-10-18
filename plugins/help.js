@@ -31,11 +31,13 @@ module.exports = {
 			if (!this.canUse(1)) return this.pmreply("Permission denied.");
 
 			if (databases.getDatabase('data')[this.room]) {
-				let fname;
+				let fname = this.room + "/data";
 				if (Config.privateRooms.has(this.room)) {
-					fname = utils.generateTempFile(Handler.generateDataPage(this.room), 15, true);
-				} else {
-					fname = this.room + "/data";
+					let data = {};
+					data[this.room] = true;
+					let token = server.createAccessToken(data);
+					setTimeout(() => server.removeAccessToken(token), 15 * 60 * 1000);
+					fname += '?token=' + token;
 				}
 				return this.reply("Chat data: " + server.url + fname);
 			}

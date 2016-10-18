@@ -124,11 +124,25 @@ class ChatHandler {
 
 		let dataResolver = (req, res) => {
 			let room = req.originalUrl.split('/')[1];
-			res.end(this.generateDataPage(room));
+			if (Config.privateRooms.has(room)) {
+				let query = server.parseURL(req.url);
+				let token = query.token;
+				console.log('okk');
+				if (!token) return res.end('Private room data requires an access token to be viewed.');
+				let data = server.getAccessToken(token);
+				if (!data) return res.end('Invalid access token.');
+				if (data[room]) {
+					console.log('ok');
+					res.end(this.generateDataPage(room));
+				} else {
+					res.end('Permission denied.');
+				}
+			} else {
+				res.end(this.generateDataPage(room));
+			}
 		};
 
 		for (let room in this.data) {
-			if (Config.privateRooms.has(room)) continue;
 			server.addRoute('/' + room + '/data', dataResolver);
 		}
 	}
