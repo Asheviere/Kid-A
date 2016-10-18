@@ -41,11 +41,25 @@ function generateQuotePage(room) {
 
 function quoteResolver(req, res) {
 	let room = req.originalUrl.split('/')[1];
-	res.end(generateQuotePage(room));
+	if (Config.privateRooms.has(room)) {
+		let query = server.parseURL(req.url);
+		let token = query.token;
+		console.log('okk');
+		if (!token) return res.end('Private room quotes require an access token to be viewed.');
+		let data = server.getAccessToken(token);
+		if (!data) return res.end('Invalid access token.');
+		if (data[room]) {
+			console.log('ok');
+			res.end(this.generateQuotePage(room));
+		} else {
+			res.end('Permission denied.');
+		}
+	} else {
+		res.end(this.generateQuotePage(room));
+	}
 }
 
 for (let room in quotedata) {
-	if (Config.privateRooms.has(room)) continue;
 	server.addRoute('/' + room + '/quotes', quoteResolver);
 }
 
@@ -79,13 +93,15 @@ module.exports = {
 			if (!this.canUse(1)) return this.pmreply("Permission denied.");
 
 			if (quotedata[this.room]) {
-				let fname;
+				let fname = this.room + "/quotes";
 				if (Config.privateRooms.has(this.room)) {
-					fname = utils.generateTempFile(generateQuotePage(this.room), 15, true);
-				} else {
-					fname = this.room + "/quotes";
+					let data = {};
+					data[this.room] = true;
+					let token = server.createAccessToken(data);
+					setTimeout(() => server.removeAccessToken(token), 15 * 60 * 1000);
+					fname += '?token=' + token;
 				}
-				return this.reply("Quote page: "+ server.url + fname);
+				return this.reply("Quote page: " + server.url + fname);
 			}
 
 			return this.pmreply("This room has no quotes.");
