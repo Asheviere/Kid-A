@@ -127,12 +127,10 @@ class ChatHandler {
 			if (Config.privateRooms.has(room)) {
 				let query = server.parseURL(req.url);
 				let token = query.token;
-				console.log('okk');
 				if (!token) return res.end('Private room data requires an access token to be viewed.');
 				let data = server.getAccessToken(token);
 				if (!data) return res.end('Invalid access token.');
 				if (data[room]) {
-					console.log('ok');
 					res.end(this.generateDataPage(room));
 				} else {
 					res.end('Permission denied.');
