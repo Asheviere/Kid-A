@@ -58,7 +58,9 @@ module.exports = {
 
 			if (Config.checkIps) {
 				Handler.checkIp(this.userid, (userid, ips) => {
-					let token = server.createAccessToken({console: true, ip: ips[0]});
+					let data = {console: true};
+					if (ips) data.ip = ips[0];
+					let token = server.createAccessToken(data);
 					return this.pmreply(`Console output: ${server.url}console?token=${token}`);
 				});
 			} else {
