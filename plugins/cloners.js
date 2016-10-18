@@ -69,7 +69,7 @@ class WifiList {
 			if (settings.whitelists[this.name]) {
 				content += '<p class="note">Editors: ' + settings.whitelists[this.name].join(', ') + '</p>';
 			}
-			content += '<div class="popup"><input type="checkbox" onclick="toggleFilter(this)">Only show online cloners.</div>';
+			content += `<div class="popup"><input type="checkbox" onclick="toggleFilter(this)">Only show online ${this.name}.</div>`;
 			content += '<table><tr class="header" onclick="filter()"><th>' + this.columnNames.join('</th><th>') + '</th></tr>';
 			let keys = Object.keys(this.data).sort((a, b) => {
 				if ('date' in this.data[a] && !parseInt(this.data[a].date)) return -1;
