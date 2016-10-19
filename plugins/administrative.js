@@ -68,7 +68,7 @@ module.exports = {
 				return this.pmreply(`Console output: ${server.url}console?token=${token}`);
 			}
 		},
-		
+
 		leave(userstr, room) {
 			if (!this.canUse(5)) return this.pmreply("Permission denied.");
 			if (!room) return this.pmreply("This command can't be used in PMs.");

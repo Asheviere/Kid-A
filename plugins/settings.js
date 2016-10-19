@@ -100,24 +100,24 @@ server.addRoute('/settings', settingsResolver);
 module.exports = {
 	commands: {
 		settings(message) {
-			if (!this.room) this.room = message;
-			if (!this.room) return;
-			if (!(this.room in this.userlists)) return this.pmreply(`The bot isn't in the room '${this.room}'.`);
-			if (!this.getRoomAuth(this.room)) return;
+			let room = this.room || message;
+			if (!room) return;
+			if (!(room in this.userlists)) return this.pmreply(`The bot isn't in the room '${this.room}'.`);
+			if (!this.getRoomAuth(room)) return;
 			if (!this.canUse(5)) return this.pmreply("Permission denied.");
 
-			if (!this.settings[this.room]) this.settings[this.room] = {options: [], disabledCommands: []};
+			if (!this.settings[this.room]) this.settings[room] = {options: [], disabledCommands: []};
 
 			if (Config.checkIps) {
 				Handler.checkIp(this.userid, (userid, ips) => {
-					let data = {room: this.room, auth: this.auth};
+					let data = {room: room, auth: this.auth};
 					if (ips) data.ip = ips[0];
 					let token = server.createAccessToken(data, 15);
-					return this.pmreply(`Settings for room ${this.room}: ${server.url}settings/${this.room}?token=${token}`);
+					return this.pmreply(`Settings for room ${room}: ${server.url}settings/${room}?token=${token}`);
 				});
 			} else {
-				let token = server.createAccessToken({room: this.room, auth: this.auth}, 15);
-				return this.pmreply(`Settings for room ${this.room}: ${server.url}settings/${this.room}?token=${token}`);
+				let token = server.createAccessToken({room: room, auth: this.auth}, 15);
+				return this.pmreply(`Settings for room ${room}: ${server.url}settings/${room}?token=${token}`);
 			}
 		},
 	},
