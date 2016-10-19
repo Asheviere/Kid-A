@@ -35,8 +35,7 @@ module.exports = {
 				if (Config.privateRooms.has(this.room)) {
 					let data = {};
 					data[this.room] = true;
-					let token = server.createAccessToken(data);
-					setTimeout(() => server.removeAccessToken(token), 15 * 60 * 1000);
+					let token = server.createAccessToken(data, 15);
 					fname += '?token=' + token;
 				}
 				return this.reply("Chat data: " + server.url + fname);

@@ -87,18 +87,31 @@ class Server {
 		});
 	}
 
-	createAccessToken(data) {
+	createAccessToken(data, mins) {
 		let token = crypto.randomBytes(5).toString('hex');
+		data.expiration = mins * 1000 * 60;
+		data.timeout = setTimeout(() => this.removeAccessToken(token), data.expiration);
 		this.accessTokens.set(token, data);
 		return token;
 	}
 
 	getAccessToken(token) {
-		return this.accessTokens.get(token);
+		let data = this.accessTokens.get(token);
+		if (data) {
+			clearTimeout(data.timeout);
+			setTimeout(() => this.removeAccessToken(token), data.expiration);
+			return data;
+		}
+		return false;
 	}
 
 	removeAccessToken(token) {
-		return this.accessTokens.delete(token);
+		let data = this.accessTokens.get(token);
+		if (data) {
+			clearTimeout(data.timeout);
+			return this.accessTokens.delete(token);
+		}
+		return false;
 	}
 
 	parseURL(url) {
