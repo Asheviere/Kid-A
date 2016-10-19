@@ -20,7 +20,7 @@ module.exports = {
 				if (!this.canUse(1)) return this.pmreply("Permission denied.");
 				if (!(this.room in motds)) return this.reply("This room does not have a motd set.");
 
-				return this.reply((this.settings[this.room] && this.settings[this.room].announcemotd ? '/wall ' : '') + "This room's motd is: " + motds[this.room]);
+				return this.reply((this.settings[this.room] && this.settings[this.room].options.includes('announcemotd') ? '/wall ' : '') + "This room's motd is: " + motds[this.room]);
 			}
 
 			if (!this.canUse(3)) return this.pmreply("Permission denied.");

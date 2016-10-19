@@ -48,12 +48,12 @@ function quoteResolver(req, res) {
 		let data = server.getAccessToken(token);
 		if (!data) return res.end('Invalid access token.');
 		if (data[room]) {
-			res.end(this.generateQuotePage(room));
+			res.end(generateQuotePage(room));
 		} else {
 			res.end('Permission denied.');
 		}
 	} else {
-		res.end(this.generateQuotePage(room));
+		res.end(generateQuotePage(room));
 	}
 }
 

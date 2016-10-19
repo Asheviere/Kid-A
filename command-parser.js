@@ -188,7 +188,7 @@ class ChatHandler {
 		const wrapper = new CommandWrapper(this.userlists, this.data, this.settings, this.commands, this.options);
 
 		let user = (!room && userstr[0] === ' ' ? '+' : userstr[0]) + username;
-		if (this.settings[room] && this.settings[room][cmd] === 'off') return;
+		if (this.settings[room] && this.settings[room].disabledCommands.includes(cmd)) return;
 		wrapper.run(cmd, user, room, words.join(' '));
 	}
 

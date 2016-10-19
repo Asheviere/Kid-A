@@ -64,65 +64,11 @@ module.exports = {
 					return this.pmreply(`Console output: ${server.url}console?token=${token}`);
 				});
 			} else {
-				let token = server.createAccessToken({console: true});
+				let token = server.createAccessToken({console: true}, 15);
 				return this.pmreply(`Console output: ${server.url}console?token=${token}`);
 			}
 		},
-
-		set(message) {
-			if (!this.canUse(5)) return this.pmreply("Permission denied.");
-			if (!this.room) return this.pmreply("This command can't be used in PMs.");
-
-			let params = message.split(',').map(param => toId(param));
-
-			// Very dirty, but works for now. TODO: elegance.
-			let type;
-			if (params[0] in this.commands) {
-				type = 'command';
-			} else if (this.options.has(params[0])) {
-				type = 'option';
-			} else {
-				return this.pmreply("Invalid command or option.");
-			}
-
-			if (params.length < 2) {
-				if (type === 'command') return this.reply("Usage of the command " + params[0] + " is turned " + (this.settings[this.room] ? this.settings[this.room][params[1]] || 'on' : 'on') + '.');
-				if (type === 'option') this.reply("The option " + params[0] + " is turned " + (this.settings[this.room] ? this.settings[this.room][params[1]] || 'off' : 'off') + '.');
-			}
-
-			if (!this.settings[this.room]) {
-				this.settings[this.room] = {};
-			}
-
-			switch (params[1]) {
-			case 'on':
-			case 'true':
-			case 'yes':
-			case 'enable':
-				if (type === 'command') {
-					delete this.settings[this.room][params[0]];
-				} else if (type === 'option') {
-					this.settings[this.room][params[0]] = 'on';
-				}
-				break;
-			case 'off':
-			case 'false':
-			case 'no':
-			case 'disable':
-				if (type === 'command') {
-					this.settings[this.room][params[0]] = 'off';
-				} else if (type === 'option') {
-					delete this.settings[this.room][params[0]];
-				}
-				break;
-			default:
-				return this.pmreply("Invalid value. Use 'on' or 'off'.");
-			}
-
-			databases.writeDatabase('settings');
-			return this.reply("The " + type + " '" + params[0] + "' was turned " + (this.settings[this.room][params[0]] ? this.settings[this.room][params[0]] : (type === 'command' ? 'on' : 'off')) + '.');
-		},
-
+		
 		leave(userstr, room) {
 			if (!this.canUse(5)) return this.pmreply("Permission denied.");
 			if (!room) return this.pmreply("This command can't be used in PMs.");

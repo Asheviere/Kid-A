@@ -43,7 +43,7 @@ module.exports = {
 			if (!message && (this.userid in lastfmdata)) message = lastfmdata[this.userid];
 			if (!message) message = this.userid;
 
-			let htmlbox = this.settings[this.room] && this.settings[this.room].lastfmhtmlbox;
+			let htmlbox = this.settings[this.room] && this.settings[this.room].options.includes('lastfmhtmlbox');
 
 			let url = API_ROOT + '?method=user.getrecenttracks&user=' + message + '&limit=1&api_key=' + Config.lastfmKey + '&format=json';
 			let req = new Promise(function(resolve, reject) {
@@ -136,7 +136,7 @@ module.exports = {
 			let parts = message.split('-').map(param => encodeURIComponent(param.trim()));
 			if (parts.length !== 2) return this.pmreply("Invalid syntax. Format: ``.track Artist - Song name``");
 
-			let htmlbox = this.settings[this.room] && this.settings[this.room].lastfmhtmlbox;
+			let htmlbox = this.settings[this.room] && this.settings[this.room].options.includes('lastfmhtmlbox');
 
 			let url = API_ROOT + '?method=track.getInfo&api_key=' + Config.lastfmKey + '&artist=' + parts[0] + '&track=' + parts[1] + '&autocorrect=1&format=json';
 			let req = new Promise(function(resolve, reject) {
