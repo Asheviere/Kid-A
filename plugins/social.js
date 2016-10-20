@@ -10,17 +10,17 @@ module.exports = {
 	options: ['announcemotd'],
 	commands: {
 		motd(message) {
-			if (!this.room) {
+			let room = this.room || message;
+			if (room === message) message = null;
+			if (!room) {
 				if (!message) return this.reply("No room specified.");
-				this.room = message;
-				message = null;
 			}
 
 			if (!message) {
 				if (!this.canUse(1)) return this.pmreply("Permission denied.");
-				if (!(this.room in motds)) return this.reply("This room does not have a motd set.");
+				if (!(room in motds)) return this.reply("This room does not have a motd set.");
 
-				return this.reply((this.settings[this.room] && this.settings[this.room].options.includes('announcemotd') ? '/wall ' : '') + "This room's motd is: " + motds[this.room]);
+				return this.reply((this.settings[this.room] && this.settings[this.room].options.includes('announcemotd') ? '/wall ' : '') + "This room's motd is: " + motds[room]);
 			}
 
 			if (!this.canUse(3)) return this.pmreply("Permission denied.");
