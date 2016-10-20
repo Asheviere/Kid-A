@@ -69,16 +69,16 @@ module.exports = {
 			}
 		},
 
-		leave(userstr, room) {
+		leave() {
 			if (!this.canUse(5)) return this.pmreply("Permission denied.");
-			if (!room) return this.pmreply("This command can't be used in PMs.");
+			if (!this.room) return this.pmreply("This command can't be used in PMs.");
 
-			if (this.settings.toJoin && this.settings.toJoin.includes(room)) {
-				this.settings.toJoin.splice(this.settings.toJoin.indexOf(room), 1);
+			if (this.settings.toJoin && this.settings.toJoin.includes(this.room)) {
+				this.settings.toJoin.splice(this.settings.toJoin.indexOf(this.room), 1);
 				databases.writeDatabase('settings');
 			}
 
-			return this.reply('/part ' + room);
+			return this.reply('/part ' + this.room);
 		},
 	},
 };
