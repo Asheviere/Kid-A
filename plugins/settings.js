@@ -67,6 +67,7 @@ function generateSettingsPage(room) {
 	}
 
 	content += '<h2>Disabled Commands</h2><table>';
+	console.log(Object.keys(Handler.chatHandler.commands).map(val => console.log(val + " " + (Handler.chatHandler.commands[val].rooms && Handler.chatHandler.commands[val].rooms.includes(room)))));
 	let keys = Object.keys(Handler.chatHandler.commands).filter(cmd => !(Handler.chatHandler.commands[cmd].hidden || (Handler.chatHandler.commands[cmd].rooms && Handler.chatHandler.commands[cmd].rooms.includes(room))));
 	for (let i = 0; i < keys.length; i++) {
 		if (i % 3 === 0) content += '<tr>';
