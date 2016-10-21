@@ -1,10 +1,23 @@
 'use strict';
 
-const DAY = 24 * 60 * 60 * 1000;
+const MINUTE = 60 * 1000;
+const DAY = 24 * 60 * MINUTE;
 
 let motds = Object.create(null);
+let repeats = Object.create(null);
 
 let motdTimers = {};
+
+function runRepeat(id) {
+	let obj = repeats[id];
+	if (!obj) return; // failsafe
+	if (obj.timesLeft--) {
+		Connection.send(`${obj.room}|${obj.msg}`);
+		obj.timer = setTimeout(() => runRepeat(id), obj.interval);
+	} else {
+		delete repeats[id];
+	}
+}
 
 module.exports = {
 	options: ['announcemotd'],
@@ -45,6 +58,55 @@ module.exports = {
 			delete motds[this.room];
 
 			return this.reply("The motd was successfully cleared.");
+		},
+
+		repeat(message) {
+			if (!this.canUse(3)) return this.pmreply("Permission denied.");
+			if (!this.room) return this.pmreply("This command cannot be used in PMs.");
+			let [interval, times, ...repeatMsg] = message.split(',');
+			if (!(interval && times && repeatMsg.length)) return this.pmreply("Syntax: .repeat <interval>, <times>, <message to repeat>");
+
+			interval = Number(interval);
+			if (!interval) return this.pmreply("Invalid value for interval.");
+
+			times = Number(times);
+			if (!times) return this.pmreply("Invalud value for times");
+
+			repeatMsg = repeatMsg.join(',').trim();
+			let id = `${this.room}|${toId(repeatMsg)}`;
+			if (id in repeats) return this.pmreply("This message is already being repeated.");
+
+			let repeatObj = {timer: setTimeout(() => runRepeat(id), MINUTE * interval), msg: repeatMsg, timesLeft: times, interval: interval, room: this.room};
+			repeats[id] = repeatObj;
+			return this.reply(repeatMsg);
+		},
+
+		clearrepeat(message) {
+			if (!this.canUse(3)) return this.pmreply("Permission denied.");
+			if (!this.room) return this.pmreply("This command cannot be used in PMs.");
+
+			let id = `${this.room}|${toId(message)}`;
+			if (id in repeats) {
+				clearTimeout(repeats[id].timer);
+				delete repeats[id];
+				this.reply("Stopped repeating this message.");
+			} else {
+				this.pmreply("This message isn't being repeated right now.");
+			}
+		},
+
+		clearrepeats() {
+			if (!this.canUse(3)) return this.pmreply("Permission denied.");
+			if (!this.room) return this.pmreply("This command cannot be used in PMs.");
+
+			for (let id in repeats) {
+				if (id.startsWith(this.room)) {
+					clearTimeout(repeats[id].timer);
+					delete repeats[id];
+				}
+			}
+
+			this.reply("Cleared all repeated messages in this room.");
 		},
 	},
 };
