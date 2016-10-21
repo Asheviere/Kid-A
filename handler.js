@@ -48,7 +48,7 @@ module.exports = {
 
 	setup() {
 		Connection.send('|/avatar ' + Config.avatar);
-		this.userid = toId(Config.name);
+		this.userid = toId(Config.username);
 
 		Array.prototype.push.apply(this.toJoin, Config.rooms);
 
