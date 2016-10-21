@@ -32,74 +32,85 @@ faqdata = databases.getDatabase('faqs');
 
 module.exports = {
 	commands: {
-		faq(message) {
-			if (!this.canUse(1)) return this.pmreply("Permission denied.");
-			let room = this.room || WIFI_ROOM;
-			let faqList = {};
-			if (room === WIFI_ROOM) {
-				faqList = faqdata.wifi;
-			} else if (room === BREEDING_ROOM) {
-				faqList = faqdata.breeding;
-			} else {
-				return this.pmreply("This command can only be used in the wifi or breeding room.");
-			}
+		faq: {
+			rooms: [WIFI_ROOM, BREEDING_ROOM],
+			permission: 1,
+			action(message) {
+				let room = this.room || WIFI_ROOM;
+				let faqList = {};
+				if (room === WIFI_ROOM) {
+					faqList = faqdata.wifi;
+				} else if (room === BREEDING_ROOM) {
+					faqList = faqdata.breeding;
+				} else {
+					return this.pmreply("This command can only be used in the wifi or breeding room.");
+				}
 
-			if (!message) return this.reply("Usage: ``.faq <topic>``. For a list of topics, use ``.faq help``.");
-			message = toId(message);
-			if (!(message in faqList)) return this.pmreply("Invalid option for topic.");
+				if (!message) return this.reply("Usage: ``.faq <topic>``. For a list of topics, use ``.faq help``.");
+				message = toId(message);
+				if (!(message in faqList)) return this.pmreply("Invalid option for topic.");
 
-			return this.reply(faqList[message]);
+				return this.reply(faqList[message]);
+			},
 		},
-		addfaq(message) {
-			let split = message.split(',').map(param => param.trim());
-			if (!this.room) {
-				if (split.length < 3) return this.pmreply("Invalid amount of arguments.");
-				this.room = toId(split.splice(0, 1)[0]);
-				if (this.room !== WIFI_ROOM && this.room !== BREEDING_ROOM) return this.pmreply("This command can only be used in the wifi or breeding room.");
-				if (!this.getRoomAuth(this.room)) return;
-			}
-			if (!this.canUse(5)) return this.pmreply("Permission denied.");
-			let faqList = {};
-			if (this.room === WIFI_ROOM) {
-				faqList = faqdata.wifi;
-			} else if (this.room === BREEDING_ROOM) {
-				faqList = faqdata.breeding;
-			} else {
-				return this.pmreply("This command can only be used in the wifi or breeding room.");
-			}
+		addfaq: {
+			rooms: [WIFI_ROOM, BREEDING_ROOM],
+			hidden: true,
+			action(message) {
+				let split = message.split(',').map(param => param.trim());
+				if (!this.room) {
+					if (split.length < 3) return this.pmreply("Invalid amount of arguments.");
+					this.room = toId(split.splice(0, 1)[0]);
+					if (this.room !== WIFI_ROOM && this.room !== BREEDING_ROOM) return this.pmreply("This command can only be used in the wifi or breeding room.");
+					if (!this.getRoomAuth(this.room)) return;
+				}
+				if (!this.canUse(5)) return this.pmreply("Permission denied.");
+				let faqList = {};
+				if (this.room === WIFI_ROOM) {
+					faqList = faqdata.wifi;
+				} else if (this.room === BREEDING_ROOM) {
+					faqList = faqdata.breeding;
+				} else {
+					return this.pmreply("This command can only be used in the wifi or breeding room.");
+				}
 
-			if (split.length < 2) return this.pmreply("Invalid amount of arguments.");
-			let faqMessage = split[1];
-			for (let i in special) {
-				faqMessage.replace('{' + i + '}', special[i]);
-			}
-			faqList[toId(split[0])] = faqMessage;
-			databases.writeDatabase('faqs');
-			return this.reply("Faq topic " + split[0] + " added.");
-		},
-		removefaq(message) {
-			let split = message.split(',').map(param => param.trim());
-			if (!this.room) {
 				if (split.length < 2) return this.pmreply("Invalid amount of arguments.");
-				this.room = toId(split.splice(0, 1)[0]);
-				if (this.room !== WIFI_ROOM && this.room !== BREEDING_ROOM) return this.pmreply("This command can only be used in the wifi or breeding room.");
-				if (!this.getRoomAuth(this.room)) return;
-			}
-			if (!this.canUse(5)) return this.pmreply("Permission denied.");
-			let faqList = {};
-			if (this.room === WIFI_ROOM) {
-				faqList = faqdata.wifi;
-			} else if (this.room === BREEDING_ROOM) {
-				faqList = faqdata.breeding;
-			} else {
-				return this.pmreply("This command can only be used in the wifi or breeding room.");
-			}
+				let faqMessage = split[1];
+				for (let i in special) {
+					faqMessage.replace('{' + i + '}', special[i]);
+				}
+				faqList[toId(split[0])] = faqMessage;
+				databases.writeDatabase('faqs');
+				return this.reply("Faq topic " + split[0] + " added.");
+			},
+		},
+		removefaq: {
+			rooms: [WIFI_ROOM, BREEDING_ROOM],
+			hidden: true,
+			action(message) {
+				let split = message.split(',').map(param => param.trim());
+				if (!this.room) {
+					if (split.length < 2) return this.pmreply("Invalid amount of arguments.");
+					this.room = toId(split.splice(0, 1)[0]);
+					if (this.room !== WIFI_ROOM && this.room !== BREEDING_ROOM) return this.pmreply("This command can only be used in the wifi or breeding room.");
+					if (!this.getRoomAuth(this.room)) return;
+				}
+				if (!this.canUse(5)) return this.pmreply("Permission denied.");
+				let faqList = {};
+				if (this.room === WIFI_ROOM) {
+					faqList = faqdata.wifi;
+				} else if (this.room === BREEDING_ROOM) {
+					faqList = faqdata.breeding;
+				} else {
+					return this.pmreply("This command can only be used in the wifi or breeding room.");
+				}
 
-			split[0] = toId(split[0]);
-			if (!(split[0] in faqList)) return this.pmreply("Invalid option for topic.");
-			delete faqList[split[0]];
-			databases.writeDatabase('faqs');
-			return this.reply("Faq topic " + split[0] + " deleted.");
+				split[0] = toId(split[0]);
+				if (!(split[0] in faqList)) return this.pmreply("Invalid option for topic.");
+				delete faqList[split[0]];
+				databases.writeDatabase('faqs');
+				return this.reply("Faq topic " + split[0] + " deleted.");
+			},
 		},
 	},
 };

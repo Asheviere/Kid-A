@@ -2,7 +2,6 @@
 
 const fs = require('fs');
 
-const utils = require('../utils.js');
 const server = require('../server.js');
 const databases = require('../databases.js');
 
@@ -63,57 +62,61 @@ for (let room in quotedata) {
 
 module.exports = {
 	commands: {
-		quote(message) {
-			if (!this.room) return this.pmreply("This command can't be used in PMs.");
-			if (!this.canUse(2)) return this.pmreply("Permission denied.");
-			if (!message.length) return this.pmreply("Please enter a valid quote.");
+		quote: {
+			permission: 2,
+			disallowPM: true,
+			action(message) {
+				if (!message.length) return this.pmreply("Please enter a valid quote.");
 
-			if (!quotedata[this.room]) {
-				quotedata[this.room] = [];
-				if (!Config.privateRooms.has(this.room)) {
-					server.addRoute('/' + this.room + '/quotes', quoteResolver);
-					// Wait 500ms to make sure everything's ready.
-					setTimeout(() => server.restart(), 500);
+				if (!quotedata[this.room]) {
+					quotedata[this.room] = [];
+					if (!Config.privateRooms.has(this.room)) {
+						server.addRoute('/' + this.room + '/quotes', quoteResolver);
+						// Wait 500ms to make sure everything's ready.
+						setTimeout(() => server.restart(), 500);
+					}
 				}
-			}
 
-			if (quotedata[this.room].includes(message)) {
-				return this.reply("Quote is already added.");
-			}
+				if (quotedata[this.room].includes(message)) {
+					return this.reply("Quote is already added.");
+				}
 
-			quotedata[this.room].push(message);
-			databases.writeDatabase('quotes');
-			return this.reply("Quote has been added.");
+				quotedata[this.room].push(message);
+				databases.writeDatabase('quotes');
+				return this.reply("Quote has been added.");
+			},
 		},
 
-		quotes() {
-			if (!this.room) return this.pmreply("This command can't be used in PMs.");
-			if (!this.canUse(1)) return this.pmreply("Permission denied.");
-
-			if (quotedata[this.room]) {
-				let fname = this.room + "/quotes";
-				if (Config.privateRooms.has(this.room)) {
-					let data = {};
-					data[this.room] = true;
-					let token = server.createAccessToken(data);
-					setTimeout(() => server.removeAccessToken(token), 15 * 60 * 1000);
-					fname += '?token=' + token;
+		quotes: {
+			permission: 1,
+			disallowPM: true,
+			action() {
+				if (quotedata[this.room]) {
+					let fname = this.room + "/quotes";
+					if (Config.privateRooms.has(this.room)) {
+						let data = {};
+						data[this.room] = true;
+						let token = server.createAccessToken(data);
+						setTimeout(() => server.removeAccessToken(token), 15 * 60 * 1000);
+						fname += '?token=' + token;
+					}
+					return this.reply("Quote page: " + server.url + fname);
 				}
-				return this.reply("Quote page: " + server.url + fname);
-			}
 
-			return this.pmreply("This room has no quotes.");
+				return this.pmreply("This room has no quotes.");
+			},
 		},
 
-		randquote() {
-			if (!this.room) return this.pmreply("This command can't be used in PMs.");
-			if (!this.canUse(1)) return this.pmreply("Permission denied.");
+		randquote: {
+			permission: 1,
+			disallowPM: true,
+			action() {
+				if (quotedata[this.room]) {
+					return this.reply(quotedata[this.room][Math.floor(Math.random() * quotedata[this.room].length)]);
+				}
 
-			if (quotedata[this.room]) {
-				return this.reply(quotedata[this.room][Math.floor(Math.random() * quotedata[this.room].length)]);
-			}
-
-			return this.pmreply("This room has no quotes.");
+				return this.pmreply("This room has no quotes.");
+			},
 		},
 	},
 };

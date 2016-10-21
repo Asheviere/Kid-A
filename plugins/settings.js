@@ -9,7 +9,7 @@ function changeSettings(room, settings) {
 	for (let key in settings) {
 		if (key === 'token') continue;
 
-		if (key in Handler.chatHandler.commands) {
+		if (key in Handler.chatHandler.commands && !Handler.chatHandler.commands[key].hidden) {
 			if (settings[key] === 'true') {
 				if (!Handler.chatHandler.settings[room].disabledCommands.includes(key)) {
 					Handler.chatHandler.settings[room].disabledCommands.push(key);
@@ -67,7 +67,7 @@ function generateSettingsPage(room) {
 	}
 
 	content += '<h2>Disabled Commands</h2><table>';
-	let keys = Object.keys(Handler.chatHandler.commands);
+	let keys = Object.keys(Handler.chatHandler.commands).filter(cmd => !(Handler.chatHandler.commands[cmd].hidden || (Handler.chatHandler.commands[cmd].rooms && Handler.chatHandler.commands[cmd].rooms.includes(room))));
 	for (let i = 0; i < keys.length; i++) {
 		if (i % 3 === 0) content += '<tr>';
 
@@ -99,26 +99,29 @@ server.addRoute('/settings', settingsResolver);
 
 module.exports = {
 	commands: {
-		settings(message) {
-			let room = this.room || message;
-			if (!room) return;
-			if (!(room in this.userlists)) return this.pmreply(`The bot isn't in the room '${this.room}'.`);
-			if (!this.getRoomAuth(room)) return;
-			if (!this.canUse(5)) return this.pmreply("Permission denied.");
+		settings: {
+			hidden: true,
+			action(message) {
+				let room = this.room || message;
+				if (!room) return;
+				if (!(room in this.userlists)) return this.pmreply(`The bot isn't in the room '${this.room}'.`);
+				if (!this.getRoomAuth(room)) return;
+				if (!this.canUse(5)) return this.pmreply("Permission denied.");
 
-			if (!this.settings[room]) this.settings[room] = {options: [], disabledCommands: []};
+				if (!this.settings[room]) this.settings[room] = {options: [], disabledCommands: []};
 
-			if (Config.checkIps) {
-				Handler.checkIp(this.userid, (userid, ips) => {
-					let data = {room: room, auth: this.auth};
-					if (ips) data.ip = ips[0];
-					let token = server.createAccessToken(data, 15);
+				if (Config.checkIps) {
+					Handler.checkIp(this.userid, (userid, ips) => {
+						let data = {room: room, auth: this.auth};
+						if (ips) data.ip = ips[0];
+						let token = server.createAccessToken(data, 15);
+						return this.pmreply(`Settings for room ${room}: ${server.url}settings/${room}?token=${token}`);
+					});
+				} else {
+					let token = server.createAccessToken({room: room, auth: this.auth}, 15);
 					return this.pmreply(`Settings for room ${room}: ${server.url}settings/${room}?token=${token}`);
-				});
-			} else {
-				let token = server.createAccessToken({room: room, auth: this.auth}, 15);
-				return this.pmreply(`Settings for room ${room}: ${server.url}settings/${room}?token=${token}`);
-			}
+				}
+			},
 		},
 	},
 };

@@ -85,39 +85,40 @@ function addBuffer(userid, room, message) {
 
 module.exports = {
 	commands: {
-		moderation(message) {
-			if (!this.canUse(5)) return this.pmreply("Permission denied.");
-			if (!this.room) return this.pmreply("This command can't be used in PMs.");
+		moderation: {
+			permission: 5,
+			disallowPM: true,
+			action(message) {
+				if (!this.settings.modRooms) this.settings.modRooms = [];
 
-			if (!this.settings.modRooms) this.settings.modRooms = [];
+				message = toId(message);
+				let idx = this.settings.modRooms.indexOf(this.room);
 
-			message = toId(message);
-			let idx = this.settings.modRooms.indexOf(this.room);
-
-			switch (message) {
-			case 'on':
-			case 'true':
-			case 'yes':
-			case 'enable':
-				if (idx < 0) {
-					this.settings.modRooms.push(this.room);
-					databases.writeDatabase('settings');
-					return this.reply("Bot moderation was turned on in this room.");
+				switch (message) {
+				case 'on':
+				case 'true':
+				case 'yes':
+				case 'enable':
+					if (idx < 0) {
+						this.settings.modRooms.push(this.room);
+						databases.writeDatabase('settings');
+						return this.reply("Bot moderation was turned on in this room.");
+					}
+					return this.reply("Bot moderation is already turned on.");
+				case 'off':
+				case 'false':
+				case 'no':
+				case 'disable':
+					if (idx > -1) {
+						this.settings.modRooms.splice(idx, 1);
+						databases.writeDatabase('settings');
+						return this.reply("Bot moderation was turned off in this room.");
+					}
+					return this.reply("Bot moderation is already turned off.");
+				default:
+					return this.pmreply("Invalid value. Use 'on' or 'off'.");
 				}
-				return this.reply("Bot moderation is already turned on.");
-			case 'off':
-			case 'false':
-			case 'no':
-			case 'disable':
-				if (idx > -1) {
-					this.settings.modRooms.splice(idx, 1);
-					databases.writeDatabase('settings');
-					return this.reply("Bot moderation was turned off in this room.");
-				}
-				return this.reply("Bot moderation is already turned off.");
-			default:
-				return this.pmreply("Invalid value. Use 'on' or 'off'.");
-			}
+			},
 		},
 	},
 
@@ -166,7 +167,7 @@ module.exports = {
 				return;
 			}
 
-			let stretchString = message.replace(/  +/g, ' ');
+			let stretchString = message.replace(/ {2,}/g, ' ');
 
 			if (/(.)\1{7,}/gi.test(stretchString) || (/(..+)\1{4,}/gi.test(stretchString) && !/(\d+\/)+/gi.test(stretchString))) {
 				if (Config.checkIps) {

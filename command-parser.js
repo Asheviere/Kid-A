@@ -45,7 +45,13 @@ class CommandWrapper {
 		this.username = userstr.substr(1);
 		this.userid = toId(userstr);
 		this.room = room;
-		this.commands[cmd].apply(this, [message]);
+		let command = this.commands[cmd];
+
+		if (command.permission && !this.canUse(command.permission)) return this.pmreply("Permission denied.");
+		if (command.disallowPM && !room) return this.pmreply("This command cannot be used in PMs.");
+		if (room && command.rooms && !command.rooms.includes(room)) return;
+
+		command.action.apply(this, [message]);
 	}
 
 	reply(message) {
