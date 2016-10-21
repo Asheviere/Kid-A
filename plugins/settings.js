@@ -58,7 +58,7 @@ function generateSettingsPage(room) {
 		Handler.chatHandler.options.forEach(val => {
 			if (i % 3 === 0) content += '<tr>';
 
-			content += `<td><input type="checkbox" name="${val}" ${Handler.chatHandler.settings[room].options.includes(val) ? 'checked' : ''}>${val}</td>`;
+			content += `<td><input type="checkbox" name="${val}" ${Handler.chatHandler.settings[room].options.includes(val) ? 'checked=""' : ''}>${val}</td>`;
 
 			if (i % 3 === 2) content += '</tr>';
 			i++;
@@ -71,7 +71,7 @@ function generateSettingsPage(room) {
 	for (let i = 0; i < keys.length; i++) {
 		if (i % 3 === 0) content += '<tr>';
 
-		content += `<td><input type="checkbox" name="${keys[i]}" ${Handler.chatHandler.settings[room].disabledCommands.includes(keys[i]) ? 'checked' : ''}>${keys[i]}</td>`;
+		content += `<td><input type="checkbox" name="${keys[i]}" ${Handler.chatHandler.settings[room].disabledCommands.includes(keys[i]) ? 'checked=""' : ''}>${keys[i]}</td>`;
 
 		if (i % 3 === 2) content += '</tr>';
 	}
@@ -106,7 +106,7 @@ module.exports = {
 			if (!this.getRoomAuth(room)) return;
 			if (!this.canUse(5)) return this.pmreply("Permission denied.");
 
-			if (!this.settings[this.room]) this.settings[room] = {options: [], disabledCommands: []};
+			if (!this.settings[room]) this.settings[room] = {options: [], disabledCommands: []};
 
 			if (Config.checkIps) {
 				Handler.checkIp(this.userid, (userid, ips) => {
