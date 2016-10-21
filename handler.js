@@ -48,6 +48,7 @@ module.exports = {
 
 	setup() {
 		Connection.send('|/avatar ' + Config.avatar);
+		this.userid = toId(Config.name);
 
 		Array.prototype.push.apply(this.toJoin, Config.rooms);
 
@@ -167,17 +168,17 @@ module.exports = {
 			this.addUser(split[6].trim().split(',').slice(1), roomid);
 			break;
 		case 'pm':
-			if (toId(split[2]) === toId(Config.username)) return false;
+			if (toId(split[2]) === this.userid) return false;
 
 			this.chatHandler.parse(split[2], null, split.splice(4).join('|'));
 			break;
 		case 'c':
-			if (toId(split[2]) === Config.username) return;
+			if (toId(split[2]) === this.userid) return;
 
 			this.chatHandler.parse(split[2], roomid, split.splice(3).join('|'));
 			break;
 		case 'c:':
-			if (toId(split[3]) === Config.username) return;
+			if (toId(split[3]) === this.userid) return;
 			this.chatHandler.parse(split[3], roomid, split.splice(4).join('|'));
 			break;
 		case 'html':
