@@ -47,7 +47,7 @@ module.exports = {
 
 				let url = API_ROOT + '?method=user.getrecenttracks&user=' + message + '&limit=1&api_key=' + Config.lastfmKey + '&format=json';
 				let req = new Promise(function(resolve, reject) {
-					request(url, function (error, response, body) {
+					request(url, function(error, response, body) {
 						if (error) {
 							errorMsg(error);
 							reject(error);
@@ -91,7 +91,7 @@ module.exports = {
 						if (!htmlbox) msg += trackname;
 						let yturl = YT_ROOT + '?part=snippet&order=relevance&maxResults=1&q=' + encodeURIComponent(trackname) + '&key=' + Config.youtubeKey;
 						let yt = new Promise(function(resolve, reject) {
-							request(yturl, function (error, response, body) {
+							request(yturl, function(error, response, body) {
 								if (error) {
 									errorMsg(error);
 									reject(error);
@@ -141,7 +141,7 @@ module.exports = {
 
 				let url = API_ROOT + '?method=track.getInfo&api_key=' + Config.lastfmKey + '&artist=' + parts[0] + '&track=' + parts[1] + '&autocorrect=1&format=json';
 				let req = new Promise(function(resolve, reject) {
-					request(url, function (error, response, body) {
+					request(url, function(error, response, body) {
 						if (error) {
 							errorMsg(error);
 							reject(error);
@@ -177,7 +177,7 @@ module.exports = {
 						let yturl = YT_ROOT + '?part=snippet&order=relevance&maxResults=1&q=' + encodeURIComponent(trackname) + '&key=' + Config.youtubeKey;
 
 						let yt = new Promise(function(resolve, reject) {
-							request(yturl, function (error, response, body) {
+							request(yturl, function(error, response, body) {
 								if (error) {
 									errorMsg(error);
 									reject(error);
@@ -213,13 +213,12 @@ module.exports = {
 
 		registerlastfm: {
 			hidden: true,
-			action(userstr, room, message) {
+			action(message) {
 				if (!message) return this.pmreply("No username entered.");
 
-				let userid = toId(userstr);
 				let username = message.replace(/[^A-Za-z0-9-_]/g, '');
 
-				lastfmdata[userid] = username;
+				lastfmdata[this.userid] = username;
 
 				databases.writeDatabase('lastfm');
 
