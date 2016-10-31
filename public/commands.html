@@ -1,143 +1,123 @@
 <!doctype html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>Command Help - Kid A</title>
-	<link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="stylesheet" type="text/css" href="style.css">
 </head>
+
 <body>
-<div class="container">
-    <div>
-        <h1>Kid A's command list:</h1>
-
-        <p class="note"><strong>NOTE:</strong> All command require Voice or above in the current room, unless specified otherwise.
-            Commands that require Voice will still work in PM for regular users.</p>
-
+    <div class="container">
         <div>
-            <h2 id="administrative">Administrative:</h2>
-            <p class="helptopic">
-                <span>reload [data|config]:</span>
-                Reloads the databases or config files of the bot. Requires either global admin
-                or for you to be the owner of the bot.
-            </p>
-            <p class="helptopic">
-				<span>console:</span>
-                Sends you a (temporary) link to the console output of the bot. Requires either global admin
-                or for you to be the owner of the bot.
-            </p>
-            <p class="helptopic">
-				<span>settings:</span>
-                Gives you a link to a webpage where you can turn on and off commands and options for your room. This command can be used in PM, although the name of the room should be supplied as an argument in that case.
-            </p>
-            <p class="helptopic">
-				<span>leave:</span>
-                Makes the bot leave, and take the room off of autojoin (if autojoin is provided by inviting the bot).
-                If the bot is set to autojoin by Config, the bot will leave, but rejoin next restart. Requires Room Owner in the room.
-            </p>
-        </div>
-        <div>
-            <h2 id="help">Help:</h2>
-            <p class="helptopic">
-				<span>help (topic):</span>
-                Links to the bot's documentation about a certain topic. For a list of topics, use .help without a topic
-                specified.
-            </p>
-			<p class="helptopic">
-				<span>git:</span>
-				Returns a link to Kid A's github repository.
-			</p>
-			<p class="helptopic">
-				<span>data:</span>
-				Returns a link to the page with chat analytics of the current room.
-			</p>
-        </div>
-        <div>
-            <h2 id="LastFm">Last.fm:</h2>
-            <p class="helptopic">
-				<span>lastfm (username):</span>
-                Displays what the given last.fm username is currently listening to or has last listened to, and provides
-                a
-                link to their profile.
-                If no username is provided, it will attempt to use your registered info.
-				Options: lastfmhtmlbox - Uses a fancier htmlbox for displaying results. Requires the bot to have the bot rank, and is spammier.
-            </p>
-			<p class="helptopic">
-				<span>track (artist - track name):</span>
-				Searches for a track on last.fm, and provides a youtube link to the song as well.
-				Options: lastfmhtmlbox - Uses a fancier htmlbox for displaying results. Requires the bot to have the bot rank, and is spammier.
-			</p>
-            <p class="helptopic">
-				<span>registerlastfm (username):</span>
-                Works only in PM. This will register the given last.fm username to your PS username, and allows you to
-                use simple .lastfm to link
-                to your last.fm page. To update information, simply use the command again with the updated last.fm
-                username.
-            </p>
-        </div>
+            <h1>Kid A's command list:</h1>
 
-        <div>
-            <h2 id="moderation">Moderation:</h2>
-            <p class="helptopic">
-				<span>moderation [on/off]:</span>
-                Turns moderation in this room on or off. Requires Room Owner in the room.
-            </p>
-        </div>
+            <p class="note"><strong>NOTE:</strong> All command require Voice or above in the current room, unless specified otherwise. Commands that require Voice will still work in PM for regular users.</p>
 
-        <div>
-            <h2 id="quotes">Quotes:</h2>
-            <p class="helptopic">
-				<span>quote (quote):</span>
-                Adds the given quote to the quote page for this room. Requires Room Driver in the room.
-            </p>
-            <p class="helptopic">
-				<span>quotes:</span>
-                Provides a link to the quote page of the current room.
-            </p>
-			<p class="helptopic">
-				<span>randquote:</span>
-				Says a random quote from the quote page of the current room.
-			</p>
-        </div>
+            <div>
+                <h2 id="administrative">Administrative:</h2>
+                <p class="helptopic">
+                    <span>reload [data|config]:</span> Reloads the databases or config files of the bot. Requires either global admin or for you to be the owner of the bot.
+                </p>
+                <p class="helptopic">
+                    <span>console:</span> Sends you a (temporary) link to the console output of the bot. Requires either global admin or for you to be the owner of the bot.
+                </p>
+                <p class="helptopic">
+                    <span>settings:</span> Gives you a link to a webpage where you can turn on and off commands and options for your room. This command can be used in PM, although the name of the room should be supplied as an argument in that case.
+                </p>
+                <p class="helptopic">
+                    <span>leave:</span> Makes the bot leave, and take the room off of autojoin (if autojoin is provided by inviting the bot). If the bot is set to autojoin by Config, the bot will leave, but rejoin next restart. Requires Room Owner in
+                    the room.
+                </p>
+            </div>
+            <div>
+                <h2 id="help">Help:</h2>
+                <p class="helptopic">
+                    <span>help (topic):</span> Links to the bot's documentation about a certain topic. For a list of topics, use .help without a topic specified.
+                </p>
+                <p class="helptopic">
+                    <span>git:</span> Returns a link to Kid A's github repository.
+                </p>
+                <p class="helptopic">
+                    <span>data:</span> Returns a link to the page with chat analytics of the current room.
+                </p>
+            </div>
+            <div>
+                <h2 id="LastFm">Last.fm:</h2>
+                <p class="helptopic">
+                    <span>lastfm (username):</span> Displays what the given last.fm username is currently listening to or has last listened to, and provides a link to their profile. If no username is provided, it will attempt to use your registered info.
+                    Options: lastfmhtmlbox - Uses a fancier htmlbox for displaying results. Requires the bot to have the bot rank, and is spammier.
+                </p>
+                <p class="helptopic">
+                    <span>track (artist - track name):</span> Searches for a track on last.fm, and provides a youtube link to the song as well. Options: lastfmhtmlbox - Uses a fancier htmlbox for displaying results. Requires the bot to have the bot rank,
+                    and is spammier.
+                </p>
+                <p class="helptopic">
+                    <span>registerlastfm (username):</span> Works only in PM. This will register the given last.fm username to your PS username, and allows you to use simple .lastfm to link to your last.fm page. To update information, simply use the command
+                    again with the updated last.fm username.
+                </p>
+            </div>
 
-		<div>
-            <h2 id="social">Social:</h2>
-            <p class="helptopic">
-				<span>motd:</span>
-                Displays the current message of the day for the room. This command can be used in PM by specifying the room after the command.<br/>
-				Options: announcemotd - use /wall when displaying the motd.
-            </p>
-            <p class="helptopic">
-				<span>motd (motd):</span>
-                Sets the message of the day in the room to the specified message for the next 24 hours. Requires Room Moderator in the room.
-            </p>
-			<p class="helptopic">
-				<span>clearmotd:</span>
-				Clears the current motd of the room. Requires Room Moderator in the room.
-			</p>
-        </div>
+            <div>
+                <h2 id="moderation">Moderation:</h2>
+                <p class="helptopic">
+                    <span>moderation [on/off]:</span> Turns moderation in this room on or off. Requires Room Owner in the room.
+                </p>
+            </div>
 
-        <div>
-            <h2 id="userlist">Userlist:</h2>
-            <p class="helptopic">
-				<span>addinfo (username), key:value[, key:value]:</span>
-                Adds info to the userdata of the provided user. For example '.addinfo bumbadadabum, TCGO:
-                bumbadadabum'
-                will set 'bumbadadabum''s TCGO username to 'bumbadadabum', and will show up when doing .info
-                bumbadadabum or .info bumbadadabum, tcgo.
-                If the info already exists, it will override it. Requires Room Driver in the room.
-            </p>
-            <p class="helptopic">
-				<span>removeinfo (username), key[, key]:</span>
-                Removes the info associated with the given key(s) from the userdata of the given user.
-                Requires Room Driver in the room.
-            </p>
-            <p class="helptopic">
-				<span>info (username)[, key]:</span>
-                Provides the info associated with the given username and key, or all info if no key is
-                provided.
-            </p>
+            <div>
+                <h2 id="quotes">Quotes:</h2>
+                <p class="helptopic">
+                    <span>quote (quote):</span> Adds the given quote to the quote page for this room. Requires Room Driver in the room.
+                </p>
+                <p class="helptopic">
+                    <span>deletequote (quote):</span> Deletes the given quote from the quote page for this room. Requires Room Driver in the room.
+                </p>
+                <p class="helptopic">
+                    <span>quotes:</span> Provides a link to the quote page of the current room.
+                </p>
+                <p class="helptopic">
+                    <span>randquote:</span> Says a random quote from the quote page of the current room.
+                </p>
+            </div>
+
+            <div>
+                <h2 id="social">Social:</h2>
+                <p class="helptopic">
+                    <span>motd:</span> Displays the current message of the day for the room. This command can be used in PM by specifying the room after the command.<br/> Options: announcemotd - use /wall when displaying the motd.
+                </p>
+                <p class="helptopic">
+                    <span>motd (motd):</span> Sets the message of the day in the room to the specified message for the next 24 hours. Requires Room Moderator in the room.
+                </p>
+                <p class="helptopic">
+                    <span>clearmotd:</span> Clears the current motd of the room. Requires Room Moderator in the room.
+                </p>
+                <p class="helptopic">
+                    <span>repeat (interval, times, message):</span> Repeats a message times times in a room every interval minutes. Requires Room Driver in the room.
+                </p>
+                <p class="helptopic">
+                    <span>clearrepeat (message):</span> Stops a repeating message. Requires Room Driver in the room.
+                </p>
+                <p class="helptopic">
+                    <span>clearrepeats:</span> Stops all repeating messages in this room. Requires Room Driver in the room.
+                </p>
+            </div>
+
+            <div>
+                <h2 id="userlist">Userlist:</h2>
+                <p class="helptopic">
+                    <span>addinfo (username), key:value[, key:value]:</span> Adds info to the userdata of the provided user. For example '.addinfo bumbadadabum, TCGO: bumbadadabum' will set 'bumbadadabum''s TCGO username to 'bumbadadabum', and will show
+                    up when doing .info bumbadadabum or .info bumbadadabum, tcgo. If the info already exists, it will override it. Requires Room Driver in the room.
+                </p>
+                <p class="helptopic">
+                    <span>removeinfo (username), key[, key]:</span> Removes the info associated with the given key(s) from the userdata of the given user. Requires Room Driver in the room.
+                </p>
+                <p class="helptopic">
+                    <span>info (username)[, key]:</span> Provides the info associated with the given username and key, or all info if no key is provided.
+                </p>
+            </div>
         </div>
     </div>
-</div>
 </body>
+
 </html>
