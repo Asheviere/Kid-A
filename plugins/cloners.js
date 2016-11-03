@@ -160,7 +160,7 @@ class WifiList {
 		}
 		removed.forEach(userid => delete this.data[userid]);
 		databases.writeDatabase(this.name);
-		return this.reply("/modnote The following users were purged from the " + this.name.slice(0, -1) + " list: " + removed.join(', '));
+		return "The following users were purged from the " + this.name.slice(0, -1) + " list: " + removed.join(', ');
 	}
 }
 
@@ -234,7 +234,9 @@ module.exports = {
 				}
 				if (!this.canUse(5)) return this.pmreply("Permission denied.");
 
-				return this.reply(clonerList.purgeList());
+				let msg = clonerList.purgeList();
+				Connection.send(WIFI_ROOM + '|/modnote ' + msg);
+				return this.reply(msg);
 			},
 		},
 		whitelistcloner: {
@@ -336,7 +338,9 @@ module.exports = {
 				}
 				if (!this.canUse(5)) return this.pmreply("Permission denied.");
 
-				return this.reply(trainerList.purgeList());
+				let msg = trainerList.purgeList();
+				Connection.send(WIFI_ROOM + '|/modnote ' + msg);
+				return this.reply(msg);
 			},
 		},
 		whitelisttrainer: {
