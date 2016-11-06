@@ -81,12 +81,12 @@ module.exports = {
 
 				repeatMsg = repeatMsg.join(',').trim();
 
-				if (repeatMsg.startsWith('/') && !(repeatMsg.startsWith('/announce ') || repeatMsg.startsWith('/wall '))) return this.pmreply ("Please do not enter commands in ``.repeat`` except for ``/announce``");
+				if (repeatMsg.startsWith('1') || repeatMsg.startsWith('/') && !(repeatMsg.startsWith('/announce ') || repeatMsg.startsWith('/wall '))) return this.pmreply ("Please do not enter commands in ``.repeat`` except for ``/announce``");
 
 				let id = `${this.room}|${toId(repeatMsg)}`;
 				if (id in repeats) return this.pmreply("This message is already being repeated.");
 
-				let repeatObj = { timer: setTimeout(() => runRepeat(id), MINUTE * interval), msg: repeatMsg, timesLeft: times, interval: interval, room: this.room };
+				let repeatObj = {timer: setTimeout(() => runRepeat(id), MINUTE * interval), msg: repeatMsg, timesLeft: times, interval: interval, room: this.room};
 				repeats[id] = repeatObj;
 				return this.reply(repeatMsg);
 			},
