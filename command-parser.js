@@ -82,7 +82,7 @@ class CommandWrapper {
 
 class ChatHandler {
 	constructor(userlists, settings) {
-		let plugins = {};
+		this.plugins = {};
 		this.analyzers = {};
 		this.commands = {};
 		this.options = new Set();
@@ -114,7 +114,7 @@ class ChatHandler {
 			.forEach((file) => {
 				let plugin = require('./plugins/' + file);
 				let name = file.slice(0, -3);
-				plugins[name] = plugin;
+				this.plugins[name] = plugin;
 				if (plugin.analyzer) this.analyzers[name] = plugin.analyzer;
 				if (plugin.commands) {
 					Object.keys(plugin.commands).forEach((c) => {
@@ -196,6 +196,14 @@ class ChatHandler {
 		let user = (!room && userstr[0] === ' ' ? '+' : userstr[0]) + username;
 		if (this.settings[room] && this.settings[room].disabledCommands.includes(cmd)) return;
 		wrapper.run(cmd, user, room, words.join(' '));
+	}
+
+	parseJoin(user, room) {
+		for (let i in this.plugins) {
+			if (this.plugins[i].onUserJoin && (!this.plugins[i].onUserJoin.rooms || this.plugins[i].onUserJoin.rooms.includes(room))) {
+				this.plugins[i].onUserJoin.action(user, room);
+			}
+		}
 	}
 
 	generateDataPage(room) {

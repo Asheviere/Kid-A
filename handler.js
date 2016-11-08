@@ -77,6 +77,8 @@ module.exports = {
 			return true;
 		}
 		this.userlists[room][toId(user)] = [user[0], toId(user)];
+
+		this.chatHandler.parseJoin(user, room);
 	},
 
 	removeUser(user, room) {
