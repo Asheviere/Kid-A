@@ -6,6 +6,7 @@ const server = require('../server.js');
 const databases = require('../databases.js');
 
 const MONTH = 30 * 24 * 60 * 60 * 1000;
+const WEEK = 7 * 24 * 60 * 60 * 1000;
 
 const WIFI_ROOM = 'wifi';
 
@@ -140,7 +141,7 @@ class WifiList {
 			let param = params[i].split(':').map(param => param.trim());
 			if (param.length !== 2) return "Syntax error in " + params[i];
 			param[0] = toId(param[0]);
-			if (param[0] === 'username') return "This column can't be changed.";
+			if (param[0] === 'username' || param[0] === 'date') return "This column can't be changed.";
 			if (this.columnKeys.indexOf(param[0]) < 0) return "Invalid key: " + param[0];
 			this.data[userid][param[0]] = param[1];
 		}
@@ -168,7 +169,27 @@ const clonerList = new WifiList('cloners', './data/cloners.tsv', ['PS Username',
 const trainerList = new WifiList('trainers', './data/trainers.tsv', ['PS Username', 'IGN', 'Friend code', 'EV Spread Type', 'Level Training', 'Collateral', 'Notes', 'Date of last EV training'], ['username', 'ign', 'fc', 'evs', 'levels', 'collateral', 'notes']);
 const scammerList = new WifiList('scammers', './data/scammers.tsv', ['PS Username', 'Alts', 'IGN', 'Friend code', 'Evidence', 'Reason', 'Added by', 'Date added'], ['username', 'alts', 'ign', 'fc', 'evidence', 'reason', 'addedby'], true);
 
+let notified = new Set();
+
 module.exports = {
+	onUserJoin: {
+		rooms: [WIFI_ROOM],
+		action(user) {
+			user = toId(user);
+
+			// Autoban permabanned scammers
+			if (scammerList.data[user] && typeof(scammerList.data[user].date) === "string" && scammerList.data[user].date.startsWith("PERMA")) {
+				Connection.send(`${WIFI_ROOM}|/rb ${user}`);
+			}
+
+			let now = Date.now();
+
+			if (clonerList.data[user] && typeof(clonerList.data[user].date) === "number" && now - clonerList.data[user].date > 4 * WEEK) {
+				Connection.send(`|/pm ${user}, Reminder: You have not done your cloner giveaway in the past month. If you fail to do this before the start of the new month, you will be purged from the list. NB: It's required to notify an editor of the cloner list that you've done your cloner GA.`);
+				notified.add(user);
+			}
+		},
+	},
 	commands: {
 		addcloner: {
 			rooms: [WIFI_ROOM],
@@ -271,6 +292,36 @@ module.exports = {
 				databases.writeDatabase('settings');
 				Connection.send(WIFI_ROOM + '|/modnote ' + toId(message) + ' was unwhitelisted for the cloner list by ' + this.username + '.');
 				return this.reply("User successfully removed from the whitelist.");
+			},
+		},
+		setclonerflag: {
+			rooms: [WIFI_ROOM],
+			action(message) {
+				if (!this.room) {
+					if (!this.getRoomAuth(WIFI_ROOM)) return;
+				}
+				if (!this.canUse(5)) return this.pmreply("Permission denied.");
+
+				let [user, flag] = message.split(',').map(param => param.trim());
+
+				user = toId(user);
+				if (!(user in clonerList.data)) return this.reply("User is not on the cloner list.");
+
+				if (flag) {
+					flag = flag.toUpperCase();
+
+					clonerList.data[user].date = flag;
+
+					databases.writeDatabase('cloners');
+					Connection.send(`${WIFI_ROOM}|/modnote ${user}'s cloner flag was set to ${flag} by ${this.username}.`);
+				} else {
+					clonerList.data[user].date = Date.now();
+					databases.writeDatabase('cloners');
+
+					Connection.send(`${WIFI_ROOM}|/modnote ${user}'s cloner flag was removed by ${this.username}.`);
+				}
+
+				return this.reply("User's flag has been successfully updated.");
 			},
 		},
 
@@ -377,6 +428,36 @@ module.exports = {
 				return this.reply("User successfully removed from the whitelist.");
 			},
 		},
+		settrainerflag: {
+			rooms: [WIFI_ROOM],
+			action(message) {
+				if (!this.room) {
+					if (!this.getRoomAuth(WIFI_ROOM)) return;
+				}
+				if (!this.canUse(5)) return this.pmreply("Permission denied.");
+
+				let [user, flag] = message.split(',').map(param => param.trim());
+
+				user = toId(user);
+				if (!(user in trainerList.data)) return this.reply("User is not on the cloner list.");
+
+				if (flag) {
+					flag = flag.toUpperCase();
+
+					trainerList.data[user].date = flag;
+
+					databases.writeDatabase('trainers');
+					Connection.send(`${WIFI_ROOM}|/modnote ${user}'s trainer flag was set to ${flag} by ${this.username}.`);
+				} else {
+					trainerList.data[user].date = Date.now();
+					databases.writeDatabase('trainers');
+
+					Connection.send(`${WIFI_ROOM}|/modnote ${user}'s trainer flag was removed by ${this.username}.`);
+				}
+
+				return this.reply("User's flag has been successfully updated.");
+			},
+		},
 
 		addscammer: {
 			rooms: [WIFI_ROOM],
@@ -447,6 +528,36 @@ module.exports = {
 				}
 
 				return this.reply("This FC was not found on the scammers list.");
+			},
+		},
+		setscammerflag: {
+			rooms: [WIFI_ROOM],
+			action(message) {
+				if (!this.room) {
+					if (!this.getRoomAuth(WIFI_ROOM)) return;
+				}
+				if (!this.canUse(5)) return this.pmreply("Permission denied.");
+
+				let [user, flag] = message.split(',').map(param => param.trim());
+
+				user = toId(user);
+				if (!(user in scammerList.data)) return this.reply("User is not on the cloner list.");
+
+				if (flag) {
+					flag = flag.toUpperCase();
+
+					scammerList.data[user].date = flag;
+
+					databases.writeDatabase('scammers');
+					Connection.send(`${WIFI_ROOM}|/modnote ${user}'s scammer flag was set to ${flag} by ${this.username}.`);
+				} else {
+					scammerList.data[user].date = Date.now();
+					databases.writeDatabase('scammers');
+
+					Connection.send(`${WIFI_ROOM}|/modnote ${user}'s scammer flag was removed by ${this.username}.`);
+				}
+
+				return this.reply("User's flag has been successfully updated.");
 			},
 		},
 	},
