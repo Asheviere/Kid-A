@@ -184,7 +184,7 @@ module.exports = {
 
 			let now = Date.now();
 
-			if (clonerList.data[user] && typeof(clonerList.data[user].date) === "number" && now - clonerList.data[user].date > 4 * WEEK) {
+			if (clonerList.data[user] && typeof(clonerList.data[user].date) === "number" && now - clonerList.data[user].date > 4 * WEEK && !notified.has(user)) {
 				Connection.send(`|/pm ${user}, Reminder: You have not done your cloner giveaway in the past month. If you fail to do this before the start of the new month, you will be purged from the list. NB: It's required to notify an editor of the cloner list that you've done your cloner GA.`);
 				notified.add(user);
 			}
