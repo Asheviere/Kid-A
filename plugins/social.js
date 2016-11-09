@@ -23,7 +23,7 @@ module.exports = {
 	options: ['announcemotd'],
 	commands: {
 		motd: {
-			permission: 3,
+			permission: 1,
 			action(message) {
 				let room = this.room || message;
 				if (room === message) message = null;
@@ -32,7 +32,6 @@ module.exports = {
 				}
 
 				if (!message) {
-					if (!this.canUse(1)) return this.pmreply("Permission denied.");
 					if (!(room in motds)) return this.reply("This room does not have a motd set.");
 
 					return this.reply((this.settings[this.room] && this.settings[this.room].options.includes('announcemotd') ? '/wall ' : '') + "This room's motd is: " + motds[room]);
