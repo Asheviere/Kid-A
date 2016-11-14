@@ -124,6 +124,9 @@ module.exports = {
 					declareTimeout = null;
 				});
 				notified.clear();
+
+				consoleMsg("Declare made: " + declareMsg);
+				this.pmreply("Declare added");
 			},
 		},
 	},
