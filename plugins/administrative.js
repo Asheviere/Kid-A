@@ -124,7 +124,7 @@ module.exports = {
 				setTimeout(() => {
 					declareMsg = '';
 					declareTimeout = null;
-				}, declareTimeout * DAY);
+				}, time * DAY);
 				notified.clear();
 
 				consoleMsg("Declare made: " + declareMsg);
