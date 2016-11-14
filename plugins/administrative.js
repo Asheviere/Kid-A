@@ -3,6 +3,8 @@
 const databases = require('../databases.js');
 const server = require('../server.js');
 
+const DAY = 24 * 60 * 60 * 1000;
+
 function parseConsole(req, res) {
 	let query = server.parseURL(req.url);
 	let token = query.token;
@@ -19,7 +21,23 @@ function parseConsole(req, res) {
 
 server.addRoute('/console', parseConsole);
 
+let notified = new Set();
+let declareMsg = "";
+let declareTimeout;
+
 module.exports = {
+	onUserJoin: {
+		action(user, room) {
+			if (Config.privateRooms.has(room)) return;
+
+			user = toId(user);
+
+			if (declareMsg && !notified.has(user) && this.userlists[room] && this.userlists[room][user][0] === '#') {
+				Connection.send(`|/pm ${user}, ${declareMsg}`);
+				notified.add(user);
+			}
+		},
+	},
 	commands: {
 		eval: {
 			hidden: true,
@@ -86,6 +104,26 @@ module.exports = {
 				}
 
 				return this.reply('/part ' + this.room);
+			},
+		},
+
+		declare: {
+			permission: 6,
+			action(message) {
+				let [time, msg] = message.split(',').map(str => str.trim());
+				if (!msg) return this.pmreply("Invalid syntax. ``.declare days, message``.");
+				if (!(time = Number(time))) return this.pmreply("Please enter a valid number for days.");
+
+				if (declareTimeout) {
+					clearTimeout(declareTimeout);
+				}
+
+				declareMsg = msg;
+				setTimeout(declareTimeout * DAY, () => {
+					declareMsg = '';
+					declareTimeout = null;
+				});
+				notified.clear();
 			},
 		},
 	},
