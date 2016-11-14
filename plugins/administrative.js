@@ -110,8 +110,9 @@ module.exports = {
 		declare: {
 			permission: 6,
 			action(message) {
-				let [time, msg] = message.split(',').map(str => str.trim());
+				let [time, ...msg] = message.split(',');
 				if (!msg) return this.pmreply("Invalid syntax. ``.declare days, message``.");
+				msg = msg.join(',').trim();
 				if (!(time = Number(time))) return this.pmreply("Please enter a valid number for days.");
 
 				if (declareTimeout) {
