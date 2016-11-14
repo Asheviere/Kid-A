@@ -3,6 +3,8 @@
 const server = require('../server.js');
 const databases = require('../databases.js');
 
+server.addTemplate('settings', 'settings.html');
+
 function changeSettings(room, settings) {
 	let output = '';
 	let changed = false;
@@ -50,34 +52,14 @@ function changeSettings(room, settings) {
 }
 
 function generateSettingsPage(room) {
-	let content = '<!DOCTYPE html><html><head><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="../style.css"><title>' + room + ' - Kid A</title><script src="/scripts/settings.js"></script></head><body><div class="container">';
+	let options = [];
+	Handler.chatHandler.options.forEach(val => {
+		options.push({name: val, checked: Handler.chatHandler.settings[room].options.includes(val)});
+	});
 
-	if (Handler.chatHandler.options.size) {
-		content += '<h2>Options</h2><table>';
-		let i = 0;
-		Handler.chatHandler.options.forEach(val => {
-			if (i % 3 === 0) content += '<tr>';
+	let commands = Object.keys(Handler.chatHandler.commands).filter(cmd => !(Handler.chatHandler.commands[cmd].hidden || (Handler.chatHandler.commands[cmd].rooms && !Handler.chatHandler.commands[cmd].rooms.includes(room)))).map(val => ({name: val, checked: Handler.chatHandler.settings[room].disabledCommands.includes(val)}));
 
-			content += `<td><input type="checkbox" name="${val}" ${Handler.chatHandler.settings[room].options.includes(val) ? 'checked=""' : ''}>${val}</td>`;
-
-			if (i % 3 === 2) content += '</tr>';
-			i++;
-		});
-		content += '</table>';
-	}
-
-	content += '<h2>Disabled Commands</h2><table>';
-	let keys = Object.keys(Handler.chatHandler.commands).filter(cmd => !(Handler.chatHandler.commands[cmd].hidden || (Handler.chatHandler.commands[cmd].rooms && !Handler.chatHandler.commands[cmd].rooms.includes(room))));
-	for (let i = 0; i < keys.length; i++) {
-		if (i % 3 === 0) content += '<tr>';
-
-		content += `<td><input type="checkbox" name="${keys[i]}" ${Handler.chatHandler.settings[room].disabledCommands.includes(keys[i]) ? 'checked=""' : ''}>${keys[i]}</td>`;
-
-		if (i % 3 === 2) content += '</tr>';
-	}
-	content += '</table><button onclick="submit()">Submit changes</button>';
-
-	return content + '</div></body></html>';
+	return server.renderTemplate('settings', {room: room, options: options, commands: commands});
 }
 
 function settingsResolver(req, res) {

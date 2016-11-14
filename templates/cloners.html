@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="../style.css">
+        <title>{{name}} list - Kid A</title>
+        <script src="/scripts/cloners.js"></script>
+    </head>
+    
+    <body>
+        <div class="container">
+			{{#if editors}}
+				<p class="note">Editors: {{editors}}</p>
+			{{/if}}
+			<div class="popup"><input type="checkbox" onclick="toggleFilter(this)">Only show online {{name}}.</div>
+			<table>
+                <tr class="header" onclick="filter()">
+                    {{#each columnNames}}
+                        <th>{{this}}</th>
+                    {{/each}}
+                </tr>
+                {{#each entries}}
+                    {{#if online}}
+                        <tr class="online">
+                    {{else}}
+                        <tr>
+                    {{/if}}
+                    
+                    {{#each data}}
+                        <td>
+                            {{#if_eq @key "date"}}
+                                {{parse_date this}}
+                            {{else}}
+                                {{this}}
+                            {{/if_eq}}
+                        </td>
+                    {{/each}}
+
+                    </tr>
+                {{/each}}
+			</table>
+        </div>
+    </body>
+</html>

@@ -1,21 +1,22 @@
 {
-  "name": "Kid-A",
+  "name": "kid-a",
   "version": "0.0.1",
   "dependencies": {
-    "websocket": "1.0.22",
+    "cheerio": "0.20.0",
+    "connect": "3.4.1",
+    "handlebars": "^4.0.6",
     "request": "2.67.0",
     "sentiment": "1.0.5",
-    "connect": "3.4.1",
     "serve-static": "1.10.2",
-	"cheerio": "0.20.0"
+    "websocket": "1.0.22"
   },
   "engines": {
     "node": ">= 4.0.0"
   },
   "bin": "./main.js",
   "scripts": {
-	"start": "node main.js",
-  	"test": "eslint *.js plugins/*.js"
+    "start": "node main.js",
+    "test": "eslint *.js plugins/*.js"
   },
   "repository": {
     "type": "git",

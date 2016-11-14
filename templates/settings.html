@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <link rel="stylesheet" type="text/css" href="../style.css">
+        <title>{{room}} - Kid A</title>
+        <script src="/scripts/settings.js"></script>
+    </head>
+    
+    <body>
+        <div class="container">
+            <h2>Options</h2>
+            <table>
+                {{#each options}}
+                    {{#mod @index 3 0}}
+                        <tr>
+                    {{/mod}}
+                    {{#if checked}}
+                        <td><input type="checkbox" name="{{name}}" checked="">{{name}}</td>
+                    {{else}}
+                        <td><input type="checkbox" name="{{name}}">{{name}}</td>
+                    {{/if}}
+                    {{#mod @index 3 2}}
+                        </tr>
+                    {{/mod}}
+                {{/each}}
+            </table>
+
+            <h2>Disabled Commands</h2>
+            <table>
+                {{#each commands}}
+                    {{#mod @index 3 0}}
+                        <tr>
+                    {{/mod}}
+                    {{#if checked}}
+                        <td><input type="checkbox" name="{{name}}" checked="">{{name}}</td>
+                    {{else}}
+                        <td><input type="checkbox" name="{{name}}">{{name}}</td>
+                    {{/if}}
+                    {{#mod @index 3 2}}
+                        </tr>
+                    {{/mod}}
+                {{/each}}
+            </table>
+            
+            <button onclick="submit()">Submit changes</button>
+        </div>
+    </body>
+</html>

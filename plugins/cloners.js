@@ -16,6 +16,8 @@ if (!settings.whitelists.cloners) settings.whitelists.cloners = [];
 if (!settings.whitelists.trainers) settings.whitelists.trainers = [];
 databases.writeDatabase('settings');
 
+server.addTemplate('cloners', 'cloners.html');
+
 class WifiList {
 	constructor(name, file, columnNames, columnKeys, noOnlinePage, noTime) {
 		this.name = name;
@@ -66,13 +68,12 @@ class WifiList {
 		this.data = databases.getDatabase(this.name);
 
 		let generatePage = (req, res) => {
-			let content = '<!DOCTYPE html><html><head><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="../style.css"><title>' + this.name + ' list - Kid A</title><script src="/scripts/cloners.js"></script></head><body><div class="container">';
+			let data = {name: this.name, columnNames: this.columnNames};
 			if (settings.whitelists[this.name]) {
-				content += '<p class="note">Editors: ' + settings.whitelists[this.name].join(', ') + '</p>';
+				data.editors = settings.whitelists[this.name].join(', ');
 			}
-			content += `<div class="popup"><input type="checkbox" onclick="toggleFilter(this)">Only show online ${this.name}.</div>`;
-			content += '<table><tr class="header" onclick="filter()"><th>' + this.columnNames.join('</th><th>') + '</th></tr>';
-			let keys = Object.keys(this.data).sort((a, b) => {
+
+			data.entries = Object.keys(this.data).sort((a, b) => {
 				if ('date' in this.data[a] && !parseInt(this.data[a].date)) return -1;
 				if ('date' in this.data[b] && !parseInt(this.data[b].date)) return 1;
 				let i = 0;
@@ -84,25 +85,9 @@ class WifiList {
 				if (a[i] < b[i]) return -1;
 				if (a[i] > b[i]) return 1;
 				return 0;
-			});
-			for (let iter = 0; iter < keys.length; iter++) {
-				let i = keys[iter];
-				if (Handler.userlists[WIFI_ROOM] && (i in Handler.userlists[WIFI_ROOM])) {
-					content += '<tr class="online">';
-				} else {
-					content += '<tr>';
-				}
-				for (let j in this.data[i]) {
-					if (j === 'date' && parseInt(this.data[i][j])) {
-						let date = new Date(parseInt(this.data[i][j]));
-						content += '<td>' + date.toDateString() + '</td>';
-					} else {
-						content += '<td>' + sanitize(this.data[i][j]) + '</td>';
-					}
-				}
-				content += '</tr>';
-			}
-			res.end(content + '</table></div></body></html>');
+			}).map(val => ({data: this.data[val], online: (Handler.userlists[WIFI_ROOM] && (val in Handler.userlists[WIFI_ROOM]))}));
+
+			return res.end(server.renderTemplate('cloners', data));
 		};
 
 		server.addRoute('/' + WIFI_ROOM + '/' + this.name, generatePage);

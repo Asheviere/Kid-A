@@ -1,11 +1,36 @@
 'use strict';
 
+const fs = require('fs');
 const path = require('path');
 const url = require('url');
 const crypto = require('crypto');
 
 const connect = require('connect');
 const serveStatic = require('serve-static');
+const handlebars = require('handlebars');
+
+// Add extra helpers to handlebars.
+handlebars.registerHelper('if_eq', function(val1, val2, options) {
+	if (val1 === val2) {
+		return options.fn(this);
+	}
+	return options.inverse(this);
+});
+
+handlebars.registerHelper('mod', function(variable, num, eq, options) {
+	if (variable % num === eq) {
+		return options.fn(this);
+	}
+	return options.inverse(this);
+});
+
+handlebars.registerHelper('parse_date', function(date) {
+	if (parseInt(date)) {
+		date = new Date(parseInt(date));
+		return date.toDateString();
+	}
+	return date;
+});
 
 class Server {
 	constructor(host, port) {
@@ -26,6 +51,8 @@ class Server {
 		this.restartPending = false;
 
 		this.accessTokens = new Map();
+
+		this.templates = {};
 
 		statusMsg('Server started successfully.');
 	}
@@ -127,6 +154,20 @@ class Server {
 			}
 		}
 		return output;
+	}
+
+	addTemplate(id, file) {
+		let data = '';
+		try {
+			data = fs.readFileSync('./templates/' + file, "utf8");
+		} catch (e) {
+			errorMsg(`Could not load template file ${file}.`);
+		}
+		this.templates[id] = handlebars.compile(data);
+	}
+
+	renderTemplate(id, data) {
+		return this.templates[id](data);
 	}
 }
 

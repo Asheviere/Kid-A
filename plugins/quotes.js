@@ -26,17 +26,7 @@ function writeQuotes() {
 databases.addDatabase('quotes', loadQuotes, writeQuotes);
 quotedata = databases.getDatabase('quotes');
 
-function generateQuotePage(room) {
-	let content = '<!DOCTYPE html><html><head><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="../style.css"><title>' + room + ' - Kid A</title></head><body><div class="container">';
-	if (quotedata[room]) {
-		content += "<h1>" + room + ' quotes:</h1><div class="quotes">';
-		for (let i = 0; i < quotedata[room].length; i++) {
-			content += '<p>' + sanitize(quotedata[room][i]) + '</p>';
-		}
-		content += '</div>';
-	}
-	return content + '</div></body></html>';
-}
+server.addTemplate('quotes', 'quotes.html');
 
 function quoteResolver(req, res) {
 	let room = req.originalUrl.split('/')[1];
@@ -47,12 +37,12 @@ function quoteResolver(req, res) {
 		let data = server.getAccessToken(token);
 		if (!data) return res.end('Invalid access token.');
 		if (data[room]) {
-			res.end(generateQuotePage(room));
+			res.end(server.renderTemplate('quotes', {room: room, data: quotedata[room]}));
 		} else {
 			res.end('Permission denied.');
 		}
 	} else {
-		res.end(generateQuotePage(room));
+		res.end(server.renderTemplate('quotes', {room: room, data: quotedata[room]}));
 	}
 }
 

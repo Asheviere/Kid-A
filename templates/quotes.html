@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>{{room}} - Kid A</title>
+	</head>
+	
+	<body>
+		<div class="container">
+			{{#if data}}
+				<h1>{{room}} quotes:</h1>
+				<div class="quotes">
+					{{#each data}}
+						<p>{{this}}</p>
+					{{/each}}
+				</div>
+			{{else}}
+				<h2>This room has no quotes.</h2>
+			{{/if}}
+		</div>
+	</body>
+</html>
