@@ -109,6 +109,7 @@ module.exports = {
 
 		declare: {
 			permission: 6,
+			hidden: true,
 			action(message) {
 				let [time, ...msg] = message.split(',');
 				if (!msg) return this.pmreply("Invalid syntax. ``.declare days, message``.");
@@ -120,10 +121,10 @@ module.exports = {
 				}
 
 				declareMsg = msg;
-				setTimeout(declareTimeout * DAY, () => {
+				setTimeout(() => {
 					declareMsg = '';
 					declareTimeout = null;
-				});
+				}, declareTimeout * DAY);
 				notified.clear();
 
 				consoleMsg("Declare made: " + declareMsg);

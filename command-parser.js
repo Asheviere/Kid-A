@@ -201,7 +201,7 @@ class ChatHandler {
 	parseJoin(user, room) {
 		for (let i in this.plugins) {
 			if (this.plugins[i].onUserJoin && (!this.plugins[i].onUserJoin.rooms || this.plugins[i].onUserJoin.rooms.includes(room))) {
-				this.plugins[i].onUserJoin.action.call(this, [user, room]);
+				this.plugins[i].onUserJoin.action.apply(this, [user, room]);
 			}
 		}
 	}
