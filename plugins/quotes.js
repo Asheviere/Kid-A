@@ -28,22 +28,50 @@ quotedata = databases.getDatabase('quotes');
 
 server.addTemplate('quotes', 'quotes.html');
 
+function editQuotes(data, room) {
+	let {delete: toDelete, edits: toEdit} = data;
+
+	let newQuotes = [];
+
+	for (let i = 0; i < quotedata[room].length; i++) {
+		if (toDelete) {
+			if (toDelete.includes(i.toString())) continue;
+
+			if (i in toEdit) {
+				newQuotes.push(toEdit[i]);
+			} else {
+				newQuotes.push(quotedata[room][i]);
+			}
+		}
+	}
+
+	quotedata[room] = newQuotes;
+	databases.writeDatabase('quotes');
+}
+
 function quoteResolver(req, res) {
 	let room = req.originalUrl.split('/')[1];
-	if (Config.privateRooms.has(room)) {
-		let query = server.parseURL(req.url);
-		let token = query.token;
-		if (!token) return res.end('Private room quotes require an access token to be viewed.');
+	let query = server.parseURL(req.url);
+	let token = query.token;
+	if (!token && Config.privateRooms.has(room)) return res.end('Private Room quotes require an access token to be viewed.');
+	if (token) {
 		let data = server.getAccessToken(token);
 		if (!data) return res.end('Invalid access token.');
-		if (data[room]) {
-			res.end(server.renderTemplate('quotes', {room: room, data: quotedata[room]}));
-		} else {
-			res.end('Permission denied.');
+		if (data[room] && data.permission) {
+			if (req.method === "POST") {
+				if (!(req.body && req.body.data)) return res.end("Malformed request.");
+				let data;
+				try {
+					data = JSON.parse(decodeURIComponent(req.body.data));
+				} catch (e) {
+					return res.end("Malformed JSON.");
+				}
+				editQuotes(data, room);
+			}
+			return res.end(server.renderTemplate('quotes', {room: room, data: quotedata[room], permission: true}));
 		}
-	} else {
-		res.end(server.renderTemplate('quotes', {room: room, data: quotedata[room]}));
 	}
+	res.end(server.renderTemplate('quotes', {room: room, data: quotedata[room]}));
 }
 
 for (let room in quotedata) {
@@ -99,20 +127,37 @@ module.exports = {
 
 		quotes: {
 			permission: 1,
-			disallowPM: true,
-			action() {
+			action(message) {
+				let pm = false;
+				if (!this.room) {
+					if (message) {
+						this.room = toId(message);
+						if (!this.getRoomAuth(this.room)) return;
+						pm = true;
+					} else {
+						return this.pmreply("No room supplied.");
+					}
+				}
 				if (quotedata[this.room]) {
 					let fname = this.room + "/quotes";
-					if (Config.privateRooms.has(this.room)) {
+					let permission = (pm && this.canUse(5));
+					if (Config.privateRooms.has(this.room) || permission) {
 						let data = {};
 						data[this.room] = true;
+						data.permission = permission;
 						let token = server.createAccessToken(data, 15);
 						fname += '?token=' + token;
+					}
+					if (pm) {
+						return this.pmreply("Quote page: " + server.url + fname);
 					}
 					return this.reply("Quote page: " + server.url + fname);
 				}
 
-				return this.pmreply("This room has no quotes.");
+				if (pm) {
+					return this.pmreply("This room has no quotes.");
+				}
+				return this.reply("This room has no quotes.");
 			},
 		},
 

@@ -8,6 +8,7 @@ const crypto = require('crypto');
 const connect = require('connect');
 const serveStatic = require('serve-static');
 const handlebars = require('handlebars');
+const bodyParser = require('body-parser');
 
 // Add extra helpers to handlebars.
 handlebars.registerHelper('if_eq', function(val1, val2, options) {
@@ -44,6 +45,9 @@ class Server {
 
 		this.index = path.resolve(__dirname, './public');
 		this.site = connect();
+
+		this.addMiddleware(bodyParser.urlencoded({extended: false, type: 'application/x-www-form-urlencoded'}));
+
 		this.site.use(serveStatic(this.index));
 		this._server = null;
 

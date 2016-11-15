@@ -5,17 +5,31 @@
 		<meta charset="UTF-8">
 		<link rel="stylesheet" type="text/css" href="../style.css">
 		<title>{{room}} - Kid A</title>
+		<script src="/scripts/quotes.js"></script>
 	</head>
 	
 	<body>
 		<div class="container">
 			{{#if data}}
 				<h1>{{room}} quotes:</h1>
+				{{#if permission}}
+					<p class="note">Check quotes to mark them for removal. Click a quote to edit it.</p>
+				{{/if}}
 				<div class="quotes">
 					{{#each data}}
-						<p>{{this}}</p>
+						{{#if ../permission}}
+							<p>
+								<input type="checkbox" name="{{@index}}">
+								<input type="text" name="{{@index}}" class="disabledinput" value="{{this}}" onclick="edit(this)" onkeyup="markEdited(this)"/>
+							</p>
+						{{else}}
+							<p>{{this}}</p>
+						{{/if}}
 					{{/each}}
 				</div>
+				{{#if permission}}
+					<div class="popup"><button onclick="submit()">Submit changes</button></div>
+				{{/if}}
 			{{else}}
 				<h2>This room has no quotes.</h2>
 			{{/if}}

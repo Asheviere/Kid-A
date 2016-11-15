@@ -75,6 +75,19 @@ tr:hover {
 	margin: 1px 0px 4px;
 	opacity: 0.87;
 }
+.input {
+    padding-bottom: 10px;
+    max-width: 50%;
+    width: 100%;
+}
+.disabledinput {
+    padding-bottom: 10px;
+    max-width: 50%;
+    width: 100%;
+    border: none;
+    background: inherit;
+    color: inherit;
+}
 .analyzer {
 	overflow: auto;
 }
