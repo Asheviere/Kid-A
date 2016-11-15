@@ -165,8 +165,10 @@ module.exports = {
 			permission: 1,
 			disallowPM: true,
 			action() {
-				if (quotedata[this.room]) {
-					return this.reply(quotedata[this.room][Math.floor(Math.random() * quotedata[this.room].length)]);
+				if (quotedata[this.room] && quotedata[this.room].length) {
+					let randquote = quotedata[this.room][Math.floor(Math.random() * quotedata[this.room].length)];
+					if (randquote[0] === '/' || randquote[0] === '!') randquote = randquote.substr(1);
+					return this.reply(randquote);
 				}
 
 				return this.pmreply("This room has no quotes.");
