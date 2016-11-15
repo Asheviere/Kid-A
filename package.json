@@ -2,6 +2,7 @@
   "name": "kid-a",
   "version": "0.0.1",
   "dependencies": {
+    "body-parser": "^1.15.2",
     "cheerio": "0.20.0",
     "connect": "3.4.1",
     "handlebars": "^4.0.6",
