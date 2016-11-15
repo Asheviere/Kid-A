@@ -19,7 +19,7 @@
 					{{#each data}}
 						{{#if ../permission}}
 							<p>
-								<input type="checkbox" name="{{@index}}">
+								<input type="checkbox" name="{{@index}}" onclick="this.parentElement.style.background = (this.checked ? 'red' : 'white');">
 								<input type="text" name="{{@index}}" class="disabledinput" value="{{this}}" onclick="edit(this)" onkeyup="markEdited(this)"/>
 							</p>
 						{{else}}
