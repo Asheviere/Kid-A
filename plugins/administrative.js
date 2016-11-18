@@ -43,11 +43,12 @@ module.exports = {
 			hidden: true,
 			action(message) {
 				if (!Config.admins.has(this.userid)) return;
+				if(/require\(.+?\)/.test(message)) return;
 
 				let ret;
 				try {
 					ret = JSON.stringify(eval(message));
-					if (ret === undefined) ret = 'undefined';
+					if (ret === undefined) return;
 				} catch (e) {
 					ret = 'Failed to eval ' + message + ': ' + e.toString();
 				}
