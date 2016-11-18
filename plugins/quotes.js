@@ -131,8 +131,9 @@ module.exports = {
 				let pm = false;
 				if (!this.room) {
 					if (message) {
-						this.room = toId(message);
-						if (!this.getRoomAuth(this.room)) return;
+						let room = toId(message);
+						if (!this.getRoomAuth(room)) return;
+						this.room = room;
 						pm = true;
 					} else {
 						return this.pmreply("No room supplied.");
