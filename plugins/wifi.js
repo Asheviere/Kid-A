@@ -81,7 +81,7 @@ module.exports = {
 				}
 				faqList[toId(split[0])] = faqMessage;
 				databases.writeDatabase('faqs');
-				return this.reply("Faq topic " + split[0] + " added.");
+				return this.pmreply("Faq topic " + split[0] + " added.");
 			},
 		},
 		removefaq: {
@@ -109,7 +109,7 @@ module.exports = {
 				if (!(split[0] in faqList)) return this.pmreply("Invalid option for topic.");
 				delete faqList[split[0]];
 				databases.writeDatabase('faqs');
-				return this.reply("Faq topic " + split[0] + " deleted.");
+				return this.pmreply("Faq topic " + split[0] + " deleted.");
 			},
 		},
 	},
