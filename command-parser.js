@@ -1,4 +1,4 @@
-'use strict';
+﻿'use strict';
 
 const fs = require('fs');
 
@@ -152,7 +152,7 @@ class ChatHandler {
 	}
 
 	parse(userstr, room, message) {
-		if (message[0] === '.') {
+		if (message[0] === (Config.commandSymbol || '.')) {
 			this.parseCommand(userstr, room, message);
 		} else if (room) {
 			this.analyze(userstr, room, message);
