@@ -60,9 +60,10 @@ module.exports = {
 				let split = message.split(',').map(param => param.trim());
 				if (!this.room) {
 					if (split.length < 3) return this.pmreply("Invalid amount of arguments.");
-					this.room = toId(split.splice(0, 1)[0]);
-					if (this.room !== WIFI_ROOM && this.room !== BREEDING_ROOM) return this.pmreply("This command can only be used in the wifi or breeding room.");
-					if (!this.getRoomAuth(this.room)) return;
+					let room = toId(split.splice(0, 1)[0]);
+					if (!this.getRoomAuth(room)) return;
+					if (room !== WIFI_ROOM && room !== BREEDING_ROOM) return this.pmreply("This command can only be used in the wifi or breeding room.");
+					this.room = room;
 				}
 				if (!this.canUse(5)) return this.pmreply("Permission denied.");
 				let faqList = {};
@@ -91,9 +92,10 @@ module.exports = {
 				let split = message.split(',').map(param => param.trim());
 				if (!this.room) {
 					if (split.length < 2) return this.pmreply("Invalid amount of arguments.");
-					this.room = toId(split.splice(0, 1)[0]);
-					if (this.room !== WIFI_ROOM && this.room !== BREEDING_ROOM) return this.pmreply("This command can only be used in the wifi or breeding room.");
-					if (!this.getRoomAuth(this.room)) return;
+					let room = toId(split.splice(0, 1)[0]);
+					if (!this.getRoomAuth(room)) return;
+					if (room !== WIFI_ROOM && room !== BREEDING_ROOM) return this.pmreply("This command can only be used in the wifi or breeding room.");
+					this.room = room;
 				}
 				if (!this.canUse(5)) return this.pmreply("Permission denied.");
 				let faqList = {};
