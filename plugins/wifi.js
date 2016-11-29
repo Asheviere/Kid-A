@@ -34,7 +34,6 @@ module.exports = {
 	commands: {
 		faq: {
 			rooms: [WIFI_ROOM, BREEDING_ROOM],
-			permission: 1,
 			action(message) {
 				let room = this.room || WIFI_ROOM;
 				let faqList = {};
@@ -50,7 +49,10 @@ module.exports = {
 				message = toId(message);
 				if (!(message in faqList)) return this.pmreply("Invalid option for topic.");
 
-				return this.reply(faqList[message]);
+				if (this.canUse(1)) {
+					return this.reply(faqList[message]);
+				}
+				return this.pmreply(faqList[message]);
 			},
 		},
 		addfaq: {
