@@ -12,6 +12,10 @@
 			{{#if editors}}
 				<p class="note">Editors: {{editors}}</p>
 			{{/if}}
+            {{#if_eq name "scammers"}}
+                <p class="note"><strong>Before trading, make sure to check the <a href="https://docs.google.com/spreadsheets/d/1aj7bIySJI1JwCD8KHeBOlZnG4Hg27KI12H8RiNynsmY">Gen 6 hacked Pokémon list</a> and the <a href="
+https://docs.google.com/spreadsheets/d/16o6k4wphh4x1JMXrETHotlYTq1BwyyaEch8O96HsBMQ ">Gen 7 hacked Pokémon list</a>.</strong></p>
+            {{/if_eq}}
 			<div class="popup"><input type="checkbox" onclick="toggleFilter(this)">Only show online {{name}}.</div>
 			<table>
                 <tr class="header" onclick="filter()">
