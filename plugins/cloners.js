@@ -4,9 +4,12 @@ const fs = require('fs');
 
 const server = require('../server.js');
 const databases = require('../databases.js');
+const utils = require('../utils.js');
 
 const MONTH = 30 * 24 * 60 * 60 * 1000;
 const WEEK = 7 * 24 * 60 * 60 * 1000;
+
+const FC_REGEX = /[0-9]{4}-[0-9]{4}-[0-9]{4}/;
 
 const WIFI_ROOM = 'wifi';
 
@@ -98,13 +101,18 @@ class WifiList {
 		if (toId(params[0]) in this.data) return "'" + params[0] + "' is already a " + this.name.slice(0, -1) + ".";
 
 		let userid = toId(params[0]);
-		this.data[userid] = {};
+		let data = {};
 		if (!this.noTime) {
 			params.push(Date.now());
 		}
 		for (let i = 0; i < this.columnKeys.length; i++) {
-			this.data[userid][this.columnKeys[i]] = params[i];
+			// Validate friend codes
+			if (this.columnKeys[i] === 'fc' && !(FC_REGEX.test(params[i]) && utils.validateFc(params[i]))) {
+				return "The Friend code you entered is invalid";
+			}
+			data[this.columnKeys[i]] = params[i];
 		}
+		this.data[userid] = data;
 		fs.appendFileSync(this.file, params.join('\t') + '\n');
 
 		Connection.send(WIFI_ROOM + '|/modnote ' + user + ' added ' + toId(params[0]) + ' to the ' + this.name.slice(0, -1) + ' list.');
@@ -507,6 +515,8 @@ module.exports = {
 				if (!(id.length === 12 && parseInt(id))) return this.reply("Invalid input.");
 
 				let fc = id.substr(0, 4) + '-' + id.substr(4, 4) + '-' + id.substr(8, 4);
+
+				if (!utils.validateFc(fc)) return this.reply("This FC is invalid.");
 
 				for (let i in scammerList.data) {
 					if (scammerList.data[i].fc === fc) return this.reply("This IP belongs to " + scammerList.data[i].username + ", who was put on the list for '" + scammerList.data[i].reason + "'.");
