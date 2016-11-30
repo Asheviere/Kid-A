@@ -510,7 +510,7 @@ module.exports = {
 		checkfc: {
 			rooms: [WIFI_ROOM],
 			permission: 1,
-			action(userstr, room, message) {
+			action(message) {
 				let id = toId(message);
 				if (!(id.length === 12 && parseInt(id))) return this.reply("Invalid input.");
 
