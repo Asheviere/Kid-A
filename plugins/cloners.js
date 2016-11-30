@@ -220,7 +220,7 @@ module.exports = {
 				if (!this.room) {
 					if (!this.getRoomAuth(WIFI_ROOM)) return;
 				}
-				if (!(this.canUse(5) || this.settings.whitelists.cloners.indexOf(this.userid) > -1)) return this.pmreply("Permission denied.");
+				if (!(this.canUse(3) || this.settings.whitelists.cloners.indexOf(this.userid) > -1)) return this.pmreply("Permission denied.");
 
 				let targetId = toId(message);
 				if (!(targetId in clonerList.data)) return this.reply("User is not on the cloner list.");
@@ -354,7 +354,7 @@ module.exports = {
 				if (!this.room) {
 					if (!this.getRoomAuth(WIFI_ROOM)) return;
 				}
-				if (!(this.canUse(5) || this.settings.whitelists.trainers.indexOf(this.userid) > -1)) return this.pmreply("Permission denied.");
+				if (!(this.canUse(3) || this.settings.whitelists.trainers.indexOf(this.userid) > -1)) return this.pmreply("Permission denied.");
 
 				let targetId = toId(message);
 				if (!(targetId in trainerList.data)) return this.reply("User is not on the trainer list.");
