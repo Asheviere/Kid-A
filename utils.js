@@ -3,10 +3,10 @@ const fs = require('fs');
 
 // Code for FC validation written by Scotteh.
 
-function sha1bin( data ) {
+function sha1bin(data) {
 	 let generator = crypto.createHash('sha1');
-	 generator.update(data);
-	 return generator.digest('bin');
+	 generator.update(data, 'ascii');
+	 return generator.digest();
 }
 
 function and(val1, val2) {
