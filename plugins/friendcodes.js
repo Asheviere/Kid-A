@@ -103,7 +103,6 @@ module.exports = {
 			},
 		},
 		fc: {
-			permission: 1,
 			action(message) {
 				if (message) {
 					message = toId(message);
@@ -115,7 +114,11 @@ module.exports = {
 
 				if (!(message in friendcodes)) return this.pmreply((self ? "You don't" : "This person doesn't") + " have a friend code registered." + (self ? ` PM a staff member in the <<${WIFI_ROOM}>> or <<${INGAME_ROOM}>> room to have your FC added.` : ""));
 
-				this.reply((self ? "Your" : message + "'s") + " friend code: " + friendcodes[message]);
+				if (this.canUse(1)) {
+					this.reply((self ? "Your" : message + "'s") + " friend code: " + friendcodes[message]);
+				} else {
+					this.pmreply((self ? "Your" : message + "'s") + " friend code: " + friendcodes[message]);
+				}
 			},
 		},
 	},
