@@ -64,7 +64,7 @@ module.exports = {
 				friendcodes[name] = fc;
 				databases.writeDatabase('friendcodes');
 
-				if (room) Connection.send(`${room}|/modnote ${this.username} added a friend code for ${name}.`);
+				if (room) Connection.send(`${room}|/modnote ${this.username} added a friend code for ${name}: ${fc}`);
 				this.reply("Friend Code successfully added.");
 			},
 		},
