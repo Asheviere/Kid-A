@@ -62,6 +62,8 @@ module.exports = {
 
 				friendcodes[name] = fc;
 				databases.writeDatabase('friendcodes');
+
+				this.reply("Friend Code successfully added.");
 			},
 		},
 		deletefc: {
@@ -88,6 +90,8 @@ module.exports = {
 
 				delete friendcodes[name];
 				databases.writeDatabase('friendcodes');
+
+				this.reply("Friend Code successfully deleted.");
 			},
 		},
 		fc: {
