@@ -9,7 +9,7 @@ const utils = require('../utils.js');
 const MONTH = 30 * 24 * 60 * 60 * 1000;
 const WEEK = 7 * 24 * 60 * 60 * 1000;
 
-const FC_REGEX = /[0-9]{4}-[0-9]{4}-[0-9]{4}/;
+const FC_REGEX = /[0-9]{4}[- ]?[0-9]{4}[- ]?[0-9]{4}/;
 
 const WIFI_ROOM = 'wifi';
 
@@ -107,8 +107,11 @@ class WifiList {
 		}
 		for (let i = 0; i < this.columnKeys.length; i++) {
 			// Validate friend codes
-			if (this.columnKeys[i] === 'fc' && !(FC_REGEX.test(params[i]) && utils.validateFc(params[i]))) {
-				return "The Friend code you entered is invalid";
+			if (this.columnKeys[i] === 'fc') {
+				if (!FC_REGEX.test(params[i])) return "Invalid formatting for Friend Code. format: ``1111-2222-3333``";
+				params[i] = toId(params[i]);
+				params[i] = params[i].substr(0, 4) + '-' + params[i].substr(4, 4) + '-' + params[i].substr(8, 4);
+				if (!utils.validateFc(params[i])) return "The Friend code you entered is invalid";
 			}
 			data[this.columnKeys[i]] = params[i];
 		}
