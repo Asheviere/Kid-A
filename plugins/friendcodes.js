@@ -36,14 +36,17 @@ module.exports = {
 		addfc: {
 			rooms: [WIFI_ROOM, INGAME_ROOM],
 			action(message) {
+				let room = this.room;
 				if (!this.canUse(2)) {
 					let hasPermission = false;
 					if (this.userlists[WIFI_ROOM] && this.userid in this.userlists[WIFI_ROOM]) {
 						this.auth = this.userlists[WIFI_ROOM][this.userid][0];
+						room = WIFI_ROOM;
 						hasPermission = this.canUse(2);
 					}
 					if (!hasPermission && this.userlists[INGAME_ROOM] && this.userid in this.userlists[INGAME_ROOM]) {
 						this.auth = this.userlists[INGAME_ROOM][this.userid][0];
+						room = INGAME_ROOM;
 						hasPermission = this.canUse(2);
 					}
 					if (!hasPermission) {
@@ -55,28 +58,32 @@ module.exports = {
 				if (!(name && fc)) return this.pmreply("Syntax: ``.addfc name, fc``");
 
 				name = toId(name);
-				if (!FC_REGEX.test(fc.trim())) return "Invalid formatting for Friend Code. format: ``1111-2222-3333``";
+				if (!FC_REGEX.test(fc.trim())) return this.pmreply("Invalid formatting for Friend Code. format: ``1111-2222-3333``");
 				fc = toId(fc);
 				fc = fc.substr(0, 4) + '-' + fc.substr(4, 4) + '-' + fc.substr(8, 4);
-				if (!utils.validateFc(fc)) return "The Friend code you entered is invalid";
+				if (!utils.validateFc(fc)) return this.pmreply("The Friend code you entered is invalid");
 
 				friendcodes[name] = fc;
 				databases.writeDatabase('friendcodes');
 
+				if (room) Connection.send(`${room}|/modnote ${this.username} added a friend code for ${name}.`);
 				this.reply("Friend Code successfully added.");
 			},
 		},
 		deletefc: {
 			rooms: [WIFI_ROOM, INGAME_ROOM],
 			action(message) {
+				let room = this.room;
 				if (!this.canUse(2)) {
 					let hasPermission = false;
 					if (this.userlists[WIFI_ROOM] && this.userid in this.userlists[WIFI_ROOM]) {
 						this.auth = this.userlists[WIFI_ROOM][this.userid][0];
+						room = WIFI_ROOM;
 						hasPermission = this.canUse(2);
 					}
 					if (!hasPermission && this.userlists[INGAME_ROOM] && this.userid in this.userlists[INGAME_ROOM]) {
 						this.auth = this.userlists[INGAME_ROOM][this.userid][0];
+						room = INGAME_ROOM;
 						hasPermission = this.canUse(2);
 					}
 					if (!hasPermission) {
@@ -91,6 +98,7 @@ module.exports = {
 				delete friendcodes[name];
 				databases.writeDatabase('friendcodes');
 
+				if (room) Connection.send(`${room}|/modnote ${this.username} deleted ${name}'s friend code.`);
 				this.reply("Friend Code successfully deleted.");
 			},
 		},
