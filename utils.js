@@ -42,10 +42,10 @@ module.exports = {
 	},
 	validateFc(cleanedfc) {
 		let fc = parseInt(cleanedfc.replace(/-/g, ''));
-		if (fc < 0x0100000000 || fc > 0x7FFFFFFFFF) {
+		if (fc > 0x7FFFFFFFFF) {
 			return false;
 		}
-		let principalId = and(fc,0xFFFFFFFF);
+		let principalId = and(fc, 0xFFFFFFFF);
 		let checksum = and(fc, 0xFF00000000)/4294967296;
 		let bytes = pad((principalId).toString(16), 8);
 		let a = bytes.match(/../g);
