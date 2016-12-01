@@ -37,21 +37,19 @@ module.exports = {
 			rooms: [WIFI_ROOM, INGAME_ROOM],
 			action(message) {
 				let room = this.room;
-				if (!this.canUse(2)) {
-					let hasPermission = false;
-					if (this.userlists[WIFI_ROOM] && this.userid in this.userlists[WIFI_ROOM]) {
-						this.auth = this.userlists[WIFI_ROOM][this.userid][0];
-						room = WIFI_ROOM;
-						hasPermission = this.canUse(2);
-					}
-					if (!hasPermission && this.userlists[INGAME_ROOM] && this.userid in this.userlists[INGAME_ROOM]) {
-						this.auth = this.userlists[INGAME_ROOM][this.userid][0];
-						room = INGAME_ROOM;
-						hasPermission = this.canUse(2);
-					}
-					if (!hasPermission) {
-						return this.pmreply(`You need to be in either the ${WIFI_ROOM} or ${INGAME_ROOM} room and have % or above in that room to use this command.`);
-					}
+				let hasPermission = false;
+				if (this.userlists[WIFI_ROOM] && this.userid in this.userlists[WIFI_ROOM]) {
+					this.auth = this.userlists[WIFI_ROOM][this.userid][0];
+					room = WIFI_ROOM;
+					hasPermission = this.canUse(2);
+				}
+				if (!hasPermission && this.userlists[INGAME_ROOM] && this.userid in this.userlists[INGAME_ROOM]) {
+					this.auth = this.userlists[INGAME_ROOM][this.userid][0];
+					room = INGAME_ROOM;
+					hasPermission = this.canUse(2);
+				}
+				if (!hasPermission) {
+					return this.pmreply(`You need to be in either the ${WIFI_ROOM} or ${INGAME_ROOM} room and have % or above in that room to use this command.`);
 				}
 
 				let [name, fc] = message.split(',');
