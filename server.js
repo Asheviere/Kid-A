@@ -44,12 +44,6 @@ class Server {
 		this.url = protocol + '://' + host + (protocol === 'http' && port !== 80 ? ':' + port : '') + '/';
 
 		this.index = path.resolve(__dirname, './public');
-		this.site = connect();
-
-		this.addMiddleware(bodyParser.urlencoded({extended: false, type: 'application/x-www-form-urlencoded'}));
-
-		this.site.use(serveStatic(this.index));
-		this._server = null;
 
 		this.isRestarting = false;
 		this.restartPending = false;
@@ -57,6 +51,10 @@ class Server {
 		this.accessTokens = new Map();
 
 		this.templates = {};
+
+		this.pages = new Map();
+
+		this.init();
 
 		statusMsg('Server started successfully.');
 	}
@@ -69,6 +67,17 @@ class Server {
 
 	// Bootstraps the HTTP/HTTPS server.
 	init() {
+		// Init the server
+		this.site = connect();
+
+		this.addMiddleware(bodyParser.urlencoded({extended: false, type: 'application/x-www-form-urlencoded'}));
+
+		this.site.use(serveStatic(this.index));
+		this._server = null;
+
+		// Load all saved pages.
+		this.pages.forEach((value, key) => this.site.use(key, value));
+
 		// Add the middleware for redirecting any unknown requests to a 404
 		// error page here, so it can always be the last one added.
 		this.site.use((req, res) => {
@@ -91,6 +100,7 @@ class Server {
 	// Configures the routing for the given path using the given function,
 	// which dynamically generates the HTML to display on that path.
 	addRoute(path, resolver) {
+		this.pages.set(path, resolver);
 		this.site.use(path, resolver);
 	}
 

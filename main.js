@@ -49,7 +49,6 @@ global.Handler = require('./handler.js');
 // After bootstrapping our databases, start serving our public data over
 // HTTP/HTTPS.
 const server = require('./server.js');
-server.init();
 
 // Finally, open the connection to the Pokemon Showdown server.
 global.Connection = null;

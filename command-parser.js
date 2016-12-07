@@ -1,4 +1,4 @@
-﻿'use strict';
+'use strict';
 
 const fs = require('fs');
 
@@ -128,7 +128,7 @@ class ChatHandler {
 				}
 			});
 
-		let dataResolver = (req, res) => {
+		this.dataResolver = (req, res) => {
 			let room = req.originalUrl.split('/')[1];
 			if (Config.privateRooms.has(room)) {
 				let query = server.parseURL(req.url);
@@ -147,8 +147,10 @@ class ChatHandler {
 		};
 
 		for (let room in this.data) {
-			server.addRoute('/' + room + '/data', dataResolver);
+			server.addRoute('/' + room + '/data', this.dataResolver);
 		}
+
+		server.restart();
 	}
 
 	parse(userstr, room, message) {
@@ -172,11 +174,17 @@ class ChatHandler {
 	}
 
 	analyze(userstr, room, message) {
+		let restartNeeded = !(room in databases.getDatabase('data'));
 		for (let i in this.analyzers) {
 			let analyzer = this.analyzers[i];
 			if (!analyzer.rooms || analyzer.rooms.includes(room)) {
 				analyzer.parser(room, message, userstr);
 			}
+		}
+		restartNeeded = restartNeeded && (room in databases.getDatabase('data'));
+		if (restartNeeded) {
+			server.addRoute('/' + room + '/data', this.dataResolver);
+			server.restart();
 		}
 		databases.writeDatabase('data');
 	}
