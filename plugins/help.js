@@ -5,6 +5,7 @@ const databases = require('../databases.js');
 
 const helpTopics = {
 	commands: 'commands.html',
+	intro: 'intro.html',
 	wifi: 'wifi.html',
 };
 

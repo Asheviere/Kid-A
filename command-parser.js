@@ -164,7 +164,8 @@ class ChatHandler {
 				if (!(Config.rooms.includes(toJoin) || (this.settings.toJoin && this.settings.toJoin.includes(toJoin)))) {
 					if (!this.settings.toJoin) this.settings.toJoin = [];
 					this.settings.toJoin.push(toJoin);
-					Connection.send('|/join ' + toJoin);
+					Connection.send(`|/join ${toJoin}`);
+					Connection.send(`|/pm ${userstr.substr[1]}, For an introduction on how to use Kid A in your room, see ${server.url}intro.html`);
 					return databases.writeDatabase('settings');
 				}
 			}
