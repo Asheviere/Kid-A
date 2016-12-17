@@ -2,6 +2,8 @@
 
 const databases = require('../databases.js');
 
+const settings = databases.getDatabase('settings');
+
 function getPunishment(val) {
 	switch (val) {
 	case 1:
@@ -84,100 +86,88 @@ function addBuffer(userid, room, message) {
 }
 
 module.exports = {
-	commands: {
-		moderation: {
-			permission: 5,
-			disallowPM: true,
-			action(message) {
-				if (!this.settings.modRooms) this.settings.modRooms = [];
-
-				message = toId(message);
-				let idx = this.settings.modRooms.indexOf(this.room);
-
-				switch (message) {
-				case 'on':
-				case 'true':
-				case 'yes':
-				case 'enable':
-					if (idx < 0) {
-						this.settings.modRooms.push(this.room);
-						databases.writeDatabase('settings');
-						return this.reply("Bot moderation was turned on in this room.");
-					}
-					return this.reply("Bot moderation is already turned on.");
-				case 'off':
-				case 'false':
-				case 'no':
-				case 'disable':
-					if (idx > -1) {
-						this.settings.modRooms.splice(idx, 1);
-						databases.writeDatabase('settings');
-						return this.reply("Bot moderation was turned off in this room.");
-					}
-					return this.reply("Bot moderation is already turned off.");
-				default:
-					return this.pmreply("Invalid value. Use 'on' or 'off'.");
-				}
-			},
-		},
-	},
+	options: ['disablemoderation', 'allowbold', 'allowcaps', 'allowstretching', 'allowflooding'],
 
 	analyzer: {
-		rooms: databases.getDatabase('settings').modRooms,
 		parser(room, message, userstr) {
+			if (settings[room] && settings[room].options.includes('disablemoderation')) return;
 			if (userstr[0] !== ' ') return;
 
 			let userid = toId(userstr);
 
-			addBuffer(userid, room, message);
+			if (!(settings[room] && settings[room].options.includes('allowflooding'))) {
+				addBuffer(userid, room, message);
 
-			let msgs = 0;
-			let identical = 0;
+				let msgs = 0;
+				let identical = 0;
 
-			for (let i = 0; i < buffers[room].length; i++) {
-				if (buffers[room][i][0] === userid) {
-					msgs++;
-					if (buffers[room][i][1] === message) identical++;
+				for (let i = 0; i < buffers[room].length; i++) {
+					if (buffers[room][i][0] === userid) {
+						msgs++;
+						if (buffers[room][i][1] === message) identical++;
+					}
+				}
+
+				if (msgs >= 5 || identical >= 3) {
+					if (Config.checkIps) {
+						Handler.checkIp(userid, (userid, ips) => {
+							punish(userid, ips, room, 2, 'Do not flood the chat.');
+						});
+					} else {
+						punish(userid, [userid], room, 2, 'Do not flood the chat.');
+					}
+					return;
 				}
 			}
 
-			if (msgs >= 5 || identical >= 3) {
-				if (Config.checkIps) {
-					Handler.checkIp(userid, (userid, ips) => {
-						punish(userid, ips, room, 2, 'Do not flood the chat.');
-					});
-				} else {
-					punish(userid, [userid], room, 2, 'Do not flood the chat.');
+			if (!(settings[room] && settings[room].options.includes('allowbold'))) {
+				let boldString = message.match(/\*\*([^< ](?:[^<]*?[^< ])??)\*\*/g);
+				if (boldString) {
+					let len = toId(message).length;
+					let boldLen = boldString.reduce((prev, cur) => prev + cur.length, 0);
+					if (boldLen >= 0.8 * len) {
+						if (Config.checkIps) {
+							Handler.checkIp(userid, (userid, ips) => {
+								punish(userid, ips, room, 1, 'Do not abuse bold.');
+							});
+						} else {
+							punish(userid, [userid], room, 1, 'Do not abuse bold.');
+						}
+						return;
+					} 
 				}
-				return;
 			}
 
 			// Moderation for caps and stretching copied from boTTT.
-			let capsString = message.replace(/[^A-Za-z]/g, '').match(/[A-Z]/g);
-			let len = toId(message).length;
+			if (!(settings[room] && settings[room].options.includes('allowcaps'))) {
+				let capsString = message.replace(/[^A-Za-z]/g, '').match(/[A-Z]/g);
+				let len = toId(message).length;
 
-			if (len >= 10 && capsString && (capsString.length / len) >= 0.8) {
-				if (Config.checkIps) {
-					Handler.checkIp(userid, (userid, ips) => {
-						punish(userid, ips, room, 1, 'Do not abuse caps.');
-					});
-				} else {
-					punish(userid, [userid], room, 1, 'Do not abuse caps.');
+				if (len >= 10 && capsString && (capsString.length / len) >= 0.8) {
+					if (Config.checkIps) {
+						Handler.checkIp(userid, (userid, ips) => {
+							punish(userid, ips, room, 1, 'Do not abuse caps.');
+						});
+					} else {
+						punish(userid, [userid], room, 1, 'Do not abuse caps.');
+					}
+					return;
 				}
-				return;
 			}
 
-			let stretchString = message.replace(/ {2,}/g, ' ');
+			if (!(settings[room] && settings[room].options.includes('allowstretching'))) {
+				let stretchString = message.replace(/ {2,}/g, ' ');
 
-			if (/(.)\1{7,}/gi.test(stretchString) || (/(..+)\1{4,}/gi.test(stretchString) && !/(\d+\/)+/gi.test(stretchString))) {
-				if (Config.checkIps) {
-					Handler.checkIp(userid, (userid, ips) => {
-						punish(userid, ips, room, 1, 'Do not stretch.');
-					});
-				} else {
-					punish(userid, [userid], room, 1, 'Do not stretch.');
+				if (/(.)\1{7,}/gi.test(stretchString) || (/(..+)\1{4,}/gi.test(stretchString) && !/(\d+\/)+/gi.test(stretchString))) {
+					if (Config.checkIps) {
+						Handler.checkIp(userid, (userid, ips) => {
+							punish(userid, ips, room, 1, 'Do not stretch.');
+						});
+					} else {
+						punish(userid, [userid], room, 1, 'Do not stretch.');
+					}
+					return;
 				}
-				return;
 			}
 		},
 	},
