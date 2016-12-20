@@ -9,10 +9,8 @@ function changeSettings(room, settings) {
 	let output = '';
 	let changed = false;
 	for (let key in settings) {
-		if (key === 'token') continue;
-
 		if (key in Handler.chatHandler.commands && !Handler.chatHandler.commands[key].hidden) {
-			if (settings[key] === 'true') {
+			if (settings[key]) {
 				if (!Handler.chatHandler.settings[room].disabledCommands.includes(key)) {
 					Handler.chatHandler.settings[room].disabledCommands.push(key);
 					changed = true;
@@ -25,7 +23,7 @@ function changeSettings(room, settings) {
 				}
 			}
 		} else if (Handler.chatHandler.options.has(key)) {
-			if (settings[key] === 'true') {
+			if (settings[key]) {
 				if (!Handler.chatHandler.settings[room].options.includes(key)) {
 					Handler.chatHandler.settings[room].options.push(key);
 					changed = true;
@@ -68,13 +66,22 @@ function settingsResolver(req, res) {
 	if (!(room && room in Handler.chatHandler.settings)) return res.end(`Room '${room}' has no available settings.`);
 	query = server.parseURL(req.url);
 	let token = query.token;
-	if (!token) return res.end('Please attach an access token. (You should get one when you type .console)');
-	let data = server.getAccessToken(token);
-	if (!data) return res.end('Invalid access token.');
-	if (Object.keys(query).length > 1) {
-		return res.end(changeSettings(room, query));
+	if (token) {
+		let data = server.getAccessToken(token);
+		if (!(data.room === room && data.permission === 'settings')) return res.end('Invalid access token.');
+		if (req.method === "POST") {
+			if (!(req.body && req.body.data)) return res.end("Malformed request.");
+			let settings;
+			try {
+				settings = JSON.parse(decodeURIComponent(req.body.data));
+			} catch (e) {
+				return res.end("Malformed JSON.");
+			}
+			changeSettings(room, settings);
+		}
+		return res.end(generateSettingsPage(room));
 	}
-	return res.end(generateSettingsPage(room));
+	return res.end('Please attach an access token. (You should get one when you type .settings)');
 }
 
 server.addRoute('/settings', settingsResolver);
@@ -94,13 +101,13 @@ module.exports = {
 
 				if (Config.checkIps) {
 					Handler.checkIp(this.userid, (userid, ips) => {
-						let data = {room: room, auth: this.auth};
+						let data = {room: room, permission: 'settings'};
 						if (ips) data.ip = ips[0];
 						let token = server.createAccessToken(data, 15);
 						return this.pmreply(`Settings for room ${room}: ${server.url}settings/${room}?token=${token}`);
 					});
 				} else {
-					let token = server.createAccessToken({room: room, auth: this.auth}, 15);
+					let token = server.createAccessToken({room: room, permission: 'settings'}, 15);
 					return this.pmreply(`Settings for room ${room}: ${server.url}settings/${room}?token=${token}`);
 				}
 			},

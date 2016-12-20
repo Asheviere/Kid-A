@@ -57,7 +57,7 @@ function quoteResolver(req, res) {
 	if (token) {
 		let data = server.getAccessToken(token);
 		if (!data) return res.end('Invalid access token.');
-		if (data[room] && data.permission) {
+		if (data.room === room && data.permission === 'quotes') {
 			if (req.method === "POST") {
 				if (!(req.body && req.body.data)) return res.end("Malformed request.");
 				let data;
@@ -144,8 +144,8 @@ module.exports = {
 					let permission = (pm && this.canUse(5));
 					if (Config.privateRooms.has(this.room) || permission) {
 						let data = {};
-						data[this.room] = true;
-						data.permission = permission;
+						data.room = this.room;
+						data.permission = (permission ? 'quotes' : false);
 						let token = server.createAccessToken(data, 15);
 						fname += '?token=' + token;
 					}
