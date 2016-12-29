@@ -18,6 +18,13 @@ handlebars.registerHelper('if_eq', function(val1, val2, options) {
 	return options.inverse(this);
 });
 
+handlebars.registerHelper('if_id', function(val1, val2, options) {
+	if (toId(val1) === toId(val2)) {
+		return options.fn(this);
+	}
+	return options.inverse(this);
+});
+
 handlebars.registerHelper('mod', function(variable, num, eq, options) {
 	if (variable % num === eq) {
 		return options.fn(this);
@@ -31,6 +38,10 @@ handlebars.registerHelper('parse_date', function(date) {
 		return date.toDateString();
 	}
 	return date;
+});
+
+handlebars.registerHelper('toId', function(str) {
+	return toId(str);
 });
 
 class Server {

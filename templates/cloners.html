@@ -19,26 +19,53 @@ https://docs.google.com/spreadsheets/d/16o6k4wphh4x1JMXrETHotlYTq1BwyyaEch8O96Hs
             {{#if_eq name "trainers"}}
                 <p class="note"><strong>If you wish to become an approved EV trainer, please read <a href="https://docs.google.com/document/d/1eKzzvcZ1zWZXU_GyFhhBUT2wj4dMaiJOCnn669VR83U">this document</a> before applying.</strong></p>
             {{/if_eq}}
-			<div class="popup"><input type="checkbox" onclick="toggleFilter(this)">Only show online {{name}}.</div>
+            {{#unless tokenData}}
+                <div class="popup"><input type="checkbox" onclick="toggleFilter(this)">Only show online {{name}}.</div>
+            {{/unless}}
+            
 			<table>
-                <tr class="header" onclick="filter()">
+                <tr class="header">
                     {{#each columnNames}}
                         <th>{{this}}</th>
                     {{/each}}
                 </tr>
                 {{#each entries}}
-                    {{#if online}}
-                        <tr class="online">
+                    {{#if ../tokenData}}
+                        {{#if_id data.username ../tokenData.user}}
+                            <tr id="{{@index}}" class="online">
+                        {{else}}
+                            <tr id="{{@index}}">
+                        {{/if_id}}
                     {{else}}
-                        <tr>
+                        {{#if online}}
+                            <tr id="{{@index}}" class="online">
+                        {{else}}
+                            <tr id="{{@index}}">
+                        {{/if}}
                     {{/if}}
                     
                     {{#each data}}
                         <td>
                             {{#if_eq @key "date"}}
-                                {{parse_date this}}
+                                {{#if ../../tokenData.permission}}
+                                    <input type="text" name="{{@key}}" class="disabledinput" value="{{parse_date this}}" onclick="edit(this)" onkeyup="markEdited(this, {{@../index}})"/>
+                                {{else}}
+                                    {{parse_date this}}
+                                {{/if}}
                             {{else}}
-                                {{this}}
+                                {{#if_eq @key "username"}}
+                                    {{this}}
+                                {{else}}
+                                    {{#if ../../tokenData.permission}}
+                                        <input type="text" name="{{@key}}" class="disabledinput" value="{{this}}" onclick="edit(this)" onkeyup="markEdited(this, {{@../index}})"/>
+                                    {{else}}
+                                        {{#if_id ../data.username ../../tokenData.user}}
+                                            <input type="text" name="{{@key}}" class="disabledinput" value="{{this}}" onclick="edit(this)" onkeyup="markEdited(this, {{@../index}})"/>
+                                        {{else}}
+                                            {{this}}
+                                        {{/if_id}}
+                                    {{/if}}
+                                {{/if_eq}}
                             {{/if_eq}}
                         </td>
                     {{/each}}
@@ -46,6 +73,10 @@ https://docs.google.com/spreadsheets/d/16o6k4wphh4x1JMXrETHotlYTq1BwyyaEch8O96Hs
                     </tr>
                 {{/each}}
 			</table>
+
+            {{#if tokenData}}
+                    <div class="popup"><button onclick="submit()">Submit changes</button></div>
+			{{/if}}
         </div>
     </body>
 </html>

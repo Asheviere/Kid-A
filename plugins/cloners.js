@@ -70,8 +70,71 @@ class WifiList {
 		databases.addDatabase(this.name, loadList, writeList);
 		this.data = databases.getDatabase(this.name);
 
+		let changeList = (tokenData, edits) => {
+			if (tokenData.list !== this.name || !(tokenData.permission || tokenData.user)) return;
+
+			if (!tokenData.permission && (Object.keys(edits).length && !(tokenData.user in edits))) return;
+
+			for (let i in edits) {
+				if (!this.data[i]) return;
+				for (let key in edits[i]) {
+					if (key === 'username'|| (key === 'date' && !tokenData.permission)) continue;
+
+					let elem = edits[i][key];
+					if (key === 'fc') {
+						if (!FC_REGEX.test(elem)) continue;
+						elem = toId(elem);
+						elem = elem.substr(0, 4) + '-' + elem.substr(4, 4) + '-' + elem.substr(8, 4);
+						if (!utils.validateFc(elem)) continue;
+					}
+					this.data[i][key] = elem;
+				}
+				if (!this.data[i].date) this.data[i].date = Date.now();
+				Connection.send(`${WIFI_ROOM}|/modnote ${tokenData.user} updated ${i}'s ${this.name.slice(0, -1)} info.`);
+			}
+
+			databases.writeDatabase(this.name);
+		};
+
+		let parseQuery = (tokenData, queryData) => {
+			if (!queryData.edits) return;
+
+			let edits = {};
+
+			for (let i in queryData.edits) {
+				if (Object.keys(queryData.edits[i]).some(val => !this.columnKeys.includes(val))) return;
+				edits[i] = queryData.edits[i];
+			}
+
+			changeList(tokenData, edits);
+		};
+
 		let generatePage = (req, res) => {
+			let query = server.parseURL(req.url);
+			let token = query.token;
+
 			let data = {name: this.name, columnNames: this.columnNames};
+
+			if (token) {
+				let tokenData = server.getAccessToken(token);
+				console.log(tokenData);
+				if (!tokenData) return res.end('Invalid access token.');
+
+				data.tokenData = tokenData;
+
+				if (req.method === "POST") {
+					if (!(req.body && req.body.data)) return res.end("Malformed request.");
+					let queryData;
+					try {
+						queryData = JSON.parse(decodeURIComponent(req.body.data));
+						console.log(queryData);
+					} catch (e) {
+						return res.end("Malformed JSON.");
+					}
+					parseQuery(tokenData, queryData);
+				}
+			}
+
 			if (settings.whitelists[this.name]) {
 				data.editors = settings.whitelists[this.name].join(', ');
 			}
@@ -320,6 +383,38 @@ module.exports = {
 				return this.reply("User's flag has been successfully updated.");
 			},
 		},
+		editcloners: {
+			rooms: [WIFI_ROOM],
+			action() {
+				if (!this.room) {
+					if (!this.getRoomAuth(WIFI_ROOM)) return;
+				}
+				let permission = this.canUse(5) || this.settings.whitelists.cloners.includes(this.userid);
+				let editSelf = (this.userid in clonerList.data);
+				if (!(permission || editSelf)) return this.pmreply("Permission denied.");
+
+				if (Config.checkIps) {
+					Handler.checkIp(this.userid, (userid, ips) => {
+						let data = {list: 'cloners'};
+						if (permission) {
+							data.permission = true;
+						}
+						data.user = this.userid;
+						if (ips) data.ip = ips[0];
+						let token = server.createAccessToken(data, 15);
+						return this.pmreply(`Edit link for the cloner list **DON'T SHARE THIS LINK**: ${server.url}${WIFI_ROOM}/cloners?token=${token}`);
+					});
+				} else {
+					let data = {list: 'cloners'};
+					if (permission) {
+						data.permission = true;
+					}
+					data.user = this.userid;
+					let token = server.createAccessToken(data, 15);
+					return this.pmreply(`Edit link for the cloner list **DON'T SHARE THIS LINK**: ${server.url}${WIFI_ROOM}/cloners?token=${token}`);
+				}
+			},
+		},
 
 		addtrainer: {
 			rooms: [WIFI_ROOM],
@@ -452,6 +547,38 @@ module.exports = {
 				}
 
 				return this.reply("User's flag has been successfully updated.");
+			},
+		},
+		edittrainers: {
+			rooms: [WIFI_ROOM],
+			action() {
+				if (!this.room) {
+					if (!this.getRoomAuth(WIFI_ROOM)) return;
+				}
+				let permission = this.canUse(5) || this.settings.whitelists.trainers.includes(this.userid);
+				let editSelf = (this.userid in trainerList.data);
+				if (!(permission || editSelf)) return this.pmreply("Permission denied.");
+
+				if (Config.checkIps) {
+					Handler.checkIp(this.userid, (userid, ips) => {
+						let data = {list: 'trainers'};
+						if (permission) {
+							data.permission = true;
+						}
+						data.user = this.userid;
+						if (ips) data.ip = ips[0];
+						let token = server.createAccessToken(data, 15);
+						return this.pmreply(`Edit link for the trainer list **DON'T SHARE THIS LINK**: ${server.url}${WIFI_ROOM}/trainers?token=${token}`);
+					});
+				} else {
+					let data = {list: 'trainers'};
+					if (permission) {
+						data.permission = true;
+					}
+					data.user = this.userid;
+					let token = server.createAccessToken(data, 15);
+					return this.pmreply(`Edit link for the trainer list **DON'T SHARE THIS LINK**: ${server.url}${WIFI_ROOM}/trainers?token=${token}`);
+				}
 			},
 		},
 
