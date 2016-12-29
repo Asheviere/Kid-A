@@ -56,14 +56,18 @@ https://docs.google.com/spreadsheets/d/16o6k4wphh4x1JMXrETHotlYTq1BwyyaEch8O96Hs
                                 {{#if_eq @key "username"}}
                                     {{this}}
                                 {{else}}
-                                    {{#if ../../tokenData.permission}}
-                                        <input type="text" name="{{@key}}" class="disabledinput" value="{{this}}" onclick="edit(this)" onkeyup="markEdited(this, {{@../index}})"/>
-                                    {{else}}
-                                        {{#if_id ../data.username ../../tokenData.user}}
+                                    {{#if ../../tokenData}}
+                                        {{#if ../../tokenData.permission}}
                                             <input type="text" name="{{@key}}" class="disabledinput" value="{{this}}" onclick="edit(this)" onkeyup="markEdited(this, {{@../index}})"/>
                                         {{else}}
-                                            {{this}}
-                                        {{/if_id}}
+                                            {{#if_id ../data.username ../../tokenData.user}}
+                                                <input type="text" name="{{@key}}" class="disabledinput" value="{{this}}" onclick="edit(this)" onkeyup="markEdited(this, {{@../index}})"/>
+                                            {{else}}
+                                                {{this}}
+                                            {{/if_id}}
+                                        {{/if}}
+                                    {{else}}
+                                        {{this}}
                                     {{/if}}
                                 {{/if_eq}}
                             {{/if_eq}}
