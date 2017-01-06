@@ -43,10 +43,13 @@ module.exports = {
 				let info = userlistdata[this.room][userid] || {};
 
 				for (let i = 1; i < params.length; i++) {
-					let vals = params[i].split(':').map(param => param.trim());
-					if (vals.length < 2) return this.pmreply("Syntax error.");
+					let [key, ...values] = params[i].split(':');
+					if (!key || !values.length) return this.pmreply("Syntax error.");
 
-					info[toId(vals[0])] = vals[1];
+					key = key.trim();
+					let value = values.join(':').trim();
+
+					info[key] = value;
 				}
 
 				userlistdata[this.room][userid] = info;
@@ -76,10 +79,12 @@ module.exports = {
 
 				for (let i = 1; i < params.length; i++) {
 					let val = toId(params[i]);
-					if (!(val in userlistdata[this.room][userid])) return this.reply("Field not found: " + val);
-
-					delete userlistdata[this.room][userid][val];
-					if (!Object.keys(userlistdata[this.room][userid]).length) delete userlistdata[this.room][userid];
+					for (let key in userlistdata[this.room][userid]) {
+						if (toId(key) === val) {
+							delete userlistdata[this.room][userid][key];
+							if (!Object.keys(userlistdata[this.room][userid]).length) delete userlistdata[this.room][userid];
+						}
+					}
 				}
 
 				databases.writeDatabase('userlist');
@@ -107,9 +112,14 @@ module.exports = {
 				}
 
 				let field = toId(params[1]);
-				if (!(field in userlistdata[this.room][userid])) return this.reply("Field not found.");
 
-				return this.reply(field + ": " + userlistdata[this.room][userid][field]);
+				for (let key in userlistdata[this.room][userid]) {
+					if (toId(key) === field) {
+						return this.reply(params[1] + ": " + userlistdata[this.room][userid][field]);
+					}
+				}
+
+				return this.reply("Field not found.");
 			},
 		},
 	},
