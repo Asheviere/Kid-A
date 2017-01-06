@@ -649,7 +649,7 @@ module.exports = {
 				if (!utils.validateFc(fc)) return this.reply("This FC is invalid.");
 
 				for (let i in scammerList.data) {
-					if (scammerList.data[i].fc === fc) return this.reply("This IP belongs to " + scammerList.data[i].username + ", who was put on the list for '" + scammerList.data[i].reason + "'.");
+					if (scammerList.data[i].fc === fc) return this.reply("This FC belongs to " + scammerList.data[i].username + ", who was put on the list for '" + scammerList.data[i].reason + "'.");
 				}
 
 				return this.reply("This FC was not found on the scammers list.");
