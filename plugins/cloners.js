@@ -644,15 +644,33 @@ module.exports = {
 				let id = toId(message);
 				if (!(id.length === 12 && parseInt(id))) return this.reply("Invalid input.");
 
-				let fc = id.substr(0, 4) + '-' + id.substr(4, 4) + '-' + id.substr(8, 4);
+				let fc = `${id.substr(0, 4)}-${id.substr(4, 4)}-${id.substr(8, 4)}`;
 
 				if (!utils.validateFc(fc)) return this.reply("This FC is invalid.");
 
+				// Firstly, check the scammer list
 				for (let i in scammerList.data) {
-					if (scammerList.data[i].fc === fc) return this.reply("This FC belongs to " + scammerList.data[i].username + ", who was put on the list for '" + scammerList.data[i].reason + "'.");
+					if (scammerList.data[i].fc === fc) return this.reply(`This FC belongs to ${scammerList.data[i].username}, who was put on the list for '${scammerList.data[i].reason}'.`);
 				}
 
-				return this.reply("This FC was not found on the scammers list.");
+				// Then, check all the other lists
+				for (let i in clonerList.data) {
+					if (clonerList.data[i].fc === fc) return this.reply(`This FC belongs to ${clonerList.data[i].username}, who is an approved cloner.`);
+				}
+				for (let i in trainerList.data) {
+					if (trainerList.data[i].fc === fc) return this.reply(`This FC belongs to ${trainerList.data[i].username}, who is an approved trainer.`);
+				}
+
+				// Lastly, if available, check the .fc database
+				let fcs = databases.getDatabase('friendcodes');
+
+				if (fcs) {
+					for (let i in fcs) {
+						if (fcs[i] === fc) return this.reply(`This FC belongs to ${i}.`);
+					}
+				}
+
+				return this.reply("This FC was not found.");
 			},
 		},
 		setscammerflag: {
