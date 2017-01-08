@@ -82,6 +82,7 @@ class WifiList {
 
 					let elem = edits[i][key];
 					if (key === 'fc') {
+						if (!tokenData.permission) continue;
 						if (!FC_REGEX.test(elem)) continue;
 						elem = toId(elem);
 						elem = elem.substr(0, 4) + '-' + elem.substr(4, 4) + '-' + elem.substr(8, 4);

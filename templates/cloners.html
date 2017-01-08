@@ -61,7 +61,11 @@ https://docs.google.com/spreadsheets/d/16o6k4wphh4x1JMXrETHotlYTq1BwyyaEch8O96Hs
                                             <input type="text" name="{{@key}}" class="disabledinput" value="{{this}}" onclick="edit(this)" onkeyup="markEdited(this, {{@../index}})"/>
                                         {{else}}
                                             {{#if_id ../data.username ../../tokenData.user}}
-                                                <input type="text" name="{{@key}}" class="disabledinput" value="{{this}}" onclick="edit(this)" onkeyup="markEdited(this, {{@../index}})"/>
+                                                {{#if_eq @key "fc"}}
+                                                    {{this}}
+                                                {{else}}
+                                                    <input type="text" name="{{@key}}" class="disabledinput" value="{{this}}" onclick="edit(this)" onkeyup="markEdited(this, {{@../index}})"/>
+                                                {{/if_eq}}
                                             {{else}}
                                                 {{this}}
                                             {{/if_id}}
