@@ -221,7 +221,7 @@ class WifiList {
 		}
 		removed.forEach(userid => delete this.data[userid]);
 		databases.writeDatabase(this.name);
-		return "The following users were purged from the " + this.name.slice(0, -1) + " list: " + removed.join(', ');
+		return removed;
 	}
 }
 
@@ -315,9 +315,9 @@ module.exports = {
 				}
 				if (!this.canUse(5)) return this.pmreply("Permission denied.");
 
-				let msg = clonerList.purgeList();
-				Connection.send(WIFI_ROOM + '|/modnote ' + msg);
-				return this.reply(msg);
+				let removed = clonerList.purgeList();
+				removed.forEach(val => Connection.send(`${WIFI_ROOM}|/modnote ${val} was removed from the cloner list`));
+				return this.reply(`${removed.length} user${(removed.length === 1 ? ' was' : 's were')} removed from the cloner list.`);
 			},
 		},
 		whitelistcloner: {
@@ -481,9 +481,9 @@ module.exports = {
 				}
 				if (!this.canUse(5)) return this.pmreply("Permission denied.");
 
-				let msg = trainerList.purgeList();
-				Connection.send(WIFI_ROOM + '|/modnote ' + msg);
-				return this.reply(msg);
+				let removed = trainerList.purgeList();
+				removed.forEach(val => Connection.send(`${WIFI_ROOM}|/modnote ${val} was removed from the trainer list`));
+				return this.reply(`${removed.length} user${(removed.length === 1 ? ' was' : 's were')} removed from the trainer list.`);
 			},
 		},
 		whitelisttrainer: {
