@@ -45,14 +45,17 @@ module.exports = {
 					return this.pmreply("This command can only be used in the wifi or breeding room.");
 				}
 
-				if (!message) return this.reply("Usage: ``.faq <topic>``. For a list of topics, use ``.faq help``.");
+				if (!message) return this.pmreply("Usage: ``.faq <topic>``. For a list of topics, use ``.faq help``.");
 				message = toId(message);
 				if (!(message in faqList)) return this.pmreply("Invalid option for topic.");
 
 				if (this.canUse(1)) {
 					return this.reply(faqList[message]);
 				}
-				return this.pmreply(faqList[message]);
+				this.pmreply(faqList[message]);
+				if (this.room && this.room === WIFI_ROOM) {
+					this.pmreply("Also, remember you can use commands in PM too. This helps reduce clutter in the room.");
+				}
 			},
 		},
 		addfaq: {
