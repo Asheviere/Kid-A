@@ -48,7 +48,7 @@ function writeTsvs() {
 databases.addDatabase('faqs', loadFaqs, writeFaqs);
 faqdata = databases.getDatabase('faqs');
 databases.addDatabase('tsvs', loadTsvs, writeTsvs);
-faqdata = databases.getDatabase('tsvs');
+tsvs = databases.getDatabase('tsvs');
 
 // Very ugly but meh
 let toTSV = val => (val < 1000 ? '0' : '') + (val < 100 ? '0' : '') + (val < 10 ? '0' : '') + val;
@@ -205,9 +205,9 @@ module.exports = {
 
 				if (matches.length) {
 					return this.reply(`This TSV belongs to ${matches.join(', ')}.`);
-				} else {
-					return this.reply("No matches found.");
 				}
+
+				return this.reply("No matches found.");
 			},
 		},
 	},
