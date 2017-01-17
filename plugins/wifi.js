@@ -27,8 +27,31 @@ function writeFaqs() {
 	fs.writeFileSync('./data/faqs.json', toWrite);
 }
 
+let tsvs;
+
+function loadTsvs() {
+	let data;
+	try {
+		data = require('../data/tsvs.json');
+	} catch (e) {}
+
+	if (typeof data !== 'object' || Array.isArray(data)) data = {};
+
+	return data;
+}
+
+function writeTsvs() {
+	let toWrite = JSON.stringify(tsvs);
+	fs.writeFileSync('./data/tsvs.json', toWrite);
+}
+
 databases.addDatabase('faqs', loadFaqs, writeFaqs);
 faqdata = databases.getDatabase('faqs');
+databases.addDatabase('tsvs', loadTsvs, writeTsvs);
+faqdata = databases.getDatabase('tsvs');
+
+// Very ugly but meh
+let toTSV = val => (val < 1000 ? '0' : '') + (val < 100 ? '0' : '') + (val < 10 ? '0' : '') + val;
 
 module.exports = {
 	commands: {
@@ -117,6 +140,74 @@ module.exports = {
 				delete faqList[split[0]];
 				databases.writeDatabase('faqs');
 				return this.pmreply("Faq topic " + split[0] + " deleted.");
+			},
+		},
+		addtsv: {
+			rooms: [WIFI_ROOM],
+			action(message) {
+				if (!this.room) {
+					if (!this.getRoomAuth(WIFI_ROOM)) return;
+				}
+
+				if (!(this.canUse(2))) return this.pmreply("Permission denied.");
+
+				let [name, tsv] = message.split(',');
+				if (!(name && tsv)) return this.pmreply("Syntax: ``.addtsv name, tsv``");
+
+				name = toId(name);
+				tsv = parseInt(tsv);
+				if (isNaN(tsv) || tsv < 0 || tsv > 4095) return this.pmreply("Invalid value for TSV, should be between 0 and 4096");
+
+				tsvs[name] = tsv;
+				databases.writeDatabase('tsvs');
+
+				Connection.send(`${WIFI_ROOM}|/modnote ${this.username} added a TSV for ${name}: ${toTSV(tsv)}`);
+				this.reply("TSV successfully added.");
+			},
+		},
+		deletetsv: {
+			rooms: [WIFI_ROOM],
+			action(message) {
+				if (!this.room) {
+					if (!this.getRoomAuth(WIFI_ROOM)) return;
+				}
+
+				if (!(this.canUse(2))) return this.pmreply("Permission denied.");
+
+				let name = toId(message);
+
+				if (!(name in tsvs)) return this.pmreply("User not found");
+
+				delete tsvs[name];
+				databases.writeDatabase('tsvs');
+
+				Connection.send(`${WIFI_ROOM}|/modnote ${this.username} deleted a TSV for ${name}`);
+				this.reply("TSV successfully deleted.");
+			},
+		},
+		tsv: {
+			rooms: [WIFI_ROOM],
+			permission: 1,
+			action(message) {
+				if (!message) return;
+
+				let tsv = parseInt(message);
+
+				if (isNaN(tsv) || tsv < 0 || tsv > 4095) return this.pmreply("Invalid value for TSV, should be between 0 and 4096");
+
+				let matches = [];
+
+				for (let i in tsvs) {
+					if (tsvs[i] === tsv) {
+						matches.push(i);
+					}
+				}
+
+				if (matches.length) {
+					return this.reply(`This TSV belongs to ${matches.join(', ')}.`);
+				} else {
+					return this.reply("No matches found.");
+				}
 			},
 		},
 	},
