@@ -199,7 +199,7 @@ class WifiList {
 		let userid = toId(params[0]);
 		for (let i = 1; i < params.length; i++) {
 			let [key, ...values] = params[i].split(':');
-			if (!key || !values.length) return this.pmreply("Syntax error.");
+			if (!key || !values.length) "Syntax error.";
 
 			key = toId(key);
 			let value = values.join(':').trim();
