@@ -198,12 +198,16 @@ class WifiList {
 	updateUser(user, params) {
 		let userid = toId(params[0]);
 		for (let i = 1; i < params.length; i++) {
-			let param = params[i].split(':').map(param => param.trim());
-			if (param.length !== 2) return "Syntax error in " + params[i];
-			param[0] = toId(param[0]);
-			if (param[0] === 'username' || param[0] === 'date') return "This column can't be changed.";
-			if (this.columnKeys.indexOf(param[0]) < 0) return "Invalid key: " + param[0];
-			this.data[userid][param[0]] = param[1];
+			let [key, ...values] = params[i].split(':');
+			if (!key || !values.length) return this.pmreply("Syntax error.");
+
+			key = toId(key);
+			let value = values.join(':').trim();
+
+			if (key === 'username' || key === 'date') return "This column can't be changed.";
+			if (!this.columnKeys.includes(key)) return `Invalid key: ${key}`;
+
+			this.data[userid][key] = value;
 		}
 
 		databases.writeDatabase(this.name);
