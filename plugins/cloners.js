@@ -320,7 +320,10 @@ module.exports = {
 				if (!this.canUse(5)) return this.pmreply("Permission denied.");
 
 				let removed = clonerList.purgeList();
-				removed.forEach(val => Connection.send(`${WIFI_ROOM}|/modnote ${val} was removed from the cloner list`));
+				// Do 10 names per time. Max length for a modnote is 300, assuming all names are the max length (19 characters), plus 2 for the ', ' sep. This would fit 14 names, but doing 10 since I need space for the rest of the message.
+				for (let i = 0; i < removed.length; i += 10) {
+					Connection.send(`${WIFI_ROOM}|/modnote ${removed.slice(i, i + 10)} ${i === removed.length - 1 ? 'was' : 'were'} removed from the cloner list`);
+				}
 				return this.reply(`${removed.length} user${(removed.length === 1 ? ' was' : 's were')} removed from the cloner list.`);
 			},
 		},
@@ -486,7 +489,10 @@ module.exports = {
 				if (!this.canUse(5)) return this.pmreply("Permission denied.");
 
 				let removed = trainerList.purgeList();
-				removed.forEach(val => Connection.send(`${WIFI_ROOM}|/modnote ${val} was removed from the trainer list`));
+				// Do 10 names per time. Max length for a modnote is 300, assuming all names are the max length (19 characters), plus 2 for the ', ' sep. This would fit 14 names, but doing 10 since I need space for the rest of the message.
+				for (let i = 0; i < removed.length; i += 10) {
+					Connection.send(`${WIFI_ROOM}|/modnote ${removed.slice(i, i + 10)} ${i === removed.length - 1 ? 'was' : 'were'} removed from the trainer list`);
+				}
 				return this.reply(`${removed.length} user${(removed.length === 1 ? ' was' : 's were')} removed from the trainer list.`);
 			},
 		},
