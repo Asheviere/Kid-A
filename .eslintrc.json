@@ -9,7 +9,7 @@
         "pmMsg": false, "canUse": false, "forceQuit": false, "Commands": false, "sanitize": false, "Server": false
 	},
     "parserOptions": {
-		"ecmaVersion": 6,
+		"ecmaVersion": 8,
         "sourceType": "module"
     },
     "rules": {

@@ -1,6 +1,6 @@
 'use strict';
 
-const databases = require('../databases.js');
+const redis = require('../redis.js');
 const server = require('../server.js');
 
 const DAY = 24 * 60 * 60 * 1000;
@@ -98,13 +98,14 @@ module.exports = {
 		leave: {
 			permission: 5,
 			disallowPM: true,
-			action() {
-				if (this.settings.toJoin && this.settings.toJoin.includes(this.room)) {
-					this.settings.toJoin.splice(this.settings.toJoin.indexOf(this.room), 1);
-					databases.writeDatabase('settings');
+			async action() {
+				let autojoin = await redis.getList(this.settings, 'autojoin');
+
+				if (autojoin && autojoin.includes(this.room)) {
+					await this.settings.lrem('autojoin', 0, this.room);
 				}
 
-				return this.reply('/part ' + this.room);
+				this.reply(`/part ${this.room}`);
 			},
 		},
 

@@ -6,32 +6,11 @@ const request = require('request');
 const cheerio = require('cheerio');
 
 const commandParser = require('./command-parser.js');
-const databases = require('./databases.js');
+const redis = require('./redis.js');
 
 const ACTION_URL = 'http://play.pokemonshowdown.com/action.php';
 
-let settings;
-
-function loadSettings() {
-	let data;
-	try {
-		data = require('./data/settings.json');
-	} catch (e) {}
-
-	if (typeof data !== 'object' || Array.isArray(data)) data = {};
-
-	return data;
-}
-
-function writeSettings() {
-	let toWrite = JSON.stringify(settings);
-
-	fs.writeFileSync('./data/settings.json', toWrite);
-}
-
-databases.addDatabase('settings', loadSettings, writeSettings);
-
-settings = databases.getDatabase('settings');
+let settings = redis.useDatabase('settings');
 
 const userlists = {};
 
@@ -46,20 +25,23 @@ module.exports = {
 		this.ipQueue.push({query: userid, resolver: resolver});
 	},
 
-	setup() {
+	async setup(assertion) {
 		Connection.send('|/avatar ' + Config.avatar);
 		this.userid = toId(Config.username);
 
 		Array.prototype.push.apply(this.toJoin, Config.rooms);
 
-		if (settings.toJoin) {
+		let autojoin = await redis.getList(settings, 'autojoin');
+
+		if (autojoin && autojoin.length) {
 			Array.prototype.push.apply(
 				this.toJoin,
-				settings.toJoin.filter(r => !this.toJoin.includes(r))
+				autojoin.filter(r => !this.toJoin.includes(r))
 			);
 		}
 
 		Connection.send('|/autojoin ' + this.toJoin.slice(0, 11).join(','));
+		Connection.send('|/trn ' + Config.username + ',0,' + assertion);
 
 		statusMsg('Setup done.');
 	},
@@ -107,7 +89,7 @@ module.exports = {
 		if (this.ipQueue[idx].resolver) return this.ipQueue.splice(idx, 1)[0].resolver(userid, ips);
 	},
 
-	parse(message) {
+	async parse(message) {
 		if (!message) return;
 		let split = message.split('|');
 		let roomid = split[0].slice(1, -1) || 'lobby';
@@ -129,8 +111,7 @@ module.exports = {
 							body = JSON.parse(body.substr(1));
 						} catch (e) {}
 						if (body.assertion && body.assertion[0] !== ';') {
-							this.setup();
-							Connection.send('|/trn ' + Config.username + ',0,' + body.assertion);
+							this.setup(body.assertion);
 						} else {
 							forceQuit('Couldn\'t log in.');
 						}

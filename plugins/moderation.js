@@ -1,8 +1,7 @@
 'use strict';
 
-const databases = require('../databases.js');
-
-const settings = databases.getDatabase('settings');
+const redis = require('../redis.js');
+const settings = redis.useDatabase('settings');
 
 function getPunishment(val) {
 	switch (val) {
@@ -89,13 +88,15 @@ module.exports = {
 	options: ['disablemoderation', 'allowbold', 'allowcaps', 'allowstretching', 'allowflooding'],
 
 	analyzer: {
-		parser(room, message, userstr) {
-			if (settings[room] && settings[room].options.includes('disablemoderation')) return;
+		async parser(room, message, userstr) {
+			let options = await redis.getList(settings, `${this.room}:options`);
+
+			if (options && options.includes('disablemoderation')) return;
 			if (userstr[0] !== ' ') return;
 
 			let userid = toId(userstr);
 
-			if (!(settings[room] && settings[room].options.includes('allowflooding'))) {
+			if (!(options && options.includes('allowflooding'))) {
 				addBuffer(userid, room, message);
 
 				let msgs = 0;
@@ -120,7 +121,7 @@ module.exports = {
 				}
 			}
 
-			if (!(settings[room] && settings[room].options.includes('allowbold'))) {
+			if (!(options && options.includes('allowbold'))) {
 				let boldString = message.match(/\*\*([^< ](?:[^<]*?[^< ])??)\*\*/g);
 				if (boldString) {
 					let len = toId(message).length;
@@ -139,7 +140,7 @@ module.exports = {
 			}
 
 			// Moderation for caps and stretching copied from boTTT.
-			if (!(settings[room] && settings[room].options.includes('allowcaps'))) {
+			if (!(options && options.includes('allowcaps'))) {
 				let capsString = message.replace(/[^A-Za-z]/g, '').match(/[A-Z]/g);
 				let len = toId(message).length;
 
@@ -155,7 +156,7 @@ module.exports = {
 				}
 			}
 
-			if (!(settings[room] && settings[room].options.includes('allowstretching'))) {
+			if (!(options && options.includes('allowstretching'))) {
 				let stretchString = message.replace(/ {2,}/g, ' ');
 
 				if (/(.)\1{7,}/gi.test(stretchString) || (/(..+)\1{4,}/gi.test(stretchString) && !/(\d+\/)+/gi.test(stretchString))) {

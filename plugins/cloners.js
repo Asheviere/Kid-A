@@ -4,6 +4,7 @@ const fs = require('fs');
 
 const server = require('../server.js');
 const databases = require('../databases.js');
+const redis = require('../redis.js');
 const utils = require('../utils.js');
 
 const MONTH = 30 * 24 * 60 * 60 * 1000;
@@ -13,11 +14,7 @@ const FC_REGEX = /[0-9]{4}[- ]?[0-9]{4}[- ]?[0-9]{4}/;
 
 const WIFI_ROOM = 'wifi';
 
-const settings = databases.getDatabase('settings');
-if (!settings.whitelists) settings.whitelists = {};
-if (!settings.whitelists.cloners) settings.whitelists.cloners = [];
-if (!settings.whitelists.trainers) settings.whitelists.trainers = [];
-databases.writeDatabase('settings');
+const settings = redis.useDatabase('settings');
 
 server.addTemplate('cloners', 'cloners.html');
 
@@ -110,7 +107,7 @@ class WifiList {
 			changeList(tokenData, edits);
 		};
 
-		let generatePage = (req, res) => {
+		let generatePage = async (req, res) => {
 			let query = server.parseURL(req.url);
 			let token = query.token;
 
@@ -136,8 +133,10 @@ class WifiList {
 				}
 			}
 
-			if (settings.whitelists[this.name]) {
-				data.editors = settings.whitelists[this.name].join(', ');
+			let whitelist = await settings.hvals(`whitelist:${this.name}`);
+
+			if (whitelist && whitelist.length) {
+				data.editors = whitelist.join(', ');
 			}
 
 			data.entries = Object.keys(this.data).sort((a, b) => {
@@ -257,11 +256,11 @@ module.exports = {
 	commands: {
 		addcloner: {
 			rooms: [WIFI_ROOM],
-			action(message) {
+			async action(message) {
 				if (!this.room) {
 					if (!this.getRoomAuth(WIFI_ROOM)) return;
 				}
-				if (!(this.canUse(5) || this.settings.whitelists.cloners.indexOf(this.userid) > -1)) return this.pmreply("Permission denied.");
+				if (!(this.canUse(5) || await settings.hexists('whitelist:cloners', this.userid))) return this.pmreply("Permission denied.");
 
 				let params = message.split((message.includes('|') ? '|' : ',')).map(param => param.trim());
 				return this.reply(clonerList.addUser(this.username, params));
@@ -269,18 +268,18 @@ module.exports = {
 		},
 		removecloner: {
 			rooms: [WIFI_ROOM],
-			action(message) {
+			async action(message) {
 				if (!this.room) {
 					if (!this.getRoomAuth(WIFI_ROOM)) return;
 				}
-				if (!(this.canUse(5) || this.settings.whitelists.cloners.indexOf(this.userid) > -1)) return this.pmreply("Permission denied.");
+				if (!(this.canUse(5) || await settings.hexists('whitelist:cloners', this.userid))) return this.pmreply("Permission denied.");
 
 				return this.reply(clonerList.removeUser(this.username, toId(message)));
 			},
 		},
 		updatecloner: {
 			rooms: [WIFI_ROOM],
-			action(message) {
+			async action(message) {
 				if (!this.room) {
 					if (!this.getRoomAuth(WIFI_ROOM)) return;
 				}
@@ -288,32 +287,32 @@ module.exports = {
 				let targetId = toId(params[0]);
 
 				if (!(targetId in clonerList.data)) return this.pmreply("User is not on the cloner list.");
-				if (!(this.canUse(5) || this.settings.whitelists.cloners.indexOf(this.userid) > -1 || this.userid === targetId)) return this.pmreply("Permission denied.");
+				if (!(this.canUse(5) || await settings.hexists('whitelist:cloners', this.userid) || this.userid === targetId)) return this.pmreply("Permission denied.");
 
 				return this.reply(clonerList.updateUser(this.username, params));
 			},
 		},
 		clonerga: {
 			rooms: [WIFI_ROOM],
-			action(message) {
+			async action(message) {
 				if (!this.room) {
 					if (!this.getRoomAuth(WIFI_ROOM)) return;
 				}
-				if (!(this.canUse(3) || this.settings.whitelists.cloners.indexOf(this.userid) > -1)) return this.pmreply("Permission denied.");
+				if (!(this.canUse(3) || await settings.hexists('whitelist:cloners', this.userid))) return this.pmreply("Permission denied.");
 
 				let targetId = toId(message);
 				if (!(targetId in clonerList.data)) return this.reply("User is not on the cloner list.");
 				clonerList.data[targetId].date = Date.now();
 				databases.writeDatabase('cloners');
 
-				Connection.send(WIFI_ROOM + '|/modnote ' + this.username + ' has approved ' + targetId + "'s cloner giveaway.");
+				Connection.send(`${WIFI_ROOM}|/modnote ${this.username} has approved ${targetId}'s cloner giveaway.`);
 
 				return this.reply("Cloner list updated.");
 			},
 		},
 		purgecloners: {
 			rooms: [WIFI_ROOM],
-			action() {
+			async action() {
 				if (!this.room) {
 					if (!this.getRoomAuth(WIFI_ROOM)) return;
 				}
@@ -329,41 +328,37 @@ module.exports = {
 		},
 		whitelistcloner: {
 			rooms: [WIFI_ROOM],
-			action(message) {
+			async action(message) {
 				if (!this.room) {
 					if (!this.getRoomAuth(WIFI_ROOM)) return;
 				}
 				if (!this.canUse(5)) return this.pmreply("Permission denied.");
 
-				if (this.settings.whitelists.cloners.indexOf(toId(message)) > -1) return this.reply("This user is already whitelisted.");
+				if (await settings.hexists('whitelist:cloners', this.userid)) return this.reply("This user is already whitelisted.");
 
-				this.settings.whitelists.cloners.push(toId(message));
-				databases.writeDatabase('settings');
-				Connection.send(WIFI_ROOM + '|/modnote ' + toId(message) + ' was whitelisted for the cloner list by ' + this.username + '.');
+				settings.hset('whitelist:cloners', this.userid, this.username);
+				Connection.send(`${WIFI_ROOM}|/modnote ${toId(message)} was whitelisted for the cloner list by ${this.username}.`);
 				return this.reply("User successfully whitelisted.");
 			},
 		},
 		unwhitelistcloner: {
 			rooms: [WIFI_ROOM],
-			action(message) {
+			async action(message) {
 				if (!this.room) {
 					if (!this.getRoomAuth(WIFI_ROOM)) return;
 				}
 				if (!this.canUse(5)) return this.pmreply("Permission denied.");
 
-				let i = this.settings.whitelists.cloners.indexOf(toId(message));
+				if (!await settings.hexists('whitelist:cloners', this.userid)) return this.reply("This user isn't whitelisted.");
 
-				if (i < 0) return this.reply("This user isn't whitelisted.");
-
-				this.settings.whitelists.cloners.splice(i, 1);
-				databases.writeDatabase('settings');
-				Connection.send(WIFI_ROOM + '|/modnote ' + toId(message) + ' was unwhitelisted for the cloner list by ' + this.username + '.');
+				settings.hdel('whitelist:cloners', this.userid);
+				Connection.send(`${WIFI_ROOM}|/modnote ${toId(message)} was unwhitelisted for the cloner list by ${this.username}.`);
 				return this.reply("User successfully removed from the whitelist.");
 			},
 		},
 		setclonerflag: {
 			rooms: [WIFI_ROOM],
-			action(message) {
+			async action(message) {
 				if (!this.room) {
 					if (!this.getRoomAuth(WIFI_ROOM)) return;
 				}
@@ -393,11 +388,11 @@ module.exports = {
 		},
 		editcloners: {
 			rooms: [WIFI_ROOM],
-			action() {
+			async action() {
 				if (!this.room) {
 					if (!this.getRoomAuth(WIFI_ROOM)) return;
 				}
-				let permission = this.canUse(5) || this.settings.whitelists.cloners.includes(this.userid);
+				let permission = this.canUse(5) || await settings.hexists('whitelist:cloners', this.userid);
 				let editSelf = (this.userid in clonerList.data);
 				if (!(permission || editSelf)) return this.pmreply("Permission denied.");
 
@@ -426,11 +421,11 @@ module.exports = {
 
 		addtrainer: {
 			rooms: [WIFI_ROOM],
-			action(message) {
+			async action(message) {
 				if (!this.room) {
 					if (!this.getRoomAuth(WIFI_ROOM)) return;
 				}
-				if (!(this.canUse(5) || this.settings.whitelists.trainers.indexOf(this.userid) > -1)) return this.pmreply("Permission denied.");
+				if (!(this.canUse(5) || await settings.hexists('whitelist:trainers', this.userid))) return this.pmreply("Permission denied.");
 
 				let params = message.split((message.includes('|') ? '|' : ',')).map(param => param.trim());
 				return this.reply(trainerList.addUser(this.username, params));
@@ -438,18 +433,18 @@ module.exports = {
 		},
 		removetrainer: {
 			rooms: [WIFI_ROOM],
-			action(message) {
+			async action(message) {
 				if (!this.room) {
 					if (!this.getRoomAuth(WIFI_ROOM)) return;
 				}
-				if (!(this.canUse(5) || this.settings.whitelists.trainers.indexOf(this.userid) > -1)) return this.pmreply("Permission denied.");
+				if (!(this.canUse(5) || await settings.hexists('whitelist:trainers', this.userid))) return this.pmreply("Permission denied.");
 
 				return this.reply(trainerList.removeUser(this.username, toId(message)));
 			},
 		},
 		updatetrainer: {
 			rooms: [WIFI_ROOM],
-			action(message) {
+			async action(message) {
 				if (!this.room) {
 					if (!this.getRoomAuth(WIFI_ROOM)) return;
 				}
@@ -457,32 +452,32 @@ module.exports = {
 				let targetId = toId(params[0]);
 
 				if (!(targetId in trainerList.data)) return this.pmreply("User is not on the trainer list.");
-				if (!(this.canUse(5) || this.settings.whitelists.trainers.indexOf(this.userid) > -1 || this.userid === targetId)) return this.pmreply("Permission denied.");
+				if (!(this.canUse(5) || await settings.hexists('whitelist:trainers', this.userid) || this.userid === targetId)) return this.pmreply("Permission denied.");
 
 				return this.reply(trainerList.updateUser(this.username, params));
 			},
 		},
 		traineractivity: {
 			rooms: [WIFI_ROOM],
-			action(message) {
+			async action(message) {
 				if (!this.room) {
 					if (!this.getRoomAuth(WIFI_ROOM)) return;
 				}
-				if (!(this.canUse(3) || this.settings.whitelists.trainers.indexOf(this.userid) > -1)) return this.pmreply("Permission denied.");
+				if (!(this.canUse(3) || await settings.hexists('whitelist:trainers', this.userid))) return this.pmreply("Permission denied.");
 
 				let targetId = toId(message);
 				if (!(targetId in trainerList.data)) return this.reply("User is not on the trainer list.");
 				trainerList.data[targetId].date = Date.now();
 				databases.writeDatabase('trainers');
 
-				Connection.send(WIFI_ROOM + '|/modnote ' + this.username + ' has approved ' + targetId + "'s EV training.");
+				Connection.send(`${WIFI_ROOM}|/modnote ${this.username} has approved ${targetId}'s EV training.`);
 
-				return this.reply("Trainer list updated.");
+				return this.reply("trainer list updated.");
 			},
 		},
 		purgetrainers: {
 			rooms: [WIFI_ROOM],
-			action() {
+			async action() {
 				if (!this.room) {
 					if (!this.getRoomAuth(WIFI_ROOM)) return;
 				}
@@ -496,43 +491,9 @@ module.exports = {
 				return this.reply(`${removed.length} user${(removed.length === 1 ? ' was' : 's were')} removed from the trainer list.`);
 			},
 		},
-		whitelisttrainer: {
-			rooms: [WIFI_ROOM],
-			action(message) {
-				if (!this.room) {
-					if (!this.getRoomAuth(WIFI_ROOM)) return;
-				}
-				if (!this.canUse(5)) return this.pmreply("Permission denied.");
-
-				if (this.settings.whitelists.trainers.indexOf(toId(message)) > -1) return this.reply("This user is already whitelisted.");
-
-				this.settings.whitelists.trainers.push(toId(message));
-				databases.writeDatabase('settings');
-				Connection.send(WIFI_ROOM + '|/modnote ' + toId(message) + ' was whitelisted for the trainer list by ' + this.username + '.');
-				return this.reply("User successfully whitelisted.");
-			},
-		},
-		unwhitelisttrainer: {
-			rooms: [WIFI_ROOM],
-			action(message) {
-				if (!this.room) {
-					if (!this.getRoomAuth(WIFI_ROOM)) return;
-				}
-				if (!this.canUse(5)) return this.pmreply("Permission denied.");
-
-				let i = this.settings.whitelists.trainers.indexOf(toId(message));
-
-				if (i < 0) return this.reply("This user isn't whitelisted.");
-
-				this.settings.whitelists.trainers.splice(i, 1);
-				databases.writeDatabase('settings');
-				Connection.send(WIFI_ROOM + '|/modnote ' + toId(message) + ' was unwhitelisted for the trainer list by ' + this.username + '.');
-				return this.reply("User successfully removed from the whitelist.");
-			},
-		},
 		settrainerflag: {
 			rooms: [WIFI_ROOM],
-			action(message) {
+			async action(message) {
 				if (!this.room) {
 					if (!this.getRoomAuth(WIFI_ROOM)) return;
 				}
@@ -541,7 +502,7 @@ module.exports = {
 				let [user, flag] = message.split(',').map(param => param.trim());
 
 				user = toId(user);
-				if (!(user in trainerList.data)) return this.reply("User is not on the cloner list.");
+				if (!(user in trainerList.data)) return this.reply("User is not on the trainer list.");
 
 				if (flag) {
 					flag = flag.toUpperCase();
@@ -560,13 +521,43 @@ module.exports = {
 				return this.reply("User's flag has been successfully updated.");
 			},
 		},
-		edittrainers: {
+		whitelisttrainer: {
 			rooms: [WIFI_ROOM],
-			action() {
+			async action(message) {
 				if (!this.room) {
 					if (!this.getRoomAuth(WIFI_ROOM)) return;
 				}
-				let permission = this.canUse(5) || this.settings.whitelists.trainers.includes(this.userid);
+				if (!this.canUse(5)) return this.pmreply("Permission denied.");
+
+				if (await settings.hexists('whitelist:trainers', this.userid)) return this.reply("This user is already whitelisted.");
+
+				settings.hset('whitelist:trainers', this.userid, this.username);
+				Connection.send(`${WIFI_ROOM}|/modnote ${toId(message)} was whitelisted for the trainer list by ${this.username}.`);
+				return this.reply("User successfully whitelisted.");
+			},
+		},
+		unwhitelisttrainer: {
+			rooms: [WIFI_ROOM],
+			async action(message) {
+				if (!this.room) {
+					if (!this.getRoomAuth(WIFI_ROOM)) return;
+				}
+				if (!this.canUse(5)) return this.pmreply("Permission denied.");
+
+				if (!await settings.hexists('whitelist:trainers', this.userid)) return this.reply("This user isn't whitelisted.");
+
+				settings.hdel('whitelist:trainers', this.userid);
+				Connection.send(`${WIFI_ROOM}|/modnote ${toId(message)} was unwhitelisted for the trainer list by ${this.username}.`);
+				return this.reply("User successfully removed from the whitelist.");
+			},
+		},
+		edittrainers: {
+			rooms: [WIFI_ROOM],
+			async action() {
+				if (!this.room) {
+					if (!this.getRoomAuth(WIFI_ROOM)) return;
+				}
+				let permission = this.canUse(5) || await settings.hexists('whitelist:trainers', this.userid);
 				let editSelf = (this.userid in trainerList.data);
 				if (!(permission || editSelf)) return this.pmreply("Permission denied.");
 
@@ -695,7 +686,7 @@ module.exports = {
 				let [user, flag] = message.split(',').map(param => param.trim());
 
 				user = toId(user);
-				if (!(user in scammerList.data)) return this.reply("User is not on the cloner list.");
+				if (!(user in scammerList.data)) return this.reply("User is not on the scammer list.");
 
 				if (flag) {
 					flag = flag.toUpperCase();

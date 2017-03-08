@@ -2,36 +2,45 @@
 
 const server = require('../server.js');
 const databases = require('../databases.js');
+const redis = require('../redis.js');
+
+const db = redis.useDatabase('settings');
 
 server.addTemplate('settings', 'settings.html');
 
-function changeSettings(room, settings) {
+async function changeSettings(room, settings) {
 	let output = '';
 	let changed = false;
+	let options = await redis.getList(db, `${room}:options`);
+	let disabled = await redis.getList(db, `${room}:disabledCommands`);
 	for (let key in settings) {
 		if (key in Handler.chatHandler.commands && !Handler.chatHandler.commands[key].hidden) {
 			if (settings[key]) {
-				if (!Handler.chatHandler.settings[room].disabledCommands.includes(key)) {
-					Handler.chatHandler.settings[room].disabledCommands.push(key);
+				if (!disabled.includes(key)) {
+					disabled.push(key);
+					db.rpush(`${room}:disabledCommands`, key);
 					changed = true;
 				}
 			} else {
-				let idx = Handler.chatHandler.settings[room].disabledCommands.indexOf(key);
+				let idx = disabled.indexOf(key);
 				if (idx > -1) {
-					Handler.chatHandler.settings[room].disabledCommands.splice(idx, 1);
+					disabled.splice(idx, 1);
+					db.lrem(`${room}:disabledCommands`, 0, key);
 					changed = true;
 				}
 			}
 		} else if (Handler.chatHandler.options.has(key)) {
 			if (settings[key]) {
-				if (!Handler.chatHandler.settings[room].options.includes(key)) {
-					Handler.chatHandler.settings[room].options.push(key);
+				if (!options.includes(key)) {
+					options.push(key);
+					db.rpush(`${room}:options`, key);
 					changed = true;
 				}
 			} else {
-				let idx = Handler.chatHandler.settings[room].options.indexOf(key);
+				let idx = options.indexOf(key);
 				if (idx > -1) {
-					Handler.chatHandler.settings[room].options.splice(idx, 1);
+					options.splice(idx, 1);
+					db.lrem(`${room}:options`, 0, key);
 					changed = true;
 				}
 			}
@@ -40,7 +49,6 @@ function changeSettings(room, settings) {
 			output += " " + key;
 		}
 	}
-	if (changed) databases.writeDatabase('settings');
 	if (output) {
 		if (changed) output += ". The rest of the query has been processed, and settings have been updated accordingly.";
 	} else {
@@ -49,18 +57,21 @@ function changeSettings(room, settings) {
 	return output;
 }
 
-function generateSettingsPage(room) {
+async function generateSettingsPage(room) {
+	let enabledOptions = await redis.getList(db, `${room}:options`);
+	let disabled = await redis.getList(db, `${room}:disabledCommands`);
+
 	let options = [];
 	Handler.chatHandler.options.forEach(val => {
-		options.push({name: val, checked: Handler.chatHandler.settings[room].options.includes(val)});
+		options.push({name: val, checked: enabledOptions.includes(val)});
 	});
 
-	let commands = Object.keys(Handler.chatHandler.commands).filter(cmd => !(Handler.chatHandler.commands[cmd].hidden || (Handler.chatHandler.commands[cmd].rooms && !Handler.chatHandler.commands[cmd].rooms.includes(room)))).map(val => ({name: val, checked: Handler.chatHandler.settings[room].disabledCommands.includes(val)}));
+	let commands = Object.keys(Handler.chatHandler.commands).filter(cmd => !(Handler.chatHandler.commands[cmd].hidden || (Handler.chatHandler.commands[cmd].rooms && !Handler.chatHandler.commands[cmd].rooms.includes(room)))).map(val => ({name: val, checked: disabled.includes(val)}));
 
 	return server.renderTemplate('settings', {room: room, options: options, commands: commands});
 }
 
-function settingsResolver(req, res) {
+async function settingsResolver(req, res) {
 	let split = req.url.split('/');
 	let [room, query] = split[split.length - 1].split('?');
 	if (!(room && room in Handler.chatHandler.settings)) return res.end(`Room '${room}' has no available settings.`);
@@ -77,9 +88,9 @@ function settingsResolver(req, res) {
 			} catch (e) {
 				return res.end("Malformed JSON.");
 			}
-			changeSettings(room, settings);
+			await changeSettings(room, settings);
 		}
-		return res.end(generateSettingsPage(room));
+		return res.end(await generateSettingsPage(room));
 	}
 	return res.end('Please attach an access token. (You should get one when you type .settings)');
 }

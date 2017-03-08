@@ -3,56 +3,33 @@
 const fs = require('fs');
 
 const server = require('../server.js');
-const databases = require('../databases.js');
+const redis = require('../redis.js');
 
-let quotedata;
-
-function loadQuotes() {
-	let data;
-	try {
-		data = require('../data/quotes.json');
-	} catch (e) {}
-
-	if (typeof data !== 'object' || Array.isArray(data)) data = {};
-
-	return data;
-}
-
-function writeQuotes() {
-	let toWrite = JSON.stringify(quotedata);
-	fs.writeFileSync('./data/quotes.json', toWrite);
-}
-
-databases.addDatabase('quotes', loadQuotes, writeQuotes);
-quotedata = databases.getDatabase('quotes');
+const quotedata = redis.useDatabase('quotes');
 
 server.addTemplate('quotes', 'quotes.html');
 
-function editQuotes(data, room) {
+async function editQuotes(data, room) {
 	let {delete: toDelete, edits: toEdit} = data;
 
-	let newQuotes = [];
+	let quotes = await redis.getList(quotedata, room);
 
-	for (let i = 0; i < quotedata[room].length; i++) {
-		if (toDelete) {
-			if (toDelete.includes(i.toString())) continue;
+	for (let i = 0; i < quotes.length; i++) {
+		if (toDelete && toDelete.includes(i.toString())) {
+			quotedata.lrem(room, 0, quotes[i]);
+		}
 
-			if (i in toEdit) {
-				newQuotes.push(toEdit[i]);
-			} else {
-				newQuotes.push(quotedata[room][i]);
-			}
+		if (toEdit && i in toEdit) {
+			quotedata.lset(room, i, toEdit[i]);
 		}
 	}
-
-	quotedata[room] = newQuotes;
-	databases.writeDatabase('quotes');
 }
 
-function quoteResolver(req, res) {
+async function quoteResolver(req, res) {
 	let room = req.originalUrl.split('/')[1];
 	let query = server.parseURL(req.url);
 	let token = query.token;
+	let quotes = await redis.getList(quotedata, room);
 	if (!token && Config.privateRooms.has(room)) return res.end('Private Room quotes require an access token to be viewed.');
 	if (token) {
 		let data = server.getAccessToken(token);
@@ -66,28 +43,31 @@ function quoteResolver(req, res) {
 				} catch (e) {
 					return res.end("Malformed JSON.");
 				}
-				editQuotes(data, room);
+				await editQuotes(data, room);
 			}
-			return res.end(server.renderTemplate('quotes', {room: room, data: quotedata[room], permission: true}));
+			return res.end(server.renderTemplate('quotes', {room: room, data: quotes, permission: true}));
 		}
 	}
-	res.end(server.renderTemplate('quotes', {room: room, data: quotedata[room]}));
+	res.end(server.renderTemplate('quotes', {room: room, data: quotes}));
 }
 
-for (let room in quotedata) {
-	server.addRoute('/' + room + '/quotes', quoteResolver);
+async function init() {
+	let rooms = await quotedata.keys('*');
+	console.log(rooms);
+	rooms.forEach(room => server.addRoute('/' + room + '/quotes', quoteResolver));
 }
+
+init();
 
 module.exports = {
 	commands: {
 		quote: {
 			permission: 2,
 			disallowPM: true,
-			action(message) {
+			async action(message) {
 				if (!message.length) return this.pmreply("Please enter a valid quote.");
 
-				if (!quotedata[this.room]) {
-					quotedata[this.room] = [];
+				if (!(await quotedata.exists(this.room))) {
 					if (!Config.privateRooms.has(this.room)) {
 						server.addRoute('/' + this.room + '/quotes', quoteResolver);
 						// Wait 500ms to make sure everything's ready.
@@ -95,12 +75,13 @@ module.exports = {
 					}
 				}
 
-				if (quotedata[this.room].includes(message)) {
+				let quotes = await redis.getList(quotedata, this.room);
+
+				if (quotes.includes(message)) {
 					return this.reply("Quote is already added.");
 				}
 
-				quotedata[this.room].push(message);
-				databases.writeDatabase('quotes');
+				await quotedata.lpush(this.room, message);
 				return this.reply("Quote has been added.");
 			},
 		},
@@ -108,26 +89,23 @@ module.exports = {
 		deletequote: {
 			permission: 2,
 			disallowPM: true,
-			action(message) {
+			async action(message) {
 				message = toId(message);
 
 				if (!message.length) return this.pmreply("Please enter a valid quote.");
-				if (!quotedata[this.room]) return this.pmreply("This room has no quotes.");
+				if (!(await quotedata.exists(this.room))) return this.pmreply("This room has no quotes.");
 
-				for (let i = 0; i < quotedata[this.room].length; i++) {
-					if (toId(quotedata[this.room][i]) === message) {
-						this.reply("Removed quote: " + quotedata[this.room].splice(i, 1)[0]);
-						return databases.writeDatabase('quotes');
-					}
+				if (await quotedata.lrem(this.room, 0, message)) {
+					this.reply("Quote deleted");
+				} else {
+					this.reply("Quote not found.");
 				}
-
-				return this.reply("Quote not found.");
 			},
 		},
 
 		quotes: {
 			permission: 1,
-			action(message) {
+			async action(message) {
 				let pm = false;
 				if (!this.room) {
 					if (message) {
@@ -139,7 +117,7 @@ module.exports = {
 						return this.pmreply("No room supplied.");
 					}
 				}
-				if (quotedata[this.room]) {
+				if (await quotedata.exists(this.room)) {
 					let fname = this.room + "/quotes";
 					let permission = (pm && this.canUse(5));
 					if (Config.privateRooms.has(this.room) || permission) {
@@ -165,9 +143,10 @@ module.exports = {
 		randquote: {
 			permission: 1,
 			disallowPM: true,
-			action() {
-				if (quotedata[this.room] && quotedata[this.room].length) {
-					let randquote = quotedata[this.room][Math.floor(Math.random() * quotedata[this.room].length)];
+			async action() {
+				if (await quotedata.exists(this.room)) {
+					let quotes = await redis.getList(quotedata, this.room);
+					let randquote = quotes[Math.floor(Math.random() * quotes.length)];
 					if (randquote[0] === '/' || randquote[0] === '!') randquote = randquote.substr(1);
 					return this.reply(randquote);
 				}

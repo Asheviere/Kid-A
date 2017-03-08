@@ -4,7 +4,7 @@ const fs = require('fs');
 
 const server = require('./server.js');
 const databases = require('./databases.js');
-
+const redis = require('./redis.js');
 
 function sendPM(userid, message) {
 	Connection.send('|/pm ' + userid + ', ' + message);
@@ -153,7 +153,7 @@ class ChatHandler {
 		server.restart();
 	}
 
-	parse(userstr, room, message) {
+	async parse(userstr, room, message) {
 		if (message[0] === (Config.commandSymbol || '.')) {
 			this.parseCommand(userstr, room, message);
 		} else if (room) {
@@ -161,12 +161,14 @@ class ChatHandler {
 		} else {
 			if (canUse(2, toId(userstr), userstr[0]) && message.startsWith('/invite')) {
 				let toJoin = message.substr(8);
-				if (!(Config.rooms.includes(toJoin) || (this.settings.toJoin && this.settings.toJoin.includes(toJoin)))) {
-					if (!this.settings.toJoin) this.settings.toJoin = [];
-					this.settings.toJoin.push(toJoin);
+
+				let autojoin = await redis.getList(this.settings, 'autojoin');
+
+				if (!(Config.rooms.includes(toJoin) || (autojoin && autojoin.includes(toJoin)))) {
+					this.settings.rpush(toJoin);
 					Connection.send(`|/join ${toJoin}`);
 					Connection.send(`|/pm ${userstr.substr[1]}, For an introduction on how to use Kid A in your room, see ${server.url}intro.html`);
-					return databases.writeDatabase('settings');
+					return;
 				}
 			}
 			pmMsg('PM from ' + (userstr[0] === ' ' ? userstr.substr(1) : userstr) + ': ' + message);
@@ -174,7 +176,7 @@ class ChatHandler {
 		}
 	}
 
-	analyze(userstr, room, message) {
+	async analyze(userstr, room, message) {
 		let restartNeeded = !(room in databases.getDatabase('data'));
 		for (let i in this.analyzers) {
 			let analyzer = this.analyzers[i];
@@ -190,7 +192,7 @@ class ChatHandler {
 		databases.writeDatabase('data');
 	}
 
-	parseCommand(userstr, room, message) {
+	async parseCommand(userstr, room, message) {
 		const username = userstr.substr(1);
 
 		const words = message.split(' ');
@@ -200,14 +202,16 @@ class ChatHandler {
 			return sendPM(username, 'Invalid command.');
 		}
 
-		const wrapper = new CommandWrapper(this.userlists, this.data, this.settings, this.commands, this.options);
+		let disabled = await redis.getList(this.settings, `${room}:disabledCommands`);
+		if (disabled && disabled.includes(cmd)) return;
 
+		const wrapper = new CommandWrapper(this.userlists, this.data, this.settings, this.commands, this.options);
+		
 		let user = (!room && userstr[0] === ' ' ? '+' : userstr[0]) + username;
-		if (this.settings[room] && this.settings[room].disabledCommands.includes(cmd)) return;
 		wrapper.run(cmd, user, room, words.join(' '));
 	}
 
-	parseJoin(user, room) {
+	async parseJoin(user, room) {
 		for (let i in this.plugins) {
 			if (this.plugins[i].onUserJoin && (!this.plugins[i].onUserJoin.rooms || this.plugins[i].onUserJoin.rooms.includes(room))) {
 				this.plugins[i].onUserJoin.action.apply(this, [user, room]);

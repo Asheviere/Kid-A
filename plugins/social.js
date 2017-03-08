@@ -3,6 +3,8 @@
 const MINUTE = 60 * 1000;
 const DAY = 24 * 60 * MINUTE;
 
+const redis = require('../redis.js');
+
 let motds = Object.create(null);
 let repeats = Object.create(null);
 
@@ -24,7 +26,7 @@ module.exports = {
 	commands: {
 		motd: {
 			permission: 1,
-			action(message) {
+			async action(message) {
 				let room = this.room || message;
 				if (room === message) message = null;
 				if (!room) {
@@ -34,7 +36,8 @@ module.exports = {
 				if (!message) {
 					if (!(room in motds)) return this.reply("This room does not have a motd set.");
 
-					return this.reply((this.settings[this.room] && this.settings[this.room].options.includes('announcemotd') ? '/wall ' : '') + "This room's motd is: " + motds[room]);
+					let options = await redis.getList(this.settings, `${room}:options`);
+					return this.reply((options && options.includes('announcemotd') ? '/wall ' : '') + "This room's motd is: " + motds[room]);
 				}
 
 				if (!this.canUse(3)) return this.pmreply("Permission denied.");
@@ -53,7 +56,7 @@ module.exports = {
 		clearmotd: {
 			permission: 3,
 			hidden: true,
-			action() {
+			async action() {
 				if (!(this.room in motds)) return this.reply("This room does not have a motd set.");
 
 				// Failsafe
@@ -68,7 +71,7 @@ module.exports = {
 		repeat: {
 			permission: 3,
 			disallowPM: true,
-			action(message) {
+			async action(message) {
 				let [interval, times, ...repeatMsg] = message.split(',');
 				if (!(interval && times && repeatMsg.length)) return this.pmreply("Syntax: .repeat <interval>, <times>, <message to repeat>");
 
@@ -95,7 +98,7 @@ module.exports = {
 			permission: 3,
 			hidden: true,
 			disallowPM: true,
-			action(message) {
+			async action(message) {
 				let id = `${this.room}|${toId(message)}`;
 				if (id in repeats) {
 					clearTimeout(repeats[id].timer);
@@ -111,7 +114,7 @@ module.exports = {
 			permission: 3,
 			hidden: true,
 			disallowPM: true,
-			action() {
+			async action() {
 				for (let id in repeats) {
 					if (id.startsWith(this.room)) {
 						clearTimeout(repeats[id].timer);
