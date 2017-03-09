@@ -334,9 +334,9 @@ module.exports = {
 				}
 				if (!this.canUse(5)) return this.pmreply("Permission denied.");
 
-				if (await settings.hexists('whitelist:cloners', this.userid)) return this.reply("This user is already whitelisted.");
+				if (await settings.hexists('whitelist:cloners', toId(message))) return this.reply("This user is already whitelisted.");
 
-				settings.hset('whitelist:cloners', this.userid, this.username);
+				settings.hset('whitelist:cloners', toId(message), message);
 				Connection.send(`${WIFI_ROOM}|/modnote ${toId(message)} was whitelisted for the cloner list by ${this.username}.`);
 				return this.reply("User successfully whitelisted.");
 			},
@@ -349,9 +349,9 @@ module.exports = {
 				}
 				if (!this.canUse(5)) return this.pmreply("Permission denied.");
 
-				if (!await settings.hexists('whitelist:cloners', this.userid)) return this.reply("This user isn't whitelisted.");
+				if (!await settings.hexists('whitelist:cloners', toId(message))) return this.reply("This user isn't whitelisted.");
 
-				settings.hdel('whitelist:cloners', this.userid);
+				settings.hdel('whitelist:cloners', toId(message));
 				Connection.send(`${WIFI_ROOM}|/modnote ${toId(message)} was unwhitelisted for the cloner list by ${this.username}.`);
 				return this.reply("User successfully removed from the whitelist.");
 			},
@@ -529,9 +529,9 @@ module.exports = {
 				}
 				if (!this.canUse(5)) return this.pmreply("Permission denied.");
 
-				if (await settings.hexists('whitelist:trainers', this.userid)) return this.reply("This user is already whitelisted.");
+				if (await settings.hexists('whitelist:trainers', toId(message))) return this.reply("This user is already whitelisted.");
 
-				settings.hset('whitelist:trainers', this.userid, this.username);
+				settings.hset('whitelist:trainers', toId(message), message);
 				Connection.send(`${WIFI_ROOM}|/modnote ${toId(message)} was whitelisted for the trainer list by ${this.username}.`);
 				return this.reply("User successfully whitelisted.");
 			},
@@ -544,9 +544,9 @@ module.exports = {
 				}
 				if (!this.canUse(5)) return this.pmreply("Permission denied.");
 
-				if (!await settings.hexists('whitelist:trainers', this.userid)) return this.reply("This user isn't whitelisted.");
+				if (!await settings.hexists('whitelist:trainers', toId(message))) return this.reply("This user isn't whitelisted.");
 
-				settings.hdel('whitelist:trainers', this.userid);
+				settings.hdel('whitelist:trainers', toId(message));
 				Connection.send(`${WIFI_ROOM}|/modnote ${toId(message)} was unwhitelisted for the trainer list by ${this.username}.`);
 				return this.reply("User successfully removed from the whitelist.");
 			},
@@ -642,7 +642,7 @@ module.exports = {
 		checkfc: {
 			rooms: [WIFI_ROOM],
 			permission: 1,
-			action(message) {
+			async action(message) {
 				let id = toId(message);
 				if (!(id.length === 12 && parseInt(id))) return this.reply("Invalid input.");
 
@@ -664,12 +664,12 @@ module.exports = {
 				}
 
 				// Lastly, if available, check the .fc database
-				let fcs = databases.getDatabase('friendcodes');
+				let db = redis.useDatabase('friendcodes');
 
-				if (fcs) {
-					for (let i in fcs) {
-						if (fcs[i] === fc) return this.reply(`This FC belongs to ${i}.`);
-					}
+				let fcs = await db.keys('*');
+
+				for (let i = 0; i < fcs.length; i++) {
+					if ((await db.get(fcs[i])) === fc) return this.reply(`This FC belongs to ${fcs[i]}.`);
 				}
 
 				return this.reply("This FC was not found.");
