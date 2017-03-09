@@ -5,8 +5,8 @@ const fs = require('fs');
 const request = require('request');
 const cheerio = require('cheerio');
 
-const commandParser = require('./command-parser.js');
 const redis = require('./redis.js');
+const commandParser = require('./command-parser.js');
 
 const ACTION_URL = 'http://play.pokemonshowdown.com/action.php';
 
