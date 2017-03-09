@@ -5,6 +5,7 @@ const fs = require('fs');
 const request = require('request');
 
 const databases = require('../databases.js');
+const redis = require('../redis.js');
 
 let lastfmdata;
 
