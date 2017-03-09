@@ -53,7 +53,6 @@ async function quoteResolver(req, res) {
 
 async function init() {
 	let rooms = await quotedata.keys('*');
-	console.log(rooms);
 	rooms.forEach(room => server.addRoute('/' + room + '/quotes', quoteResolver));
 }
 

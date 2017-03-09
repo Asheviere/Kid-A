@@ -29,7 +29,7 @@ module.exports = {
             writeTables();
         }
 
-        let client = redis.createClient({database: name, usePromise: true});
+        let client = redis.createClient({database: i, usePromise: true});
         this.databases[name] = client;
         return client;
     },

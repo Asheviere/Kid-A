@@ -2,7 +2,7 @@
 
 const fs = require('fs');
 
-const databases = require('../databases.js');
+const redis = require('../redis.js');
 const utils = require('../utils.js');
 
 const WIFI_ROOM = 'wifi';
@@ -10,32 +10,13 @@ const INGAME_ROOM = 'sunmoon';
 
 const FC_REGEX = /[0-9]{4}[- ]?[0-9]{4}[- ]?[0-9]{4}/;
 
-let friendcodes;
-
-function loadFriendcodes() {
-	let data;
-	try {
-		data = require('../data/friendcodes.json');
-	} catch (e) {}
-
-	if (typeof data !== 'object' || Array.isArray(data)) data = {};
-
-	return data;
-}
-
-function writeFriendcodes() {
-	let toWrite = JSON.stringify(friendcodes);
-	fs.writeFileSync('./data/friendcodes.json', toWrite);
-}
-
-databases.addDatabase('friendcodes', loadFriendcodes, writeFriendcodes);
-friendcodes = databases.getDatabase('friendcodes');
+let friendcodes = redis.useDatabase('friendcodes');
 
 module.exports = {
 	commands: {
 		addfc: {
 			rooms: [WIFI_ROOM, INGAME_ROOM],
-			action(message) {
+			async action(message) {
 				let room = this.room;
 				let hasPermission = false;
 				if (this.userlists[WIFI_ROOM] && this.userid in this.userlists[WIFI_ROOM]) {
@@ -61,8 +42,7 @@ module.exports = {
 				fc = fc.substr(0, 4) + '-' + fc.substr(4, 4) + '-' + fc.substr(8, 4);
 				if (!utils.validateFc(fc)) return this.pmreply("The Friend code you entered is invalid");
 
-				friendcodes[name] = fc;
-				databases.writeDatabase('friendcodes');
+				await friendcodes.set(name, fc);
 
 				if (room) Connection.send(`${room}|/modnote ${this.username} added a friend code for ${name}: ${fc}`);
 				this.reply("Friend Code successfully added.");
@@ -70,7 +50,7 @@ module.exports = {
 		},
 		deletefc: {
 			rooms: [WIFI_ROOM, INGAME_ROOM],
-			action(message) {
+			async action(message) {
 				let room = this.room;
 				if (!this.canUse(2)) {
 					let hasPermission = false;
@@ -91,17 +71,16 @@ module.exports = {
 
 				let name = toId(message);
 
-				if (!(name in friendcodes)) return this.pmreply("This person doesn't have a friend code registered.");
-
-				delete friendcodes[name];
-				databases.writeDatabase('friendcodes');
-
-				if (room) Connection.send(`${room}|/modnote ${this.username} deleted ${name}'s friend code.`);
-				this.reply("Friend Code successfully deleted.");
+				if (await friendcodes.del(name)) {
+					if (room) Connection.send(`${room}|/modnote ${this.username} deleted ${name}'s friend code.`);
+					this.reply("Friend Code successfully deleted.");
+				} else {
+					this.pmreply("This person doesn't have a friend code registered.");
+				}
 			},
 		},
 		fc: {
-			action(message) {
+			async action(message) {
 				if (message) {
 					message = toId(message);
 				} else {
@@ -110,12 +89,12 @@ module.exports = {
 
 				let self = message === this.userid;
 
-				if (!(message in friendcodes)) return this.pmreply((self ? "You don't" : "This person doesn't") + " have a friend code registered." + (self ? ` PM a staff member in the <<${WIFI_ROOM}>> or <<${INGAME_ROOM}>> room to have your FC added.` : ""));
+				if (!(await friendcodes.exists(message))) return this.pmreply((self ? "You don't" : "This person doesn't") + " have a friend code registered." + (self ? ` PM a staff member in the <<${WIFI_ROOM}>> or <<${INGAME_ROOM}>> room to have your FC added.` : ""));
 
 				if (this.canUse(1)) {
-					this.reply((self ? "Your" : message + "'s") + " friend code: " + friendcodes[message]);
+					this.reply((self ? "Your" : message + "'s") + " friend code: " + (await friendcodes.get(message)));
 				} else {
-					this.pmreply((self ? "Your" : message + "'s") + " friend code: " + friendcodes[message]);
+					this.pmreply((self ? "Your" : message + "'s") + " friend code: " + (await friendcodes.get(message)));
 				}
 			},
 		},
