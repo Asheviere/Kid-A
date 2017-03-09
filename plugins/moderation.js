@@ -89,7 +89,7 @@ module.exports = {
 
 	analyzer: {
 		async parser(room, message, userstr) {
-			let options = await redis.getList(settings, `${this.room}:options`);
+			let options = await redis.getList(settings, `${room}:options`);
 
 			if (options && options.includes('disablemoderation')) return;
 			if (userstr[0] !== ' ') return;

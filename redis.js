@@ -9,7 +9,7 @@ try {
     tables = require('./data/tables.json');
 } catch (e) {}
 
-if (typeof tables !== 'object' || Array.isArray(tables)) tables = [];
+if (!Array.isArray(tables)) tables = [];
 
 function writeTables() {
     fs.writeFileSync('./data/tables.json', JSON.stringify(tables));
