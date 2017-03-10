@@ -7,26 +7,7 @@ const request = require('request');
 const databases = require('../databases.js');
 const redis = require('../redis.js');
 
-let lastfmdata;
-
-function loadLastfmData() {
-	let data;
-	try {
-		data = require('../data/lastfm.json');
-	} catch (e) {}
-
-	if (typeof data !== 'object' || Array.isArray(data)) data = {};
-
-	return data;
-}
-
-function writeLastfmData() {
-	let toWrite = JSON.stringify(lastfmdata);
-	fs.writeFileSync('./data/lastfm.json', toWrite);
-}
-
-databases.addDatabase('lastfm', loadLastfmData, writeLastfmData);
-lastfmdata = databases.getDatabase('lastfm');
+let db = redis.useDatabase('lastfm');
 
 const API_ROOT = 'http://ws.audioscrobbler.com/2.0/';
 const YT_ROOT = 'https://www.googleapis.com/youtube/v3/search';
@@ -41,7 +22,7 @@ module.exports = {
 				if (!Config.lastfmKey) return errorMsg("No last.fm API key found.");
 
 				let accountname = message || this.username;
-				if (!message && (this.userid in lastfmdata)) message = lastfmdata[this.userid];
+				if (!message && (await db.exists(this.userid))) message = await db.get(this.userid);
 				if (!message) message = this.userid;
 
 				let options = await redis.getList(this.settings, `${this.room}:options`);
@@ -218,16 +199,14 @@ module.exports = {
 
 		registerlastfm: {
 			hidden: true,
-			action(message) {
+			async action(message) {
 				if (!message) return this.pmreply("No username entered.");
 
 				let username = message.replace(/[^A-Za-z0-9-_]/g, '');
 
-				lastfmdata[this.userid] = username;
+				await db.set(this.userid, username);
 
-				databases.writeDatabase('lastfm');
-
-				return this.pmreply("You've been registered as " + username + ".");
+				this.pmreply(`You've been registered as ${username}.`);
 			},
 		},
 	},
