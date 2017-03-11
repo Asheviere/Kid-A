@@ -71,7 +71,7 @@ module.exports = {
 				let keys = await tsvs.keys('*');
 
 				for (let i = 0; i < keys.length; i++) {
-					if ((await tsvs.get(keys[i])) === tsv) matches.push(i);
+					if ((await tsvs.get(keys[i])) === tsv) matches.push(keys[i]);
 				}
 
 				if (matches.length) {
