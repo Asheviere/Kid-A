@@ -59,7 +59,7 @@ module.exports = {
 		tsv: {
 			rooms: [WIFI_ROOM],
 			permission: 1,
-			action(message) {
+			async action(message) {
 				if (!message) return;
 
 				let tsv = parseInt(message);
