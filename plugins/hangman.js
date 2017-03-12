@@ -31,7 +31,7 @@ module.exports = {
                 if (hint && hint.length) {
                     hint = hint.join(',').trim();
                     if (hint.length > 150) return this.pmreply("Hint too long.");
-                    await hangman.hset(`${room}:${solution}`, 'hint', hint);
+                    await hangman.hset(`${room}:${toId(solution)}`, 'hint', hint);
                 }
 
 				this.reply("Word successfully added.");
