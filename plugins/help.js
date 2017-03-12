@@ -31,7 +31,7 @@ module.exports = {
 		data: {
 			permission: 1,
 			async action() {
-				if (await this.data.keys(`${this.room}:*`).length) {
+				if ((await this.data.keys(`*:${this.room}`)).length) {
 					let fname = `${this.room}/data`;
 					if (Config.privateRooms.has(this.room)) {
 						let data = {};

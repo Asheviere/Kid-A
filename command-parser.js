@@ -117,6 +117,38 @@ class ChatHandler {
 		this.userlists = userlists;
 		this.settings = settings;
 
+		this.dataResolver = async (req, res) => {
+			let room = req.originalUrl.split('/')[1];
+			if (Config.privateRooms.has(room)) {
+				let query = server.parseURL(req.url);
+				let token = query.token;
+				if (!token) return res.end('Private room data requires an access token to be viewed.');
+				let data = server.getAccessToken(token);
+				if (!data) return res.end('Invalid access token.');
+				if (data[room]) {
+					res.end(await this.generateDataPage(room));
+				} else {
+					res.end('Permission denied.');
+				}
+			} else {
+				res.end(await this.generateDataPage(room));
+			}
+		}
+
+		this.generateDataPage = async room => {
+			let content = `<!DOCTYPE html><html><head><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="../style.css"><title>${room} - Kid A</title></head><body><div class="container">`;
+			content += `<h1>${room} data:</h1><div class="quotes">`;
+			let wrapper = new AnalyzerWrapper(this.userlists, this.settings, this.options);
+			for (let i in this.analyzers) {
+				if (this.analyzers[i].display) {
+					content += '<div class="analyzer">';
+					content += await wrapper.display(this.analyzers[i], room);
+					content += '</div>';
+				}
+			}
+			return content + '</div></body></html>';
+		}
+
 		fs.readdirSync('./plugins')
 			.filter((file) => file.endsWith('.js') && !Config.blacklistedPlugins.has(file.slice(0, -3)))
 			.forEach((file) => {
@@ -136,11 +168,26 @@ class ChatHandler {
 				}
 			});
 
-		for (let room in this.data) {
-			server.addRoute(`/${room}/data`, this.dataResolver);
-		}
+		analytics.keys('*').then(keys => {
+			let rooms = new Set();
+			let atLeastOne = false;
 
-		server.restart();
+			for (let i = 0; i < keys.length; i++) {
+				let split = keys[i].split(':');
+				if (split.length > 1) {
+					let room = split[1];
+					if (!rooms.has(room)) {
+						rooms.add(room);
+						server.addRoute(`/${room}/data`, this.dataResolver);
+						atLeastOne = true;
+					}
+				}
+			}
+
+			if (atLeastOne) {
+				server.restart();
+			}
+		});
 	}
 
 	async parse(userstr, room, message) {
@@ -167,12 +214,12 @@ class ChatHandler {
 	}
 
 	async analyze(userstr, room, message) {
-		let restartNeeded = !(await analytics.keys(`${room}:*`).length);
+		let restartNeeded = !(await analytics.keys(`*:${room}`)).length;
 		let wrapper = new AnalyzerWrapper(this.userlists, this.settings, this.options);
 		for (let i in this.analyzers) {
 			wrapper.run(this.analyzers[i], userstr, room, message);
 		}
-		restartNeeded = restartNeeded && (await analytics.keys(`${room}:*`).length);
+		restartNeeded = restartNeeded && (await analytics.keys(`*:${room}`)).length;
 		if (restartNeeded) {
 			server.addRoute(`/${room}/data`, this.dataResolver);
 			server.restart();
@@ -204,38 +251,6 @@ class ChatHandler {
 				this.plugins[i].onUserJoin.action.apply(this, [user, room]);
 			}
 		}
-	}
-
-	async dataResolver(req, res) {
-		let room = req.originalUrl.split('/')[1];
-		if (Config.privateRooms.has(room)) {
-			let query = server.parseURL(req.url);
-			let token = query.token;
-			if (!token) return res.end('Private room data requires an access token to be viewed.');
-			let data = server.getAccessToken(token);
-			if (!data) return res.end('Invalid access token.');
-			if (data[room]) {
-				res.end(await this.generateDataPage(room));
-			} else {
-				res.end('Permission denied.');
-			}
-		} else {
-			res.end(await this.generateDataPage(room));
-		}
-	}
-
-	async generateDataPage(room) {
-		let content = `<!DOCTYPE html><html><head><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="../style.css"><title>${room} - Kid A</title></head><body><div class="container">`;
-		content += `<h1>${room} data:</h1><div class="quotes">`;
-		let wrapper = new AnalyzerWrapper(this.userlists, this.settings, this.options);
-		for (let i in this.analyzers) {
-			if (this.analyzers[i].display) {
-				content += '<div class="analyzer">';
-				content += await wrapper.display(this.analyzers[i], room);
-				content += '</div>';
-			}
-		}
-		return content + '</div></body></html>';
 	}
 }
 
