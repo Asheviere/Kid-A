@@ -62,7 +62,7 @@ module.exports = {
             permission: 1,
 			disallowPM: true,
 			async action() {
-                let words = await hangman.keys('room:*');
+                let words = await hangman.keys(`${room}:*`);
 
 				if (words.length) {
 					let word = words[Math.floor(Math.random() * words.length)];
@@ -71,7 +71,7 @@ module.exports = {
                     return this.reply("/wall Use ``/guess`` to guess!");
 				}
 
-				return this.pmreply("This room has hangman words.");
+				return this.pmreply("This room has no hangman words.");
 			},
 		},
         checkhangman: {
