@@ -20,7 +20,7 @@ module.exports = {
 				if (!(room && solution)) return this.pmreply("Syntax: ``.addhangman room, solution, hint``");
 
                 // Copied from my code from the hangman plugin;
-                solution = solution.replace(/[^A-Za-z '-]/g, '');
+                solution = solution.replace(/[^A-Za-z '-]/g, '').trim();
                 if (solution.replace(/ /g, '').length < 1) return this.pmreply("Enter a valid word");
                 if (solution.length > 30) return this.pmreply("Phrase must be less than 30 characters.");
                 if (solution.split(' ').some(w => w.length > 20)) return this.pmreply("Each word in the phrase must be less than 20 characters.");
