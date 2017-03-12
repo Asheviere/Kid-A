@@ -62,7 +62,7 @@ module.exports = {
             permission: 1,
 			disallowPM: true,
 			async action() {
-                let words = await hangman.keys(`${room}:*`);
+                let words = await hangman.keys(`${this.room}:*`);
 
 				if (words.length) {
 					let word = words[Math.floor(Math.random() * words.length)];
