@@ -15,7 +15,7 @@ module.exports = {
 					if (!this.getRoomAuth(room)) return;
 				}
 
-				if (!(this.canUse(4))) return this.pmreply("Permission denied.");
+				if (!(this.canUse(3))) return this.pmreply("Permission denied.");
 				let [solution, ...hint] = split;
 				if (!(room && solution)) return this.pmreply("Syntax: ``.addhangman room, solution, hint``");
 
@@ -49,7 +49,7 @@ module.exports = {
 					if (!this.getRoomAuth(room)) return;
 				}
 
-				if (!(this.canUse(4))) return this.pmreply("Permission denied.");
+				if (!(this.canUse(3))) return this.pmreply("Permission denied.");
 				let solution = toId(message);
                 if (!(room && solution)) return this.pmreply("Syntax: ``.deletehangman room, solution``");
 
