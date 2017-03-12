@@ -36,7 +36,6 @@ module.exports = {
 
 				await hangman.rpush(room, output);
 
-				Connection.send(`${room}|/modnote ${this.username} added '${solution}' to the list of hangman words.`);
 				this.reply("Word successfully added.");
 			},
 		},
