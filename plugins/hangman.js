@@ -73,7 +73,8 @@ module.exports = {
 				if (await hangman.exists(this.room)) {
 					let words = await redis.getList(hangman, this.room);
 					let word = words[Math.floor(Math.random() * words.length)];
-					return this.reply(`/hangman new ${word}`);
+					this.reply(`/hangman new ${word}`);
+                    return this.reply("Use ``/guess`` to guess!");
 				}
 
 				return this.pmreply("This room has hangman words.");
