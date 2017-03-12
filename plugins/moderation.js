@@ -88,34 +88,32 @@ module.exports = {
 	options: ['disablemoderation', 'allowbold', 'allowcaps', 'allowstretching', 'allowflooding'],
 
 	analyzer: {
-		async parser(room, message, userstr) {
-			let options = await redis.getList(settings, `${room}:options`);
+		async parser(message) {
+			let options = await redis.getList(settings, `${this.room}:options`);
 
 			if (options && options.includes('disablemoderation')) return;
-			if (userstr[0] !== ' ') return;
-
-			let userid = toId(userstr);
+			if (this.canUse(1)) return;
 
 			if (!(options && options.includes('allowflooding'))) {
-				addBuffer(userid, room, message);
+				addBuffer(this.userid, this.room, message);
 
 				let msgs = 0;
 				let identical = 0;
 
-				for (let i = 0; i < buffers[room].length; i++) {
-					if (buffers[room][i][0] === userid) {
+				for (let i = 0; i < buffers[this.room].length; i++) {
+					if (buffers[this.room][i][0] === this.userid) {
 						msgs++;
-						if (buffers[room][i][1] === message) identical++;
+						if (buffers[this.room][i][1] === message) identical++;
 					}
 				}
 
 				if (msgs >= 5 || identical >= 3) {
 					if (Config.checkIps) {
-						Handler.checkIp(userid, (userid, ips) => {
-							punish(userid, ips, room, 2, 'Do not flood the chat.');
+						Handler.checkIp(this.userid, (userid, ips) => {
+							punish(userid, ips, this.room, 2, 'Do not flood the chat.');
 						});
 					} else {
-						punish(userid, [userid], room, 2, 'Do not flood the chat.');
+						punish(this.userid, [this.userid], this.room, 2, 'Do not flood the chat.');
 					}
 					return;
 				}
@@ -128,11 +126,11 @@ module.exports = {
 					let boldLen = boldString.reduce((prev, cur) => prev + cur.length, 0);
 					if (boldLen >= 0.8 * len) {
 						if (Config.checkIps) {
-							Handler.checkIp(userid, (userid, ips) => {
-								punish(userid, ips, room, 1, 'Do not abuse bold.');
+							Handler.checkIp(this.userid, (userid, ips) => {
+								punish(userid, ips, this.room, 1, 'Do not abuse bold.');
 							});
 						} else {
-							punish(userid, [userid], room, 1, 'Do not abuse bold.');
+							punish(this.userid, [this.userid], this.room, 1, 'Do not abuse bold.');
 						}
 						return;
 					} 
@@ -147,10 +145,10 @@ module.exports = {
 				if (len >= 10 && capsString && (capsString.length / len) >= 0.8) {
 					if (Config.checkIps) {
 						Handler.checkIp(userid, (userid, ips) => {
-							punish(userid, ips, room, 1, 'Do not abuse caps.');
+							punish(userid, ips, this.room, 1, 'Do not abuse caps.');
 						});
 					} else {
-						punish(userid, [userid], room, 1, 'Do not abuse caps.');
+						punish(this.userid, [this.userid], this.room, 1, 'Do not abuse caps.');
 					}
 					return;
 				}
@@ -161,11 +159,11 @@ module.exports = {
 
 				if (/(.)\1{7,}/gi.test(stretchString) || (/(..+)\1{4,}/gi.test(stretchString) && !/(\d+\/)+/gi.test(stretchString))) {
 					if (Config.checkIps) {
-						Handler.checkIp(userid, (userid, ips) => {
-							punish(userid, ips, room, 1, 'Do not stretch.');
+						Handler.checkIp(this.userid, (userid, ips) => {
+							punish(userid, ips, this.room, 1, 'Do not stretch.');
 						});
 					} else {
-						punish(userid, [userid], room, 1, 'Do not stretch.');
+						punish(this.userid, [this.userid], this.room, 1, 'Do not stretch.');
 					}
 					return;
 				}

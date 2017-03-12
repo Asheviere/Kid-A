@@ -1,33 +1,58 @@
 'use strict';
 
-const databases = require('../databases.js');
-const db = databases.getDatabase('data');
+// Taken from the PS client
+const domainRegex = '[a-z0-9\\-]+(?:[.][a-z0-9\\-]+)*';
+const parenthesisRegex = '[(](?:[^\\s()<>&]|&amp;)*[)]';
+const linkRegex = new RegExp(
+	'\\b' +
+	'(?:' +
+		'(' +
+			// When using www. or http://, allow any-length TLD (like .museum)
+			'(?:https?://|www[.])' + domainRegex +
+			'|' + domainRegex + '[.]' +
+				// Allow a common TLD, or any 2-3 letter TLD followed by : or /
+				'(?:com?|org|net|edu|info|us|jp|[a-z]{2,3}(?=[:/]))' +
+		')' +
+		'(?:[:][0-9]+)?' +
+		'\\b' +
+		'(?:' +
+			'/' +
+			'(?:' +
+				'(?:' +
+					'[^\\s()&]|&amp;|&quot;' +
+					'|' + parenthesisRegex +
+				')*' +
+				// URLs usually don't end with punctuation, so don't allow
+				// punctuation symbols that probably aren't related to URL.
+				'(?:' +
+					'[^\\s`()\\[\\]{}\'".,!?;:&]' +
+					'|' + parenthesisRegex +
+				')' +
+			')?' +
+		')?' +
+		'|[a-z0-9.]+\\b@' + domainRegex + '[.][a-z]{2,3}' +
+	')',
+	'ig'
+);
+const httpRegex = /https?:\/\/|www[.]/;
 
 module.exports = {
 	analyzer: {
-		parser(room, message) {
-			// FIXME: get a better URL regex!!
-			let pattern = /(?!href).+\.(nl|be|com|org|net)/;
-			if (!pattern.test(message)) return;
+		async parser(message) {
+			let match;
+			while ((match = linkRegex.exec(message)) !== null) {
+					let host = match[1].replace(httpRegex, '');
 
-			message.split(' ')
-				.filter((w) => w.length <= 100 && pattern.test(w))
-				.forEach((link) => {
-					let idx = link.indexOf('//') + 2;
-					let parts = link.substr(idx).split('/');
-					let hostname = parts[0];
-
-					if (!db[room]) db[room] = {};
-					if (!db[room].links) db[room].links = {};
-
-					db[room].links[sanitize(hostname)] = db[room].links[sanitize(hostname)] + 1 || 1;
-				});
+					this.data.hincrby(`links:${this.room}`, host, 1);
+			}
 		},
 
-		display(room) {
+		async display(room) {
+			let links = this.data.hgetall(`links:${room}`);
+
 			let output = '<h2>Websites linked:</h2><ul>';
-			for (let site in db[room].links) {
-				output += '<li>' + site + ':\t' + db[room].links[site] + ' times.</li>';
+			for (let site in links) {
+				output += `<li>${site}:\t${links[site]} times.</li>`;
 			}
 			output += '</ul>';
 			return output;

@@ -3,11 +3,12 @@
 const fs = require('fs');
 
 const server = require('./server.js');
-const databases = require('./databases.js');
 const redis = require('./redis.js');
 
+const analytics = redis.useDatabase('analytics');
+
 function sendPM(userid, message) {
-	Connection.send('|/pm ' + userid + ', ' + message);
+	Connection.send(`|/pm ${userid}, ${message}`);
 }
 
 function canUse(permission, userid, auth) {
@@ -40,7 +41,7 @@ class CommandWrapper {
 		this.canUse = permission => canUse(permission, this.userid, this.auth);
 	}
 
-	run(cmd, userstr, room, message) {
+	async run(cmd, userstr, room, message) {
 		this.auth = userstr[0];
 		this.username = userstr.substr(1);
 		this.userid = toId(userstr);
@@ -80,6 +81,33 @@ class CommandWrapper {
 	}
 }
 
+class AnalyzerWrapper {
+	constructor(userlists, settings, options) {
+		this.userlists = userlists;
+		this.data = analytics;
+		this.settings = settings;
+		this.options = options;
+
+		this.canUse = permission => canUse(permission, this.userid, this.auth);
+	}
+
+	async display(analyzer, room) {
+		if (analyzer.rooms && !(analyzer.rooms.includes(room))) return;
+
+		return await analyzer.display.apply(this, [room]);
+	}
+
+	async run(analyzer, userstr, room, message) {
+		if (analyzer.rooms && !(analyzer.rooms.includes(room))) return;
+		this.auth = userstr[0];
+		this.username = userstr.substr(1);
+		this.userid = toId(userstr);
+		this.room = room;
+
+		analyzer.parser.apply(this, [message]);
+	}
+}
+
 class ChatHandler {
 	constructor(userlists, settings) {
 		this.plugins = {};
@@ -88,26 +116,6 @@ class ChatHandler {
 		this.options = new Set();
 		this.userlists = userlists;
 		this.settings = settings;
-
-		let loadData = () => {
-			let data;
-			try {
-				data = require('./data/data.json');
-			} catch (e) {}
-
-			if (typeof data !== 'object' || Array.isArray(data)) data = {};
-
-			return data;
-		};
-
-		let writeData = () => {
-			let toWrite = JSON.stringify(this.data);
-
-			fs.writeFileSync('./data/data.json', toWrite);
-		};
-
-		databases.addDatabase('data', loadData, writeData);
-		this.data = databases.getDatabase('data');
 
 		fs.readdirSync('./plugins')
 			.filter((file) => file.endsWith('.js') && !Config.blacklistedPlugins.has(file.slice(0, -3)))
@@ -128,26 +136,8 @@ class ChatHandler {
 				}
 			});
 
-		this.dataResolver = (req, res) => {
-			let room = req.originalUrl.split('/')[1];
-			if (Config.privateRooms.has(room)) {
-				let query = server.parseURL(req.url);
-				let token = query.token;
-				if (!token) return res.end('Private room data requires an access token to be viewed.');
-				let data = server.getAccessToken(token);
-				if (!data) return res.end('Invalid access token.');
-				if (data[room]) {
-					res.end(this.generateDataPage(room));
-				} else {
-					res.end('Permission denied.');
-				}
-			} else {
-				res.end(this.generateDataPage(room));
-			}
-		};
-
 		for (let room in this.data) {
-			server.addRoute('/' + room + '/data', this.dataResolver);
+			server.addRoute(`/${room}/data`, this.dataResolver);
 		}
 
 		server.restart();
@@ -177,19 +167,16 @@ class ChatHandler {
 	}
 
 	async analyze(userstr, room, message) {
-		let restartNeeded = !(room in databases.getDatabase('data'));
+		let restartNeeded = !(await analytics.keys(`${room}:*`).length);
+		let wrapper = new AnalyzerWrapper(this.userlists, this.settings, this.options);
 		for (let i in this.analyzers) {
-			let analyzer = this.analyzers[i];
-			if (!analyzer.rooms || analyzer.rooms.includes(room)) {
-				analyzer.parser(room, message, userstr);
-			}
+			wrapper.run(this.analyzers[i], userstr, room, message);
 		}
-		restartNeeded = restartNeeded && (room in databases.getDatabase('data'));
+		restartNeeded = restartNeeded && (await analytics.keys(`${room}:*`).length);
 		if (restartNeeded) {
-			server.addRoute('/' + room + '/data', this.dataResolver);
+			server.addRoute(`/${room}/data`, this.dataResolver);
 			server.restart();
 		}
-		databases.writeDatabase('data');
 	}
 
 	async parseCommand(userstr, room, message) {
@@ -219,15 +206,34 @@ class ChatHandler {
 		}
 	}
 
-	generateDataPage(room) {
-		let content = '<!DOCTYPE html><html><head><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="../style.css"><title>' + room + ' - Kid A</title></head><body><div class="container">';
-		content += "<h1>" + room + ' data:</h1><div class="quotes">';
-		for (let i in this.analyzers) {
-			content += '<div class="analyzer">';
-			if (this.analyzers[i].display && (!this.analyzers[i].rooms || this.analyzers[i].rooms.includes(room))) {
-				content += this.analyzers[i].display(room);
+	async dataResolver(req, res) {
+		let room = req.originalUrl.split('/')[1];
+		if (Config.privateRooms.has(room)) {
+			let query = server.parseURL(req.url);
+			let token = query.token;
+			if (!token) return res.end('Private room data requires an access token to be viewed.');
+			let data = server.getAccessToken(token);
+			if (!data) return res.end('Invalid access token.');
+			if (data[room]) {
+				res.end(await this.generateDataPage(room));
+			} else {
+				res.end('Permission denied.');
 			}
-			content += '</div>';
+		} else {
+			res.end(await this.generateDataPage(room));
+		}
+	}
+
+	async generateDataPage(room) {
+		let content = `<!DOCTYPE html><html><head><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="../style.css"><title>${room} - Kid A</title></head><body><div class="container">`;
+		content += `<h1>${room} data:</h1><div class="quotes">`;
+		let wrapper = new AnalyzerWrapper(this.userlists, this.settings, this.options);
+		for (let i in this.analyzers) {
+			if (this.analyzers[i].display) {
+				content += '<div class="analyzer">';
+				content += await wrapper.display(this.analyzers[i], room);
+				content += '</div>';
+			}
 		}
 		return content + '</div></body></html>';
 	}
