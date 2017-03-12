@@ -1,7 +1,6 @@
 'use strict';
 
 const server = require('../server.js');
-const databases = require('../databases.js');
 
 const helpTopics = {
 	commands: 'commands.html',
@@ -31,16 +30,16 @@ module.exports = {
 		},
 		data: {
 			permission: 1,
-			action() {
-				if (databases.getDatabase('data')[this.room]) {
-					let fname = this.room + "/data";
+			async action() {
+				if (await this.data.keys(`${this.room}:*`).length) {
+					let fname = `${this.room}/data`;
 					if (Config.privateRooms.has(this.room)) {
 						let data = {};
 						data[this.room] = true;
 						let token = server.createAccessToken(data, 15);
-						fname += '?token=' + token;
+						fname += `?token=${token}`;
 					}
-					return this.reply("Chat data: " + server.url + fname);
+					return this.reply(`Chat data: ${server.url}${fname}`);
 				}
 
 				return this.reply("This room has no data.");

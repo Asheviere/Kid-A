@@ -31,9 +31,9 @@ function canUse(permission, userid, auth) {
 }
 
 class CommandWrapper {
-	constructor(userlists, data, settings, commands, options) {
+	constructor(userlists, settings, commands, options) {
 		this.userlists = userlists;
-		this.data = data;
+		this.data = analytics;
 		this.settings = settings;
 		this.commands = commands;
 		this.options = options;
@@ -192,7 +192,7 @@ class ChatHandler {
 		let disabled = await redis.getList(this.settings, `${room}:disabledCommands`);
 		if (disabled && disabled.includes(cmd)) return;
 
-		const wrapper = new CommandWrapper(this.userlists, this.data, this.settings, this.commands, this.options);
+		const wrapper = new CommandWrapper(this.userlists, this.settings, this.commands, this.options);
 		
 		let user = (!room && userstr[0] === ' ' ? '+' : userstr[0]) + username;
 		wrapper.run(cmd, user, room, words.join(' '));

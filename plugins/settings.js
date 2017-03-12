@@ -1,7 +1,6 @@
 'use strict';
 
 const server = require('../server.js');
-const databases = require('../databases.js');
 const redis = require('../redis.js');
 
 const db = redis.useDatabase('settings');

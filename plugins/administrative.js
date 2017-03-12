@@ -61,9 +61,6 @@ module.exports = {
 			permission: 6,
 			action(message) {
 				switch (message) {
-				case 'data':
-					databases.reloadDatabases();
-					return this.reply("Data reloaded successfully.");
 				case 'config':
 					delete require.cache[require.resolve('../config.js')];
 					Config = require('../config.js');

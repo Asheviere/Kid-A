@@ -3,7 +3,6 @@
 const fs = require('fs');
 
 const server = require('../server.js');
-const databases = require('../databases.js');
 const redis = require('../redis.js');
 const utils = require('../utils.js');
 
@@ -30,42 +29,7 @@ class WifiList {
 			columnKeys.push('date');
 		}
 
-		let loadList = () => {
-			let users = Object.create(null);
-			let data;
-			try {
-				data = fs.readFileSync(this.file);
-			} catch (e) {
-				return;
-			}
-			data = ('' + data).split("\n");
-			for (let i = 0; i < data.length; i++) {
-				if (!data[i] || data[i] === '\r') continue;
-				let row = data[i].trim().split("\t");
-				if (row[0] === this.columnNames[0]) continue;
-
-				let userid = toId(row[0]);
-				users[userid] = {};
-				for (let i = 0; i < this.columnKeys.length; i++) {
-					users[userid][this.columnKeys[i]] = row[i];
-				}
-			}
-
-			return users;
-		};
-
-		let writeList = () => {
-			let toWrite = this.columnNames.join('\t') + "\n";
-			for (let i in this.data) {
-				let values = [];
-				for (let j in this.data[i]) values.push(this.data[i][j]);
-				toWrite += values.join('\t') + '\n';
-			}
-			fs.writeFileSync(this.file, toWrite);
-		};
-
-		databases.addDatabase(this.name, loadList, writeList);
-		this.data = databases.getDatabase(this.name);
+		this.data = this.loadList();
 
 		let changeList = (tokenData, edits) => {
 			if (tokenData.list !== this.name || !(tokenData.permission || tokenData.user)) return;
@@ -91,7 +55,7 @@ class WifiList {
 				Connection.send(`${WIFI_ROOM}|/modnote ${tokenData.user} updated ${i}'s ${this.name.slice(0, -1)} info.`);
 			}
 
-			databases.writeDatabase(this.name);
+			this.writeList();
 		};
 
 		let parseQuery = (tokenData, queryData) => {
@@ -189,7 +153,7 @@ class WifiList {
 	removeUser(user, target) {
 		if (!(target in this.data)) return "User is not on the " + this.name.slice(0, -1) + " list.";
 		delete this.data[target];
-		databases.writeDatabase(this.name);
+		this.writeList();
 		Connection.send(WIFI_ROOM + '|/modnote ' + user + ' deleted ' + target + ' from the ' + this.name.slice(0, -1) + ' list.');
 		return "User successfully removed.";
 	}
@@ -209,7 +173,7 @@ class WifiList {
 			this.data[userid][key] = value;
 		}
 
-		databases.writeDatabase(this.name);
+		this.writeList();
 		Connection.send(WIFI_ROOM + '|/modnote ' + user + ' updated ' + (toId(user) === userid ? 'their' : userid + "'s'") + ' ' + this.name.slice(0, -1) + ' info.');
 		return "User successfully updated.";
 	}
@@ -223,9 +187,43 @@ class WifiList {
 			}
 		}
 		removed.forEach(userid => delete this.data[userid]);
-		databases.writeDatabase(this.name);
+		this.writeList();
 		return removed;
 	}
+
+	loadList() {
+		let users = Object.create(null);
+		let data;
+		try {
+			data = fs.readFileSync(this.file);
+		} catch (e) {
+			return;
+		}
+		data = ('' + data).split("\n");
+		for (let i = 0; i < data.length; i++) {
+			if (!data[i] || data[i] === '\r') continue;
+			let row = data[i].trim().split("\t");
+			if (row[0] === this.columnNames[0]) continue;
+
+			let userid = toId(row[0]);
+			users[userid] = {};
+			for (let i = 0; i < this.columnKeys.length; i++) {
+				users[userid][this.columnKeys[i]] = row[i];
+			}
+		}
+
+		return users;
+	}
+
+	writeList() {
+		let toWrite = this.columnNames.join('\t') + "\n";
+		for (let i in this.data) {
+			let values = [];
+			for (let j in this.data[i]) values.push(this.data[i][j]);
+			toWrite += values.join('\t') + '\n';
+		}
+		fs.writeFileSync(this.file, toWrite);
+	};
 }
 
 const clonerList = new WifiList('cloners', './data/cloners.tsv', ['PS Username', 'Friend code', 'IGN', 'Notes', 'Date of last giveaway'], ['username', 'fc', 'ign', 'notes']);
@@ -303,7 +301,7 @@ module.exports = {
 				let targetId = toId(message);
 				if (!(targetId in clonerList.data)) return this.reply("User is not on the cloner list.");
 				clonerList.data[targetId].date = Date.now();
-				databases.writeDatabase('cloners');
+				clonerList.writeList();
 
 				Connection.send(`${WIFI_ROOM}|/modnote ${this.username} has approved ${targetId}'s cloner giveaway.`);
 
@@ -374,11 +372,11 @@ module.exports = {
 
 					clonerList.data[user].date = flag;
 
-					databases.writeDatabase('cloners');
+					clonerList.writeList();
 					Connection.send(`${WIFI_ROOM}|/modnote ${user}'s cloner flag was set to ${flag} by ${this.username}.`);
 				} else {
 					clonerList.data[user].date = Date.now();
-					databases.writeDatabase('cloners');
+					clonerList.writeList();
 
 					Connection.send(`${WIFI_ROOM}|/modnote ${user}'s cloner flag was removed by ${this.username}.`);
 				}
@@ -468,7 +466,7 @@ module.exports = {
 				let targetId = toId(message);
 				if (!(targetId in trainerList.data)) return this.reply("User is not on the trainer list.");
 				trainerList.data[targetId].date = Date.now();
-				databases.writeDatabase('trainers');
+				trainerList.writeList();
 
 				Connection.send(`${WIFI_ROOM}|/modnote ${this.username} has approved ${targetId}'s EV training.`);
 
@@ -509,11 +507,11 @@ module.exports = {
 
 					trainerList.data[user].date = flag;
 
-					databases.writeDatabase('trainers');
+					trainerList.writeList();
 					Connection.send(`${WIFI_ROOM}|/modnote ${user}'s trainer flag was set to ${flag} by ${this.username}.`);
 				} else {
 					trainerList.data[user].date = Date.now();
-					databases.writeDatabase('trainers');
+					trainerList.writeList();
 
 					Connection.send(`${WIFI_ROOM}|/modnote ${user}'s trainer flag was removed by ${this.username}.`);
 				}
@@ -693,11 +691,11 @@ module.exports = {
 
 					scammerList.data[user].date = flag;
 
-					databases.writeDatabase('scammers');
+					scammerList.writeList();
 					Connection.send(`${WIFI_ROOM}|/modnote ${user}'s scammer flag was set to ${flag} by ${this.username}.`);
 				} else {
 					scammerList.data[user].date = Date.now();
-					databases.writeDatabase('scammers');
+					scammerList.writeList();
 
 					Connection.send(`${WIFI_ROOM}|/modnote ${user}'s scammer flag was removed by ${this.username}.`);
 				}
