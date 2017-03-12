@@ -26,15 +26,13 @@ module.exports = {
                 if (solution.split(' ').some(w => w.length > 20)) return this.pmreply("Each word in the phrase must be less than 20 characters.");
                 if (!/[a-zA-Z]/.test(solution)) return this.pmreply("Word must contain at least one letter.");
 
-                let output = solution;
+				await hangman.hmset(`${room}:${toId(solution)}`, 'solution', solution, 'addedBy', this.username);
 
                 if (hint && hint.length) {
                     hint = hint.join(',').trim();
                     if (hint.length > 150) return this.pmreply("Hint too long.");
-                    output += `, ${hint}`;
+                    await hangman.hset(`${room}:${solution}`, 'hint', hint);
                 }
-
-				await hangman.rpush(room, output);
 
 				this.reply("Word successfully added.");
 			},
@@ -52,15 +50,9 @@ module.exports = {
 				let solution = toId(message);
                 if (!(room && solution)) return this.pmreply("Syntax: ``.deletehangman room, solution``");
 
-                let words = await redis.getList(hangman, room);
-
-				for (let i = 0; i < words.length; i++) {
-                    let val = toId(words[i].split(',')[0]);
-                    if (solution === val) {
-                        if (await hangman.lrem(room, 0, words[i])) {
-                            return this.reply("Word successfully deleted.");
-                        }
-                    }
+                if (await hangman.exists(`${room}:${solution}`)) {
+                    await hangman.del(`${room}:${solution}`);
+                    return this.reply("Word successfully deleted.");
                 }
 
                 this.reply("Word not found.");
@@ -71,14 +63,37 @@ module.exports = {
 			disallowPM: true,
 			async action() {
 				if (await hangman.exists(this.room)) {
-					let words = await redis.getList(hangman, this.room);
+					let words = await hangman.keys('room:*');
 					let word = words[Math.floor(Math.random() * words.length)];
-					this.reply(`/hangman new ${word}`);
+                    let entry = await hangman.hgetall(word);
+					this.reply(`/hangman new ${entry.solution}, ${entry.hint}`);
                     return this.reply("/wall Use ``/guess`` to guess!");
 				}
 
 				return this.pmreply("This room has hangman words.");
 			},
 		},
+        checkhangman: {
+ 			async action(message) {
+                let room = this.room;
+
+                if (!room) {
+                    [room, message] = message.split(',');
+					if (!this.getRoomAuth(room)) return;
+				}
+
+				if (!(this.canUse(3))) return this.pmreply("Permission denied.");
+				let solution = toId(message);
+                if (!(room && solution)) return this.pmreply("Syntax: ``.checkhangman room, solution``");
+
+
+                if (await hangman.exists(`${room}:${solution}`)) {
+                    let addedBy = await hangman.hget(`${room}:${solution}`, 'addedBy');
+                    return this.reply(`This word was added by ${addedBy}.`);
+                }
+
+                this.reply("Word not found.");
+			},           
+        }
 	},
 };
