@@ -144,7 +144,7 @@ module.exports = {
 
 				if (len >= 10 && capsString && (capsString.length / len) >= 0.8) {
 					if (Config.checkIps) {
-						Handler.checkIp(userid, (userid, ips) => {
+						Handler.checkIp(this.userid, (userid, ips) => {
 							punish(userid, ips, this.room, 1, 'Do not abuse caps.');
 						});
 					} else {
