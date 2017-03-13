@@ -42,13 +42,12 @@ module.exports = {
 			let match;
 			while ((match = linkRegex.exec(message)) !== null) {
 					let host = match[1].replace(httpRegex, '');
-
 					this.data.hincrby(`links:${this.room}`, host, 1);
 			}
 		},
 
 		async display(room) {
-			let links = this.data.hgetall(`links:${room}`);
+			let links = await this.data.hgetall(`links:${room}`);
 
 			let output = '<h2>Websites linked:</h2><ul>';
 			for (let site in links) {

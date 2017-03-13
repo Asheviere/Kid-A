@@ -20,7 +20,7 @@ module.exports = {
 		},
 
 		async display(room) {
-			let profanities = this.data.hgetall(`profanities:${this.room}`);
+			let profanities = await this.data.hgetall(`profanities:${this.room}`);
 			return '<p>Percentage of words said that are swear words: ' + (profanities.count ? (profanities.count / profanities.total * 100) : 0) + '</p>';
 		},
 	},
