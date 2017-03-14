@@ -16,11 +16,11 @@ async function editQuotes(data, room) {
 
 	for (let i = 0; i < quotes.length; i++) {
 		if (toDelete && toDelete.includes(i.toString())) {
-			quotedata.lrem(room, 0, quotes[i]);
+			await quotedata.lrem(room, 0, quotes[i]);
 		}
 
 		if (toEdit && i in toEdit) {
-			quotedata.lset(room, i, toEdit[i]);
+			await quotedata.lset(room, i, toEdit[i]);
 		}
 	}
 }
@@ -79,7 +79,7 @@ module.exports = {
 					return this.reply("Quote is already added.");
 				}
 
-				await quotedata.lpush(this.room, message);
+				await quotedata.rpush(this.room, message);
 				return this.reply("Quote has been added.");
 			},
 		},
@@ -88,8 +88,6 @@ module.exports = {
 			permission: 2,
 			disallowPM: true,
 			async action(message) {
-				message = toId(message);
-
 				if (!message.length) return this.pmreply("Please enter a valid quote.");
 				if (!(await quotedata.exists(this.room))) return this.pmreply("This room has no quotes.");
 
