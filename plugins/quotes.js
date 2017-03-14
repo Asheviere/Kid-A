@@ -53,7 +53,10 @@ async function quoteResolver(req, res) {
 
 async function init() {
 	let rooms = await quotedata.keys('*');
-	rooms.forEach(room => server.addRoute('/' + room + '/quotes', quoteResolver));
+	for (let i = 0; i < rooms.length; i++) {
+		await server.addRoute(`/${rooms[i]}/quotes`, quoteResolver)
+	}
+	server.restart();
 }
 
 init();
