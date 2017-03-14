@@ -51,17 +51,13 @@ async function quoteResolver(req, res) {
 	res.end(server.renderTemplate('quotes', {room: room, data: quotes}));
 }
 
-async function init() {
-	let rooms = await quotedata.keys('*');
-	for (let i = 0; i < rooms.length; i++) {
-		await server.addRoute(`/${rooms[i]}/quotes`, quoteResolver)
-	}
-	server.restart();
-}
-
-init();
-
 module.exports = {
+	async init() {
+		let rooms = await quotedata.keys('*');
+		for (let i = 0; i < rooms.length; i++) {
+			server.addRoute(`/${rooms[i]}/quotes`, quoteResolver);
+		}
+	},
 	commands: {
 		quote: {
 			permission: 2,

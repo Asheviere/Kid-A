@@ -149,12 +149,15 @@ class ChatHandler {
 			return content + '</div></body></html>';
 		}
 
+		let inits = [];
+
 		fs.readdirSync('./plugins')
 			.filter((file) => file.endsWith('.js') && !Config.blacklistedPlugins.has(file.slice(0, -3)))
 			.forEach((file) => {
 				let plugin = require('./plugins/' + file);
 				let name = file.slice(0, -3);
 				this.plugins[name] = plugin;
+				if (plugin.init) inits.push(plugin.init());
 				if (plugin.analyzer) this.analyzers[name] = plugin.analyzer;
 				if (plugin.commands) {
 					Object.keys(plugin.commands).forEach((c) => {
@@ -170,7 +173,6 @@ class ChatHandler {
 
 		analytics.keys('*').then(keys => {
 			let rooms = new Set();
-			let atLeastOne = false;
 
 			for (let i = 0; i < keys.length; i++) {
 				let split = keys[i].split(':');
@@ -179,15 +181,12 @@ class ChatHandler {
 					if (!rooms.has(room)) {
 						rooms.add(room);
 						server.addRoute(`/${room}/data`, this.dataResolver);
-						atLeastOne = true;
 					}
 				}
 			}
-
-			if (atLeastOne) {
-				server.restart();
-			}
 		});
+
+		Promise.all(inits).then(() => server.restart());
 	}
 
 	async parse(userstr, room, message) {
