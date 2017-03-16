@@ -91,7 +91,7 @@ module.exports = {
 				if (!message.length) return this.pmreply("Please enter a valid quote.");
 				if (!(await quotedata.exists(this.room))) return this.pmreply("This room has no quotes.");
 
-				if (await quotedata.lrem(this.room, 0, message)) {
+				if (await quotedata.lrem(this.room, 0, message.trim())) {
 					this.reply("Quote deleted");
 				} else {
 					this.reply("Quote not found.");
