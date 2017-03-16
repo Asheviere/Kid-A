@@ -7,6 +7,9 @@ const redis = require('./redis.js');
 
 const analytics = redis.useDatabase('analytics');
 
+const COMMAND_TOKEN = Config.commandSymbol || '.';
+const COMMAND_REGEX = new RegExp(`^${".^$*+?()[{\\|-]".includes(COMMAND_TOKEN) ? '\\' : ''}${COMMAND_TOKEN}[\\w]+\\b`, "ig");
+
 function sendPM(userid, message) {
 	Connection.send(`|/pm ${userid}, ${message}`);
 }
@@ -190,7 +193,7 @@ class ChatHandler {
 	}
 
 	async parse(userstr, room, message) {
-		if (message[0] === (Config.commandSymbol || '.')) {
+		if (COMMAND_REGEX.test(message)) {
 			this.parseCommand(userstr, room, message);
 		} else if (room) {
 			this.analyze(userstr, room, message);
