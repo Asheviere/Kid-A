@@ -31,8 +31,6 @@ class ChatLogger {
 
         let key = `${room}:${userid}:${leftpad(date.getUTCDate())}:${leftpad(date.getUTCMonth() + 1)}:${leftpad(date.getUTCHours())}:${leftpad(date.getMinutes())}:${leftpad(date.getSeconds())}`
 
-        console.log(`Logging '${key}': ${message}`)
-
         if (await this.logs.exists(key)) {
             this.logs.append(key, `\t${message}`);
         } else {
