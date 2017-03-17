@@ -44,6 +44,7 @@ global.forceQuit = msg => {
 };
 
 global.Config = require('./config.js');
+global.ChatLogger = require('./chat-logger.js');
 global.Handler = require('./handler.js');
 
 // After bootstrapping our databases, start serving our public data over

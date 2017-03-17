@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>{{room}} - Kid A</title>
+	</head>
+	
+	<body>
+		<div class="container">
+			{{#if data}}
+				<h1>Line count for {{user}} in {{room}} :</h1>
+				{{#each data}}				
+						<p><strong>{{@key}}</strong>: {{this}}</p>
+				{{/each}}
+				<h2>Total line count: {{total}}</h2>
+			{{else}}
+				<h2>This user has no lines in the past month.</h2>
+			{{/if}}
+		</div>
+	</body>
+</html>

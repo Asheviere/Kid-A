@@ -162,7 +162,9 @@ module.exports = {
 			break;
 		case 'c:':
 			if (toId(split[3]) === this.userid) return;
-			this.chatHandler.parse(split[3], roomid, split.splice(4).join('|'));
+			let msg = split.splice(4).join('|');
+			ChatLogger.log(split[2], roomid, toId(split[3]), msg);
+			this.chatHandler.parse(split[3], roomid, msg);
 			break;
 		case 'html':
 			let html = cheerio.load(split.slice(2).join('|'));
