@@ -103,7 +103,7 @@ module.exports = {
 			action(message) {
 				let room = this.room || message;
 				if (!room) return;
-				if (!(room in this.userlists)) return this.pmreply(`The bot isn't in the room '${this.room}'.`);
+				if (!(room in this.userlists)) return this.pmreply(`The bot isn't in the room '${room}'.`);
 				if (!this.getRoomAuth(room)) return;
 				if (!this.canUse(5)) return this.pmreply("Permission denied.");
 
