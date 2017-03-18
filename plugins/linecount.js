@@ -89,4 +89,12 @@ module.exports = {
             }
         },
 	},
+    analyzer: {
+        async display(room) {
+			let linecount = await ChatLogger.getRoomActivity(room);
+			output = `<h3>Average lines of chat per hour of the day (Times are GMT):</h3><ul>`;
+            output += linecount.map(val => `<li><b>${val[0]}:00</b>: ${Math.ceil(val[1] / 30)}</li>`).join('');
+            return output + `</ul>`;
+		},
+    }
 };

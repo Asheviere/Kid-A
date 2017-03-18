@@ -187,6 +187,8 @@ class ChatHandler {
 					}
 				}
 			}
+
+			server.restart();
 		});
 
 		Promise.all(inits).then(() => server.restart());
@@ -219,6 +221,7 @@ class ChatHandler {
 		let restartNeeded = !(await analytics.keys(`*:${room}`)).length;
 		let wrapper = new AnalyzerWrapper(this.userlists, this.settings, this.options);
 		for (let i in this.analyzers) {
+			if (!this.analyzers[i].parser) continue;
 			wrapper.run(this.analyzers[i], userstr, room, message);
 		}
 		restartNeeded = restartNeeded && (await analytics.keys(`*:${room}`)).length;
