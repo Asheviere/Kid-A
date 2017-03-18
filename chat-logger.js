@@ -68,8 +68,15 @@ class ChatLogger {
         return output;        
     }
 
-    async getUserActivity(room) {
-        let keys = await this.logs.keys(`${room}:*`);
+    async getUserActivity(room, day) {
+        let keys;
+        
+        if (day) {
+            keys = await this.logs.keys(`${room}:*:${new Date(Date.now()).getUTCDate()}:*`);
+        } else {
+            keys = await this.logs.keys(`${room}:*`);
+        }
+
         let output = {};
 
         for (let i = 0; i < keys.length; i++) {

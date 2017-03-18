@@ -73,19 +73,26 @@ module.exports = {
         topusers: {
             async action(message) {
                 let room = this.room;
+                let day = false;
                 if (!room) {
+                    if (message.includes(',')) {
+                        [message, day] = message.split(',');
+                        if (toId(day) !== 'day') day = false;
+                    }
                     room = toId(message);
                     if (!room) return this.pmreply("Syntax: ``.topusers room``");
 					if (!this.getRoomAuth(room)) return;
-				}
+				} else {
+                    if (toId(message) === 'day') day = true;
+                }
 
 				if (!(this.canUse(4))) return this.pmreply("Permission denied.");
 
-                let linecount = await ChatLogger.getUserActivity(room);
+                let linecount = await ChatLogger.getUserActivity(room, day);
 
                 if (!linecount.length) return this.reply("This room has no activity.");
 
-                return this.reply(`Top 5 most active chatters in ${room}: ${linecount.slice(0, 5).map(val => `${val[0]} (${val[1]})`).join(', ')}`);
+                return this.reply(`Top 5 most active chatters in ${room}${day ? ' today' : ''}: ${linecount.slice(0, 5).map(val => `${val[0]} (${val[1]})`).join(', ')}`);
             }
         },
 	},
