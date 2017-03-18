@@ -77,13 +77,13 @@ module.exports = {
                 if (!room) {
                     if (message.includes(',')) {
                         [message, day] = message.split(',');
-                        if (toId(day) !== 'day') day = false;
+                        if (toId(day) !== 'day' && toId(day) !== 'today') day = false;
                     }
                     room = toId(message);
                     if (!room) return this.pmreply("Syntax: ``.topusers room``");
 					if (!this.getRoomAuth(room)) return;
 				} else {
-                    if (toId(message) === 'day') day = true;
+                    if (toId(message) === 'day' || toId(message) === 'today') day = true;
                 }
 
 				if (!(this.canUse(4))) return this.pmreply("Permission denied.");
