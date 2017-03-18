@@ -101,7 +101,7 @@ module.exports = {
 		settings: {
 			hidden: true,
 			action(message) {
-				let room = this.room || message;
+				let room = this.room || toId(message);
 				if (!room) return;
 				if (!(room in this.userlists)) return this.pmreply(`The bot isn't in the room '${room}'.`);
 				if (!this.getRoomAuth(room)) return;
