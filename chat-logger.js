@@ -67,6 +67,23 @@ class ChatLogger {
 
         return output;        
     }
+
+    async getUserActivity(room) {
+        let keys = await this.logs.keys(`${room}:*`);
+        let output = {};
+
+        for (let i = 0; i < keys.length; i++) {
+            let user = keys[i].split(':')[1];
+
+            if (user in output) {
+                output[user]++;
+            } else {
+                output[user] = 1;
+            }
+        }
+
+        return Object.entries(output).sort((a, b) => (a[1] > b[1] ? -1 : 1));
+    }
 }
 
 module.exports = new ChatLogger();

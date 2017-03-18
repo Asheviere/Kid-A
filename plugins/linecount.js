@@ -33,7 +33,6 @@ module.exports = {
     },
 	commands: {
 		linecount: {
-			permission: 2,
 			async action(message) {
 				let room = this.room;
                 let user;
@@ -71,5 +70,23 @@ module.exports = {
                 return this.reply(`Linecounts for ${user} in ${room}: ${server.url}${fname}`);
 			},
 		},
+        topusers: {
+            async action(message) {
+                let room = this.room;
+                if (!room) {
+                    room = toId(message);
+                    if (!room) return this.pmreply("Syntax: ``.topusers room``");
+					if (!this.getRoomAuth(room)) return;
+				}
+
+				if (!(this.canUse(4))) return this.pmreply("Permission denied.");
+
+                let linecount = await ChatLogger.getUserActivity(room);
+
+                if (!linecount.length) return this.reply("This room has no activity.");
+
+                return this.reply(`Top 5 most active chatters in ${room}: ${linecount.slice(0, 5).map(val => `${val[0]} (${val[1]})`).join(', ')}`);
+            }
+        },
 	},
 };
