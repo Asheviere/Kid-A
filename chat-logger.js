@@ -25,7 +25,7 @@ class ChatLogger {
 
     async log(timestamp, room, userid, message) {
         timestamp = parseInt(timestamp);
-        if (isNaN(timestamp)) return;
+        if (isNaN(timestamp) || !userid || !room) return;
 
         let date = new Date(timestamp * 1000);
 
