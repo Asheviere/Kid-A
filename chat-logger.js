@@ -108,6 +108,18 @@ class ChatLogger {
 
         return Object.entries(output).sort((a, b) => (parseInt(a[0]) > parseInt(b[0]) ? 1 : -1));
     }
+
+    async getUniqueUsers(room) {
+        let keys = await this.logs.keys(`${room}:*`);
+        let output = new Set();
+
+        for (let i = 0; i < keys.length; i++) {
+            let user = keys[i].split(':')[1];
+            output.add(user);
+        }
+
+        return output.size;
+    }
 }
 
 module.exports = new ChatLogger();
