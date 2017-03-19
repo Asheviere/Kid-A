@@ -1,7 +1,5 @@
 'use strict';
 
-const fs = require('fs');
-
 const redis = require('../redis.js');
 
 let userlists = redis.useDatabase('userlist');

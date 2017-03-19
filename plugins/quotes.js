@@ -1,7 +1,5 @@
 'use strict';
 
-const fs = require('fs');
-
 const server = require('../server.js');
 const redis = require('../redis.js');
 

@@ -133,7 +133,7 @@ module.exports = {
 							punish(this.userid, [this.userid], this.room, 1, 'Do not abuse bold.');
 						}
 						return;
-					} 
+					}
 				}
 			}
 

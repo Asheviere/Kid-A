@@ -41,8 +41,8 @@ module.exports = {
 		async parser(message) {
 			let match;
 			while ((match = linkRegex.exec(message)) !== null) {
-					let host = match[1].replace(httpRegex, '');
-					this.data.hincrby(`links:${this.room}`, host, 1);
+				let host = match[1].replace(httpRegex, '');
+				this.data.hincrby(`links:${this.room}`, host, 1);
 			}
 		},
 

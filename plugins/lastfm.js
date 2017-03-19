@@ -1,7 +1,5 @@
 'use strict';
 
-const fs = require('fs');
-
 const request = require('request');
 
 const redis = require('../redis.js');
@@ -210,3 +208,4 @@ module.exports = {
 		},
 	},
 };
+

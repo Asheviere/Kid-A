@@ -1,8 +1,6 @@
 'use strict';
 
-const fs = require('fs');
-
-const server = require('../server.js');
+const server = require('../server.js'); // eslint-disable-line no-unused-vars
 const redis = require('../redis.js');
 
 const WIFI_ROOM = 'wifi';

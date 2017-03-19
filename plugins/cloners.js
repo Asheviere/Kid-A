@@ -223,7 +223,7 @@ class WifiList {
 			toWrite += values.join('\t') + '\n';
 		}
 		fs.writeFileSync(this.file, toWrite);
-	};
+	}
 }
 
 const clonerList = new WifiList('cloners', './data/cloners.tsv', ['PS Username', 'Friend code', 'IGN', 'Notes', 'Date of last giveaway'], ['username', 'fc', 'ign', 'notes']);

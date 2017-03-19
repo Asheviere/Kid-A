@@ -136,7 +136,7 @@ class ChatHandler {
 			} else {
 				res.end(await this.generateDataPage(room));
 			}
-		}
+		};
 
 		this.generateDataPage = async room => {
 			let content = `<!DOCTYPE html><html><head><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="../style.css"><title>${room} - Kid A</title></head><body><div class="container">`;
@@ -150,7 +150,7 @@ class ChatHandler {
 				}
 			}
 			return content + '</div></body></html>';
-		}
+		};
 
 		let inits = [];
 
@@ -245,7 +245,7 @@ class ChatHandler {
 		if (disabled && disabled.includes(cmd)) return;
 
 		const wrapper = new CommandWrapper(this.userlists, this.settings, this.commands, this.options);
-		
+
 		let user = (!room && userstr[0] === ' ' ? '+' : userstr[0]) + username;
 		wrapper.run(cmd, user, room, words.join(' '));
 	}
@@ -264,3 +264,4 @@ module.exports = {
 		return new ChatHandler(userlists, settings);
 	},
 };
+

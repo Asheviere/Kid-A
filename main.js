@@ -49,7 +49,7 @@ global.Handler = require('./handler.js');
 
 // After bootstrapping our databases, start serving our public data over
 // HTTP/HTTPS.
-const server = require('./server.js');
+const server = require('./server.js'); // eslint-disable-line no-unused-vars
 
 // Finally, open the connection to the Pokemon Showdown server.
 global.Connection = null;
