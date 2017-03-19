@@ -26,7 +26,7 @@ module.exports = {
 				if (solution.split(' ').some(w => w.length > 20)) {
 					return this.pmreply("Each word in the phrase must be 20 characters or less.");
 				}
-				if (!/[^a-zA-Z]/.test(solution)) return this.pmreply("Word must contain at least one letter.");
+				if (!/[a-zA-Z]/.test(solution)) return this.pmreply("Word must contain at least one letter.");
 
 				await hangman.hmset(`${room}:${toId(solution)}`, 'solution', solution, 'addedBy', this.username);
 
