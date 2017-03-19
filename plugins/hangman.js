@@ -34,7 +34,7 @@ module.exports = {
 					hint = hint.join(',').trim();
 					if (hint.length > 150) return this.pmreply("The hint cannot exceed 150 characters.");
 
-					await hangman.hmset(`${room}:${toId(solution)}`, 'hint', hint);
+					await hangman.hset(`${room}:${toId(solution)}`, 'hint', hint);
 				}
 
 				return this.reply("Word successfully added.");
