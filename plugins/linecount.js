@@ -103,6 +103,8 @@ module.exports = {
             output += linecount.map(val => `<li><b>${val[0]}:00</b>: ${Math.ceil(val[1] / 30)}</li>`).join('');
             output += `</ul>`;
             output += `<h3>Total number of unique users in the past 30 days: <u>${await ChatLogger.getUniqueUsers(room)}</u></h3>`;
+
+            return output;
 		},
     }
 };
