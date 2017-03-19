@@ -206,7 +206,7 @@ class ChatHandler {
 				let autojoin = await redis.getList(this.settings, 'autojoin');
 
 				if (!(Config.rooms.includes(toJoin) || (autojoin && autojoin.includes(toJoin)))) {
-					if (!toJoin.includes('groupchat')) this.settings.rpush(toJoin);
+					if (!toJoin.includes('groupchat')) this.settings.rpush('autojoin', toJoin);
 					Connection.send(`|/join ${toJoin}`);
 					Connection.send(`|/pm ${userstr.substr[1]}, For an introduction on how to use Kid A in your room, see ${server.url}intro.html`);
 					return;
