@@ -29,18 +29,22 @@ module.exports = {
 			},
 		},
 		data: {
-			permission: 1,
 			async action() {
 				console.log(await ChatLogger.getUserLogs('wifi', 'kida'));
 				if ((await this.data.keys(`*:${this.room}`)).length) {
 					let fname = `${this.room}/data`;
 					if (Config.privateRooms.has(this.room)) {
+						if (!this.canUse(1)) return this.pmreply("Permission denied.");
 						let data = {};
 						data[this.room] = true;
 						let token = server.createAccessToken(data, 15);
 						fname += `?token=${token}`;
 					}
-					return this.reply(`Chat data: ${server.url}${fname}`);
+					if (this.canUse(1)) {
+						return this.reply(`Chat data: ${server.url}${fname}`);
+					} else {
+						return this.pmreply(`Chat data: ${server.url}${fname}`);
+					}
 				}
 
 				return this.reply("This room has no data.");
