@@ -29,7 +29,7 @@ module.exports = {
 				if (isNaN(tsv) || tsv < 0 || tsv > 4095) return this.pmreply("Invalid value for TSV, should be between 0 and 4096");
 				tsv = toTSV(tsv);
 
-				await tsvs.set(name, tsv);
+				await tsvs.append(name, tsv);
 
 				Connection.send(`${WIFI_ROOM}|/modnote ${this.username} added a TSV for ${name}: ${tsv}`);
 				this.reply("TSV successfully added.");
@@ -60,20 +60,31 @@ module.exports = {
 			async action(message) {
 				if (!message) return;
 
-				let tsv = parseInt(message);
-				if (isNaN(tsv) || tsv < 0 || tsv > 4095) return this.pmreply("Invalid value for TSV, should be between 0 and 4096");
-				tsv = toTSV(tsv);
+				let input = message.split(',').map(val => parseInt(val.trim()));
+				if (input.some(tsv => isNaN(tsv) || tsv < 0 || tsv > 4095)) return this.pmreply("Invalid value for TSV, should be between 0 and 4096");
+				input = input.map(tsv => toTSV(tsv));
 
-				let matches = [];
+				let matches = {};
 
 				let keys = await tsvs.keys('*');
 
 				for (let i = 0; i < keys.length; i++) {
-					if ((await tsvs.get(keys[i])) === tsv) matches.push(keys[i]);
+					let entry = await tsvs.get(keys[i]);
+
+					for (let j = 0; j < entry.length; j += 4) {
+						let tsv = entry.slice(j, j + 4);
+
+						if (input.includes(tsv)) {
+							if (!matches[tsv]) matches[tsv] = [];
+							matches[tsv].push(keys[i]);
+						}
+					}
 				}
 
-				if (matches.length) {
-					return this.reply(`This TSV belongs to ${matches.join(', ')}.`);
+				if (Object.keys(matches).length) {
+					let output = "Found matches: ";
+					output += Object.keys(matches).map(i => `${matches[i].join(', ')} (${i})`).join(', ');
+					return this.reply(output);
 				}
 
 				return this.reply("No matches found.");
