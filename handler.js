@@ -93,7 +93,8 @@ module.exports = {
 		if (!this.extraJoin) return;
 		if (remove) {
 			let idx = this.extraJoin.indexOf(remove);
-			if (idx > -1) this.extraJoin.splice(idx, 1);
+			if (idx < 0) return; 
+			this.extraJoin.splice(idx, 1);
 		}
 		if (!this.extraJoin.length) return;
 
