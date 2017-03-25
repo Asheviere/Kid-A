@@ -63,7 +63,7 @@ module.exports = {
 				let data = {};
 				data.room = room;
 				let token = server.createAccessToken(data, 15);
-				fname += `?token=${token}&user=${user}`;
+				fname += `?token=${token}&user=${toId(user)}`;
 
 				if (!rooms.includes(room)) {
 					let currentRooms = await ChatLogger.getRooms();
