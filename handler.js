@@ -94,7 +94,7 @@ module.exports = {
 		if (remove) this.extraJoin.splice(this.extraJoin.indexOf(remove), 1);
 		if (!this.extraJoin.length) return;
 
-		Connection.send(`|/join ${this.extraJoin[0]}`);
+		setTimeout(() => Connection.send(`|/join ${this.extraJoin[0]}`), 500);
 	},
 
 	async parse(message) {
