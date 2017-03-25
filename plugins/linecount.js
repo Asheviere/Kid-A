@@ -15,8 +15,18 @@ async function linecountResolver(req, res) {
 		if (!user) return res.end('No user specified.');
 
 		let linecount = await ChatLogger.getLineCount(room, toId(user));
+		let keys = Object.keys(linecount).sort((a, b) => {
+			let [day1, month1] = a.split('/').map(val => parseInt(val));
+			let [day2, month2] = b.split('/').map(val => parseInt(val));
+			if (month1 > month2) return 1;
+			if (month2 > month1) return -1;
+			if (day1 > day2) return 1;
+			return -1;
+		});
+		let lcdata = [];
+		keys.forEach(val => lcdata.push({date: val, linecount: linecount[val]}));
 		let total = Object.values(linecount).reduce((a, b) => a + b, 0);
-		return res.end(server.renderTemplate('linecount', {room: room, user: user, total: total, data: linecount}));
+		return res.end(server.renderTemplate('linecount', {room: room, user: user, total: total, data: lcdata}));
 	}
 	return res.end('Please attach an access token. (You should get one when you type .linecount <room>, <user>)');
 }

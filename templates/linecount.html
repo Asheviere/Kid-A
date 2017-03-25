@@ -12,7 +12,7 @@
 			{{#if data}}
 				<h1>Line count for {{user}} in {{room}} :</h1>
 				{{#each data}}				
-						<p><strong>{{@key}}</strong>: {{this}}</p>
+						<p><strong>{{this.date}}</strong>: {{this.linecount}}</p>
 				{{/each}}
 				<h2>Total line count: {{total}}</h2>
 			{{else}}

@@ -115,6 +115,10 @@ class Server {
 		this.site.use(path, resolver);
 	}
 
+	removeRoute(path) {
+		this.pages.delete(path);
+	}
+
 	// Adds other sorts of middleware to the router.
 	addMiddleware(middleware) {
 		this.site.use(middleware);
