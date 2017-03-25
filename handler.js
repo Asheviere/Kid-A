@@ -41,6 +41,8 @@ module.exports = {
 		Connection.send('|/autojoin ' + this.toJoin.slice(0, 11).join(','));
 		Connection.send('|/trn ' + Config.username + ',0,' + assertion);
 
+		this.extraJoin = this.toJoin.slice(11);
+
 		statusMsg('Setup done.');
 	},
 
@@ -87,6 +89,14 @@ module.exports = {
 		if (this.ipQueue[idx].resolver) return this.ipQueue.splice(idx, 1)[0].resolver(userid, ips);
 	},
 
+	async tryJoin(remove) {
+		if (!this.extraJoin) return;
+		if (remove) this.extraJoin.splice(this.extraJoin.indexOf(remove), 1);
+		if (!this.extraJoin.length) return;
+
+		Connection.send(`|/join ${this.extraJoin[0]}`);
+	},
+
 	async parse(message) {
 		if (!message) return;
 		let split = message.split('|');
@@ -127,11 +137,7 @@ module.exports = {
 			if (this.toJoin.length > 11) {
 				statusMsg('Joining additional rooms...');
 
-				for (let i = 11; i < this.toJoin.length; i++) {
-					setTimeout((_i) => {
-						Connection.send('|/join ' + this.toJoin[_i]);
-					}, (i - 11) * 600, i);
-				}
+				this.tryJoin();
 			}
 
 			break;
@@ -145,7 +151,11 @@ module.exports = {
 			this.addUser(split[2], roomid);
 			this.removeUser(split[3], roomid);
 			break;
+		case 'noinit':
+			this.tryJoin(roomid);
+			break;
 		case 'init':
+			this.tryJoin(roomid);
 			this.addUser(split[6].trim().split(',').slice(1), roomid);
 			break;
 		case 'pm':
