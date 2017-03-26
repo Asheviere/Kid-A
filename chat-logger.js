@@ -8,19 +8,17 @@ let leftpad = val => (val < 10 ? `0${val}`: val);
 
 class ChatLogger {
 	constructor() {
-		this.logs = redis.useDatabase('logs');
+		this.logs = {};
+
+		let tables = redis.tables.filter(val => val.startsWith('logs:'));
+		for (let i = 0; i < tables.length; i++) {
+			let room = tables[i].split(':')[1];
+			this.logs[room] = redis.useDatabase(tables[i]);
+		}
 	}
 
 	async getRooms() {
-		let keys = await this.logs.keys('*');
-		let rooms = [];
-
-		for (let i = 0; i < keys.length; i++) {
-			let roomid = keys[i].split(':')[0];
-			if (!rooms.includes(roomid)) rooms.push(roomid);
-		}
-
-		return rooms;
+		return Object.keys(this.logs);
 	}
 
 	async log(timestamp, room, userid, message) {
@@ -29,30 +27,36 @@ class ChatLogger {
 
 		let date = new Date(timestamp * 1000);
 
-		let key = `${room}:${userid}:${leftpad(date.getUTCDate())}:${leftpad(date.getUTCMonth() + 1)}:${leftpad(date.getUTCHours())}:${leftpad(date.getMinutes())}:${leftpad(date.getSeconds())}`;
+		let key = `${userid}:${leftpad(date.getUTCDate())}:${leftpad(date.getUTCMonth() + 1)}:${leftpad(date.getUTCHours())}:${leftpad(date.getMinutes())}:${leftpad(date.getSeconds())}`;
 
-		if (await this.logs.exists(key)) {
-			this.logs.append(key, `\t${message}`);
+		if (!(room in this.logs)) this.logs[room] = redis.useDatabase(`logs:${room}`);
+
+		if (await this.logs[room].exists(key)) {
+			this.logs[room].append(key, `\t${message}`);
 		} else {
-			await this.logs.set(key, message);
-			this.logs.pexpire(key, MONTH);
+			await this.logs[room].set(key, message);
+			this.logs[room].pexpire(key, MONTH);
 		}
 	}
 
 	async getUserLogs(room, userid) {
-		let keys = await this.logs.keys(`${room}:${userid}:*`);
+		if (!(room in this.logs)) return {};
+
+		let keys = await this.logs[room].keys(`${userid}:*`);
 		let output = {};
 
 		for (let i = 0; i < keys.length; i++) {
 			let [,, day, month, hour, minute] = keys[i].split(':');
-			output[`${day}/${month} ${hour}:${minute}`] = await this.logs.get(keys[i]);
+			output[`${day}/${month} ${hour}:${minute}`] = await this.logs[room].get(keys[i]);
 		}
 
 		return output;
 	}
 
 	async getLineCount(room, userid) {
-		let keys = await this.logs.keys(`${room}:${userid}:*`);
+		if (!(room in this.logs)) return {};
+
+		let keys = await this.logs[room].keys(`${userid}:*`);
 		let output = {};
 
 		for (let i = 0; i < keys.length; i++) {
@@ -69,12 +73,14 @@ class ChatLogger {
 	}
 
 	async getUserActivity(room, day) {
+		if (!(room in this.logs)) return [];
+
 		let keys;
 
 		if (day) {
-			keys = await this.logs.keys(`${room}:*:${new Date(Date.now()).getUTCDate()}:*`);
+			keys = await this.logs[room].keys(`*:${new Date(Date.now()).getUTCDate()}:*`);
 		} else {
-			keys = await this.logs.keys(`${room}:*`);
+			keys = await this.logs[room].keys(`*`);
 		}
 
 		let output = {};
@@ -93,7 +99,9 @@ class ChatLogger {
 	}
 
 	async getRoomActivity(room) {
-		let keys = await this.logs.keys(`${room}:*`);
+		if (!(room in this.logs)) return [];
+
+		let keys = await this.logs[room].keys(`*`);
 		let output = {};
 
 		for (let i = 0; i < keys.length; i++) {
@@ -110,7 +118,9 @@ class ChatLogger {
 	}
 
 	async getUniqueUsers(room) {
-		let keys = await this.logs.keys(`${room}:*`);
+		if (!(room in this.logs)) return 0;
+
+		let keys = await this.logs[room].keys(`*`);
 		let output = new Set();
 
 		for (let i = 0; i < keys.length; i++) {
