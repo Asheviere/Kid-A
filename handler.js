@@ -104,7 +104,7 @@ module.exports = {
 	async parse(message) {
 		if (!message) return;
 		let split = message.split('|');
-		let roomid = split[0].slice(1, -1) || 'lobby';
+		let roomid = toId(split[0].split('\n')[0]) || 'lobby';
 		switch (split[1]) {
 		case 'challstr':
 			statusMsg('Received challstr, logging in...');
