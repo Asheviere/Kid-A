@@ -30,7 +30,6 @@ module.exports = {
 		},
 		data: {
 			async action() {
-				console.log(await ChatLogger.getUserLogs('wifi', 'kida'));
 				if ((await this.data.keys(`*:${this.room}`)).length) {
 					let fname = `${this.room}/data`;
 					if (Config.privateRooms.has(this.room)) {
