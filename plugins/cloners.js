@@ -180,10 +180,23 @@ class WifiList {
 
 	purgeList() {
 		let removed = [];
-		let now = Date.now();
+
+		let now = new Date();
+		let year = now.getUTCFullYear();
+		let month = now.getUTCMonth();
+		if (!month) {
+			year--;
+			month = 11;
+		} else {
+			month--;
+		}
+
+		let limit = new Date(year, month, 1, 0, 0, 0, 0).getTime();
+
 		for (let i in this.data) {
-			if (parseInt(this.data[i].date)) {
-				if (now - this.data[i].date > MONTH) removed.push(i);
+			let date = parseInt(this.data[i].date);
+			if (!isNaN(date) && date < limit) {
+				removed.push(i);
 			}
 		}
 		removed.forEach(userid => delete this.data[userid]);

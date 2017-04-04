@@ -58,7 +58,7 @@ class ChatLogger {
 		for (let i = 0; i < users.length; i++) {
 			let user = users[i].split(':')[1];
 			let count = 0;
-			
+
 			if (day) {
 				let today = leftpad(new Date(Date.now()).getUTCDate());
 
