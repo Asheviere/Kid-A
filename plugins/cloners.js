@@ -159,6 +159,8 @@ class WifiList {
 	}
 
 	updateUser(user, params) {
+		if (params.length < 2) return "Invalid number of arguments provided.";
+
 		let userid = toId(params[0]);
 		for (let i = 1; i < params.length; i++) {
 			let [key, ...values] = params[i].split(':');
