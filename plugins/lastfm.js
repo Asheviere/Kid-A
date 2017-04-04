@@ -58,7 +58,7 @@ module.exports = {
 							msg += accountname;
 						}
 						if (track['@attr'] && track['@attr'].nowplaying) {
-							msg += " is now listening to: ";
+							msg += " is currently listening to: ";
 						} else {
 							msg += " was last seen listening to: ";
 						}
