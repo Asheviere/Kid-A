@@ -94,7 +94,7 @@ class ChatLogger {
 					output[hour] = parseInt(userlogs[time]);
 				}
 			}
-		}	
+		}
 
 		return Object.entries(output).sort((a, b) => (parseInt(a[0]) > parseInt(b[0]) ? 1 : -1));
 	}

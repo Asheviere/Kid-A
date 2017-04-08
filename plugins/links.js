@@ -49,9 +49,11 @@ module.exports = {
 		async display(room) {
 			let links = await this.data.hgetall(`links:${room}`);
 
-			let output = '<h2>Websites linked:</h2><ul>';
-			for (let site in links) {
-				output += `<li>${site}:\t${links[site]} times.</li>`;
+			let sorted = Object.entries(links).sort((a, b) => (parseInt(a[1]) > parseInt(b[1]) ? -1 : 1));
+
+			let output = '<h2>Top 20 websites linked:</h2><ul>';
+			for (let i = 0; i < 20 && i < sorted.length; i++) {
+				output += `<li>${sorted[i][0]}:\t${sorted[i][1]} times.</li>`;
 			}
 			output += '</ul>';
 			return output;
