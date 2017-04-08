@@ -51,8 +51,8 @@ module.exports = {
 
 			let sorted = Object.entries(links).sort((a, b) => (parseInt(a[1]) > parseInt(b[1]) ? -1 : 1));
 
-			let output = '<h2>Top 20 websites linked:</h2><ul>';
-			for (let i = 0; i < 20 && i < sorted.length; i++) {
+			let output = '<h2>Top 25 websites linked:</h2><ul>';
+			for (let i = 0; i < 25 && i < sorted.length; i++) {
 				output += `<li>${sorted[i][0]}:\t${sorted[i][1]} times.</li>`;
 			}
 			output += '</ul>';
