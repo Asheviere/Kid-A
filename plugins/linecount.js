@@ -26,7 +26,8 @@ async function linecountResolver(req, res) {
 		let lcdata = [];
 		keys.forEach(val => lcdata.push({date: val, linecount: linecount[val]}));
 		let total = Object.values(linecount).reduce((a, b) => a + b, 0);
-		return res.end(server.renderTemplate('linecount', {room: room, user: user, total: total, data: lcdata}));
+		let seen = await ChatLogger.getLastSeen(user);
+		return res.end(server.renderTemplate('linecount', {room: room, user: user, total: total, data: lcdata, seen: seen}));
 	}
 	return res.end('Please attach an access token. (You should get one when you type .linecount <room>, <user>)');
 }

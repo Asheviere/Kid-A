@@ -14,9 +14,12 @@
 				{{#each data}}				
 						<p><strong>{{this.date}}</strong>: {{this.linecount}}</p>
 				{{/each}}
-				<h2>Total line count: {{total}}</h2>
+				<h3>Total line count: {{total}}</h3>
 			{{else}}
 				<h2>This user has no lines in the past month.</h2>
+			{{/if}}
+			{{#if seen}}
+				<h3>Last seen: {{parse_duration seen}} ago</h3>
 			{{/if}}
 		</div>
 	</body>

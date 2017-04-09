@@ -9,6 +9,7 @@ let leftpad = val => (val < 10 ? `0${val}`: val);
 class ChatLogger {
 	constructor() {
 		this.logs = redis.useDatabase('logs');
+		this.seen = redis.useDatabase('seen');
 
 		this.rooms = [];
 
@@ -20,17 +21,20 @@ class ChatLogger {
 		});
 	}
 
-	async log(timestamp, room, userid, message) {
+	async log(timestamp, room, userid) {
 		timestamp = parseInt(timestamp);
 		if (isNaN(timestamp) || !userid || !room) return;
 
-		let date = new Date(timestamp * 1000);
+		timestamp = timestamp * 1000;
+		let date = new Date(timestamp);
 
 		let key = `${leftpad(date.getUTCDate())}:${leftpad(date.getUTCMonth() + 1)}:${leftpad(date.getUTCHours())}:${leftpad(date.getMinutes())}:${leftpad(date.getSeconds())}`;
 
 		if (!(this.rooms.includes(room))) this.rooms.push(room);
 
 		this.logs.hincrby(`${room}:${userid}`, key, 1);
+
+		if (!Config.privateRooms.has(room)) this.seen.set(userid, timestamp);
 	}
 
 	async getLineCount(room, userid) {
@@ -101,6 +105,10 @@ class ChatLogger {
 
 	async getUniqueUsers(room) {
 		return (await this.logs.keys(`${room}*`)).length;
+	}
+
+	async getLastSeen(userid) {
+		return (await this.seen.get(userid));
 	}
 }
 
