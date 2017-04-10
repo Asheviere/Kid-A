@@ -4,7 +4,7 @@ const redis = require('./redis.js');
 
 const MONTH = 30 * 24 * 60 * 60 * 1000;
 
-let leftpad = val => (val < 10 ? `0${val}`: val);
+let leftpad = val => (val < 10 ? `0${val}`: `${val}`);
 
 class ChatLogger {
 	constructor() {
