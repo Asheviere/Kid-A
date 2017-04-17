@@ -1,10 +1,66 @@
 'use strict';
 
+const server = require('../server.js');
 const redis = require('../redis.js');
 
 let userlists = redis.useDatabase('userlist');
 
+server.addTemplate('userlist', 'userlist.html');
+
+async function userlistResolver(req, res) {
+	let room = req.originalUrl.split('/')[1];
+
+	let users = await userlists.keys(`${room}:*`);
+
+	let keys = ['username'];
+	let data = [];
+
+	for (let i = 0; i < users.length; i++) {
+		let userinfo = await userlists.hgetall(users[i]);
+		let output = {username: users[i].split(':')[1]};
+
+		field: for (let j in userinfo) {
+			output[toId(j)] = userinfo[j];
+
+			for (let k = 0; k < keys.length; k++) {
+				if (toId(keys[k]) === toId(j)) continue field;
+			}
+			keys.push(j);
+		}
+
+		data.push(output);
+	}
+
+	data = data.map(entry => {
+		let output = [];
+
+		for (let i = 0; i < keys.length; i++) {
+			if (toId(keys[i]) in entry) {
+				output.push(entry[toId(keys[i])]);
+			} else {
+				output.push('');
+			}
+		}
+
+		return output;
+	});
+
+	res.end(server.renderTemplate('userlist', {room: room, columnNames: keys, entries: data}));
+}
+
+let rooms = new Set();
+
 module.exports = {
+	async init() {
+		let keys = await userlists.keys('*');
+		for (let i = 0; i < keys.length; i++) {
+			let room = keys[i].split(":")[0];
+			if (!rooms.has(room)) {
+				rooms.add(room);
+				server.addRoute(`/${room}/userlist`, userlistResolver);
+			}
+		}
+	},
 	commands: {
 		addinfo: {
 			permission: 2,
@@ -30,6 +86,13 @@ module.exports = {
 
 				for (let key in info) {
 					await userlists.hset(`${this.room}:${userid}`, key, info[key]);
+				}
+
+				if (!rooms.has(this.room)) {
+					rooms.add(this.room);
+					server.addRoute(`/${this.room}/userlist`, userlistResolver);
+					// Wait 500ms to make sure everything's ready.
+					setTimeout(() => server.restart(), 500);
 				}
 
 				return this.reply('Info successfully added.');
@@ -99,6 +162,27 @@ module.exports = {
 				}
 
 				return this.reply("Field not found.");
+			},
+		},
+
+		userlist: {
+			permission: 1,
+			async action(message) {
+				let room = this.room;
+				if (!room) {
+					if (message) {
+						room = toId(message);
+					} else {
+						return this.pmreply("No room supplied.");
+					}
+				}
+				if (rooms.has(room)) {
+					let fname = `${room}/userlist`;
+
+					return this.reply(`Userlist: ${server.url}${fname}`);
+				}
+
+				return this.reply("This room has no userlist.");
 			},
 		},
 	},
