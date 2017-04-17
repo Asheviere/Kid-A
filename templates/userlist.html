@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="../style.css">
+        <title>{{room}} - Kid A</title>
+    </head>
+    
+    <body>
+        <div class="container">
+			<table>
+                <tr class="header">
+                    {{#each columnNames}}
+                        <th>{{this}}</th>
+                    {{/each}}
+                </tr>
+                {{#each entries}}
+                    <tr id="{{@index}}">
+                    
+                    {{#each this}}
+                        <td>
+                            {{this}}
+                        </td>
+                    {{/each}}
+
+                    </tr>
+                {{/each}}
+			</table>
+        </div>
+    </body>
+</html>
