@@ -40,7 +40,7 @@ async function checkMuted(roomid, userid) {
 	mutes.add(`${roomid}:${thisid}`);
 	setTimeout(() => mutes.delete(`${roomid}:${thisid}`), HOUR);
 
-	if (Config.checkIps) {
+	if (Config.checkIps && ips) {
 		for (let ip of ips) {
 			muted = mutedIps.has(`${roomid}:${ip}`) || muted;
 			mutedIps.add(`${roomid}:${ip}`);
