@@ -58,7 +58,7 @@ async function punish(username, room, val, msg) {
 
 	points += val;
 
-	if (points >= 3 && (await checkMuted(userid))) {
+	if (points >= 3 && (await checkMuted(room, userid))) {
 		return Connection.send(`${room}|/rb ${userid}, Bot moderation: repeated offenses.`);
 	}
 

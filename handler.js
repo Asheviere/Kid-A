@@ -20,7 +20,7 @@ module.exports = {
 
 	checkIp(userid) {
 		return new Promise((resolve, reject) => {
-			Connection.send('|/ip ' + userid);
+			Connection.send(`|/ip ${userid}`);
 			this.ipQueue.push({query: userid, resolve: resolve, reject: reject});
 		});
 	},
@@ -95,7 +95,7 @@ module.exports = {
 		if (!this.extraJoin) return;
 		if (remove) {
 			let idx = this.extraJoin.indexOf(remove);
-			if (idx < 0) return; 
+			if (idx < 0) return;
 			this.extraJoin.splice(idx, 1);
 		}
 		if (!this.extraJoin.length) return;
