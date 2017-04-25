@@ -77,17 +77,17 @@ module.exports = {
 		console: {
 			hidden: true,
 			permission: 6,
-			action() {
+			async action() {
 				if (Config.checkIps) {
-					Handler.checkIp(this.userid, (userid, ips) => {
-						let data = {console: true};
-						if (ips) data.ip = ips[0];
-						let token = server.createAccessToken(data, 15);
-						return this.pmreply(`Console output: ${server.url}console?token=${token}`);
-					});
+					let [userid, ips] = await Handler.checkIp(this.userid);
+
+					let data = {console: true};
+					if (ips) data.ip = ips[0];
+					let token = server.createAccessToken(data, 15);
+					this.pmreply(`Console output: ${server.url}console?token=${token}`);
 				} else {
 					let token = server.createAccessToken({console: true}, 15);
-					return this.pmreply(`Console output: ${server.url}console?token=${token}`);
+					this.pmreply(`Console output: ${server.url}console?token=${token}`);
 				}
 			},
 		},

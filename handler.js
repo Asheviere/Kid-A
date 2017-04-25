@@ -18,9 +18,11 @@ module.exports = {
 	userlists: userlists,
 	chatHandler: commandParser.new(userlists, settings),
 
-	checkIp(userid, resolver) {
-		Connection.send('|/ip ' + userid);
-		this.ipQueue.push({query: userid, resolver: resolver});
+	checkIp(userid) {
+		return new Promise((resolve, reject) => {
+			Connection.send('|/ip ' + userid);
+			this.ipQueue.push({query: userid, resolve: resolve, reject: reject});
+		});
 	},
 
 	async setup(assertion) {
@@ -86,7 +88,7 @@ module.exports = {
 		let idx = this.ipQueue.findIndex(elem => elem.query === userid);
 		if (idx < 0 && previousNames) idx = this.ipQueue.findIndex(elem => previousNames.includes(elem.query));
 		if (idx < 0) return;
-		if (this.ipQueue[idx].resolver) return this.ipQueue.splice(idx, 1)[0].resolver(userid, ips);
+		return this.ipQueue.splice(idx, 1)[0].resolve([userid, ips]);
 	},
 
 	async tryJoin(remove) {

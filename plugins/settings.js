@@ -100,7 +100,7 @@ module.exports = {
 	commands: {
 		settings: {
 			hidden: true,
-			action(message) {
+			async action(message) {
 				let room = this.room || toId(message);
 				if (!room) return;
 				if (!(room in this.userlists)) return this.pmreply(`The bot isn't in the room '${room}'.`);
@@ -110,15 +110,14 @@ module.exports = {
 				if (!this.settings[room]) this.settings[room] = {options: [], disabledCommands: []};
 
 				if (Config.checkIps) {
-					Handler.checkIp(this.userid, (userid, ips) => {
-						let data = {room: room, permission: 'settings'};
-						if (ips) data.ip = ips[0];
-						let token = server.createAccessToken(data, 15);
-						return this.pmreply(`Settings for room ${room}: ${server.url}settings/${room}?token=${token}`);
-					});
+					let [, ips] = await Handler.checkIp(this.userid);
+					let data = {room: room, permission: 'settings'};
+					if (ips) data.ip = ips[0];
+					let token = server.createAccessToken(data, 15);
+					this.pmreply(`Settings for room ${room}: ${server.url}settings/${room}?token=${token}`);
 				} else {
 					let token = server.createAccessToken({room: room, permission: 'settings'}, 15);
-					return this.pmreply(`Settings for room ${room}: ${server.url}settings/${room}?token=${token}`);
+					this.pmreply(`Settings for room ${room}: ${server.url}settings/${room}?token=${token}`);
 				}
 			},
 		},

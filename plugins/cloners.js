@@ -410,16 +410,15 @@ module.exports = {
 				if (!(permission || editSelf)) return this.pmreply("Permission denied.");
 
 				if (Config.checkIps) {
-					Handler.checkIp(this.userid, (userid, ips) => {
-						let data = {list: 'cloners'};
-						if (permission) {
-							data.permission = true;
-						}
-						data.user = this.userid;
-						if (ips) data.ip = ips[0];
-						let token = server.createAccessToken(data, 15);
-						return this.pmreply(`Edit link for the cloner list **DON'T SHARE THIS LINK**: ${server.url}${WIFI_ROOM}/cloners?token=${token}`);
-					});
+					let [, ips] = await Handler.checkIp(this.userid);
+					let data = {list: 'cloners'};
+					if (permission) {
+						data.permission = true;
+					}
+					data.user = this.userid;
+					if (ips) data.ip = ips[0];
+					let token = server.createAccessToken(data, 15);
+					this.pmreply(`Edit link for the cloner list **DON'T SHARE THIS LINK**: ${server.url}${WIFI_ROOM}/cloners?token=${token}`);
 				} else {
 					let data = {list: 'cloners'};
 					if (permission) {
@@ -427,7 +426,7 @@ module.exports = {
 					}
 					data.user = this.userid;
 					let token = server.createAccessToken(data, 15);
-					return this.pmreply(`Edit link for the cloner list **DON'T SHARE THIS LINK**: ${server.url}${WIFI_ROOM}/cloners?token=${token}`);
+					this.pmreply(`Edit link for the cloner list **DON'T SHARE THIS LINK**: ${server.url}${WIFI_ROOM}/cloners?token=${token}`);
 				}
 			},
 		},
@@ -575,16 +574,15 @@ module.exports = {
 				if (!(permission || editSelf)) return this.pmreply("Permission denied.");
 
 				if (Config.checkIps) {
-					Handler.checkIp(this.userid, (userid, ips) => {
-						let data = {list: 'trainers'};
-						if (permission) {
-							data.permission = true;
-						}
-						data.user = this.userid;
-						if (ips) data.ip = ips[0];
-						let token = server.createAccessToken(data, 15);
-						return this.pmreply(`Edit link for the trainer list **DON'T SHARE THIS LINK**: ${server.url}${WIFI_ROOM}/trainers?token=${token}`);
-					});
+					let [, ips] = await Handler.checkIp(this.userid);
+					let data = {list: 'trainers'};
+					if (permission) {
+						data.permission = true;
+					}
+					data.user = this.userid;
+					if (ips) data.ip = ips[0];
+					let token = server.createAccessToken(data, 15);
+					this.pmreply(`Edit link for the trainer list **DON'T SHARE THIS LINK**: ${server.url}${WIFI_ROOM}/trainers?token=${token}`);
 				} else {
 					let data = {list: 'trainers'};
 					if (permission) {
@@ -592,7 +590,7 @@ module.exports = {
 					}
 					data.user = this.userid;
 					let token = server.createAccessToken(data, 15);
-					return this.pmreply(`Edit link for the trainer list **DON'T SHARE THIS LINK**: ${server.url}${WIFI_ROOM}/trainers?token=${token}`);
+					this.pmreply(`Edit link for the trainer list **DON'T SHARE THIS LINK**: ${server.url}${WIFI_ROOM}/trainers?token=${token}`);
 				}
 			},
 		},

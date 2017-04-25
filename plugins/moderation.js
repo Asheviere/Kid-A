@@ -3,6 +3,9 @@
 const redis = require('../redis.js');
 const settings = redis.useDatabase('settings');
 
+const HOUR = 1000 * 60 * 60;
+const FIFTEEN_MINS = 1000 * 60 * 15;
+
 function getPunishment(val) {
 	switch (val) {
 	case 1:
@@ -18,59 +21,58 @@ function getPunishment(val) {
 	}
 }
 
-let punishments = {};
-let mutes = {};
-let muteTimers = {};
+let mutes = new Set();
+let mutedIps = new Set();
+let punishments = new Map();
 
-function punish(userid, ips, room, val, msg) {
-	if (!punishments[room]) punishments[room] = {};
-	if (!ips) ips = [userid];
-	let max = 0;
+async function checkMuted(roomid, userid) {
+	let thisid, ips;
 
-	for (let i = 0; i < ips.length; i++) {
-		max = val;
-		if (ips[i] in punishments[room]) {
-			punishments[room][ips[i]] += val;
-			if (punishments[room][ips[i]] > max) max = punishments[room][ips[i]];
-		} else {
-			punishments[room][ips[i]] = val;
-		}
-		setTimeout(() => {
-			punishments[room][ips[i]] -= val;
-			if (!punishments[room][ips[i]]) delete punishments[room][ips[i]];
-		}, 1000 * 60 * 15);
-	}
-
-	if (max === 1) {
-		Connection.send(room + '|' + userid + ', ' + msg);
+	if (Config.checkIps) {
+		[thisid, ips] = await Handler.checkIp(userid);
 	} else {
-		Connection.send(room + '|/' + getPunishment(max) + ' ' + userid + ', Bot moderation: ' + msg);
+		thisid = userid;
 	}
 
-	if (max >= 3 && Config.checkIps) {
-		if (!mutes[userid]) mutes[userid] = [];
-		if (!muteTimers[userid]) muteTimers[userid] = {};
-		if (mutes[userid].includes(room)) {
-			clearTimeout(muteTimers[userid][room]);
-		} else {
-			mutes[userid].push(room);
-		}
-		if (mutes[userid].length >= 3) {
-			Connection.send('staff|/l ' + userid + ', Bot moderation: Breaking chat rules in multiple rooms.');
-			Connection.send('staff|/modnote ' + userid + ' was locked for breaking chat rules in the following rooms: ' + mutes[userid].join(', '));
-			delete mutes[userid];
-			for (let j in muteTimers[userid]) {
-				clearTimeout(muteTimers[userid][j]);
-			}
-			delete muteTimers[userid];
-		} else {
-			muteTimers[userid][room] = setTimeout(() => {
-				delete muteTimers[userid][room];
-				mutes[userid].splice(mutes[userid].indexOf(room), 1);
-				if (!mutes[userid].length) delete mutes[userid];
-			}, 1000 * 60 * 15);
+	let muted = false;
+
+	muted = mutes.has(`${roomid}:${thisid}`) || muted;
+	mutes.add(`${roomid}:${thisid}`);
+	setTimeout(() => mutes.delete(`${roomid}:${thisid}`), HOUR);
+
+	if (Config.checkIps) {
+		for (let ip of ips) {
+			muted = mutedIps.has(`${roomid}:${ip}`) || muted;
+			mutedIps.add(`${roomid}:${ip}`);
+			setTimeout(() => mutedIps.delete(`${roomid}:${ip}`), HOUR);
 		}
 	}
+
+	return muted;
+}
+
+async function punish(username, room, val, msg) {
+	let userid = toId(username);
+
+	let points = punishments.has(`${room}:${userid}`) ? punishments.get(`${room}:${userid}`)[0] : 0;
+
+	points += val;
+
+	if (points >= 3 && (await checkMuted(userid))) {
+		return Connection.send(`${room}|/rb ${userid}, Bot moderation: repeated offenses.`);
+	}
+
+	if (points === 1) {
+		Connection.send(`${room}|${username}, ${msg}`);
+	} else {
+		Connection.send(`${room}|/${getPunishment(points)} ${userid}, Bot moderation: ${msg}`);
+	}
+
+	if (punishments.has(`${room}:${userid}`)) {
+		clearTimeout(punishments.get(`${room}:${userid}`)[1]);
+	}
+
+	punishments.set(`${room}:${userid}`, [points, setTimeout(() => punishments.delete(`${room}:${userid}`), FIFTEEN_MINS)]);
 }
 
 let buffers = {};
@@ -108,31 +110,17 @@ module.exports = {
 				}
 
 				if (msgs >= 5 || identical >= 3) {
-					if (Config.checkIps) {
-						Handler.checkIp(this.userid, (userid, ips) => {
-							punish(userid, ips, this.room, 2, 'Do not flood the chat.');
-						});
-					} else {
-						punish(this.userid, [this.userid], this.room, 2, 'Do not flood the chat.');
-					}
-					return;
+					punish(this.username, this.room, 2, 'Do not flood the chat.');
 				}
 			}
 
 			if (!(options && options.includes('allowbold'))) {
 				let boldString = message.match(/\*\*([^< ](?:[^<]*?[^< ])??)\*\*/g);
 				if (boldString) {
-					let len = toId(message).length;
+					let len = message.replace('*', '').length;
 					let boldLen = boldString.reduce((prev, cur) => prev + cur.length, 0);
 					if (boldLen >= 0.8 * len) {
-						if (Config.checkIps) {
-							Handler.checkIp(this.userid, (userid, ips) => {
-								punish(userid, ips, this.room, 1, 'Do not abuse bold.');
-							});
-						} else {
-							punish(this.userid, [this.userid], this.room, 1, 'Do not abuse bold.');
-						}
-						return;
+						punish(this.username, this.room, 1, 'Do not abuse bold.');
 					}
 				}
 			}
@@ -143,14 +131,7 @@ module.exports = {
 				let len = toId(message).length;
 
 				if (len >= 10 && capsString && (capsString.length / len) >= 0.8) {
-					if (Config.checkIps) {
-						Handler.checkIp(this.userid, (userid, ips) => {
-							punish(userid, ips, this.room, 1, 'Do not abuse caps.');
-						});
-					} else {
-						punish(this.userid, [this.userid], this.room, 1, 'Do not abuse caps.');
-					}
-					return;
+					punish(this.username, this.room, 1, 'Do not abuse caps.');
 				}
 			}
 
@@ -158,14 +139,7 @@ module.exports = {
 				let stretchString = message.replace(/ {2,}/g, ' ');
 
 				if (/(.)\1{7,}/gi.test(stretchString) || (/(..+)\1{4,}/gi.test(stretchString) && !/(\d+\/)+/gi.test(stretchString))) {
-					if (Config.checkIps) {
-						Handler.checkIp(this.userid, (userid, ips) => {
-							punish(userid, ips, this.room, 1, 'Do not stretch.');
-						});
-					} else {
-						punish(this.userid, [this.userid], this.room, 1, 'Do not stretch.');
-					}
-					return;
+					punish(this.username, this.room, 1, 'Do not stretch.');
 				}
 			}
 		},
