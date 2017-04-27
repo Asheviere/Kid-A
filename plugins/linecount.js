@@ -57,7 +57,7 @@ module.exports = {
 					if (!(user)) return this.pmreply("Syntax: ``.linecount user``");
 				}
 
-				if (!(this.canUse(4))) return this.pmreply("Permission denied.");
+				if (!(this.canUse(3))) return this.pmreply("Permission denied.");
 
 				let fname = `${room}/linecount`;
 
@@ -92,7 +92,7 @@ module.exports = {
 					day = true;
 				}
 
-				if (!(this.canUse(4))) return this.pmreply("Permission denied.");
+				if (!(this.canUse(3))) return this.pmreply("Permission denied.");
 
 				let linecount = await ChatLogger.getUserActivity(room, day);
 
