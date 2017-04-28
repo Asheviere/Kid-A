@@ -135,10 +135,16 @@ class WifiList {
 		for (let i = 0; i < this.columnKeys.length; i++) {
 			// Validate friend codes
 			if (this.columnKeys[i] === 'fc') {
-				if (!FC_REGEX.test(params[i])) return "Invalid formatting for Friend Code. format: ``1111-2222-3333``";
-				params[i] = toId(params[i]);
-				params[i] = params[i].substr(0, 4) + '-' + params[i].substr(4, 4) + '-' + params[i].substr(8, 4);
-				if (!utils.validateFc(params[i])) return "The Friend code you entered is invalid";
+				let split = params[i].split(',').map(param => param.trim());
+
+				for (let fc of split) {
+					if (!FC_REGEX.test(fc)) return "Invalid formatting for Friend Code. format: ``1111-2222-3333``";
+					fc = toId(fc);
+					fc = fc.substr(0, 4) + '-' + fc.substr(4, 4) + '-' + fc.substr(8, 4);
+					if (!utils.validateFc(fc)) return "The Friend code you entered is invalid";
+				}
+
+				params[i] = split.join(', ');
 			}
 			data[this.columnKeys[i]] = params[i];
 		}
@@ -171,6 +177,19 @@ class WifiList {
 
 			if (key === 'username' || key === 'date') return "This column can't be changed.";
 			if (!this.columnKeys.includes(key)) return `Invalid key: ${key}`;
+
+			if (key === 'fc') {
+				let split = value.split(',').map(param => param.trim());
+
+				for (let fc of split) {
+					if (!FC_REGEX.test(fc)) return "Invalid formatting for Friend Code. format: ``1111-2222-3333``";
+					fc = toId(fc);
+					fc = fc.substr(0, 4) + '-' + fc.substr(4, 4) + '-' + fc.substr(8, 4);
+					if (!utils.validateFc(fc)) return "The Friend code you entered is invalid";
+				}
+
+				value = split.join(', ');
+			}
 
 			this.data[userid][key] = value;
 		}
@@ -255,7 +274,7 @@ module.exports = {
 
 			// Autoban permabanned scammers
 			if (scammerList.data[user] && typeof(scammerList.data[user].date) === "string" && scammerList.data[user].date.startsWith("PERMA")) {
-				Connection.send(`${WIFI_ROOM}|/rb ${user}`);
+				Connection.send(`${WIFI_ROOM}|/rb ${user}, Permabanned scammer.`);
 			}
 
 			let now = Date.now();
@@ -663,7 +682,14 @@ module.exports = {
 
 				// Firstly, check the scammer list
 				for (let i in scammerList.data) {
-					if (scammerList.data[i].fc === fc) return this.reply(`This FC belongs to ${scammerList.data[i].username}, who was put on the list for '${scammerList.data[i].reason}'.`);
+					let split = scammerList.data[i].fc.split(',').map(param => param.trim());
+
+					for (let thisfc of split) {
+						if (thisfc === fc) {
+							this.reply(`This FC belongs to ${scammerList.data[i].username}, who is on the scammers list.`);
+							return this.reply(`Reason: ${scammerList.data[i].reason}`);
+						}
+					}
 				}
 
 				// Then, check all the other lists
