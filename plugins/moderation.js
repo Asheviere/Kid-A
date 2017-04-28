@@ -110,7 +110,7 @@ module.exports = {
 				}
 
 				if (msgs >= 5 || identical >= 3) {
-					punish(this.username, this.room, 2, 'Do not flood the chat.');
+					return punish(this.username, this.room, 2, 'Do not flood the chat.');
 				}
 			}
 
@@ -120,7 +120,7 @@ module.exports = {
 					let len = message.replace('*', '').length;
 					let boldLen = boldString.reduce((prev, cur) => prev + cur.length, 0);
 					if (boldLen >= 0.8 * len) {
-						punish(this.username, this.room, 1, 'Do not abuse bold.');
+						return punish(this.username, this.room, 1, 'Do not abuse bold.');
 					}
 				}
 			}
@@ -131,7 +131,7 @@ module.exports = {
 				let len = toId(message).length;
 
 				if (len >= 10 && capsString && (capsString.length / len) >= 0.8) {
-					punish(this.username, this.room, 1, 'Do not abuse caps.');
+					return punish(this.username, this.room, 1, 'Do not abuse caps.');
 				}
 			}
 
@@ -139,7 +139,7 @@ module.exports = {
 				let stretchString = message.replace(/ {2,}/g, ' ');
 
 				if (/(.)\1{7,}/gi.test(stretchString) || (/(..+)\1{4,}/gi.test(stretchString) && !/(\d+\/)+/gi.test(stretchString))) {
-					punish(this.username, this.room, 1, 'Do not stretch.');
+					return punish(this.username, this.room, 1, 'Do not stretch.');
 				}
 			}
 		},
