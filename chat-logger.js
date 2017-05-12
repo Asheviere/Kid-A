@@ -76,7 +76,7 @@ class ChatLogger {
 				if (options.time) {
 					let hour = leftpad(options.time);
 
-					keys = keys.filter(key => key.split(':')[1] === hour);
+					keys = keys.filter(key => key.split(':')[2] === hour);
 				}
 
 				for (let i = 0; i < keys.length; i++) {
