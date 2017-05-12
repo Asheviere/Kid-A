@@ -2,7 +2,7 @@
 
 const redis = require('./redis.js');
 
-const MONTH = 30 * 24 * 60 * 60 * 1000;
+const MONTH = 31 * 24 * 60 * 60 * 1000;
 
 let leftpad = val => (val < 10 ? `0${val}`: `${val}`);
 
@@ -68,9 +68,10 @@ class ChatLogger {
 				let keys = Object.keys(userlogs);
 
 				if (options.day) {
-					let today = leftpad(new Date(Date.now()).getUTCDate());
+					let today = leftpad(new Date().getUTCDate());
+					let thisMonth = leftpad(new Date().getUTCMonth() + 1);
 
-					keys = keys.filter(key => key.split(':')[0] === today);
+					keys = keys.filter(key => key.split(':')[0] === today && key.split(':')[1] === thisMonth);
 				}
 
 				if (options.time) {
