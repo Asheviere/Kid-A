@@ -54,7 +54,7 @@ class ChatLogger {
 		return output;
 	}
 
-	async getUserActivity(room, day) {
+	async getUserActivity(room, options) {
 		let users = await this.logs.keys(`${room}:*`);
 
 		let output = {};
@@ -63,14 +63,24 @@ class ChatLogger {
 			let user = users[i].split(':')[1];
 			let count = 0;
 
-			if (day) {
-				let today = leftpad(new Date(Date.now()).getUTCDate());
-
+			if (options) {
 				let userlogs = await this.logs.hgetall(users[i]);
+				let keys = Object.keys(userlogs);
 
-				for (let time in userlogs) {
-					let day = time.split(':')[0];
-					if (day === today) count += parseInt(userlogs[time]);
+				if (options.day) {
+					let today = leftpad(new Date(Date.now()).getUTCDate());
+
+					keys = keys.filter(key => key.split(':')[0] === today);
+				}
+
+				if (options.time) {
+					let hour = leftpad(options.time);
+
+					keys = keys.filter(key => key.split(':')[1] === hour);
+				}
+
+				for (let i = 0; i < keys.length; i++) {
+					count += parseInt(userlogs[keys[i]]);
 				}
 			} else {
 				count = await this.logs.hlen(users[i]);

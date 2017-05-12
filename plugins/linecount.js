@@ -79,26 +79,35 @@ module.exports = {
 		topusers: {
 			async action(message) {
 				let room = this.room;
-				let day = false;
+				let options = {};
+
+				let split = message.split(',').map(param => toId(param));
+
 				if (!room) {
-					if (message.includes(',')) {
-						[message, day] = message.split(',');
-						if (toId(day) !== 'day' && toId(day) !== 'today') day = false;
-					}
-					room = toId(message);
+					room = split.shift();
 					if (!room) return this.pmreply("Syntax: ``.topusers room``");
 					if (!this.getRoomAuth(room)) return;
-				} else if (toId(message) === 'day' || toId(message) === 'today') {
-					day = true;
+				}
+
+				for (let i = 0; i < split.length; i++) {
+					if (split[i] === 'day' || split[i] === 'today') {
+						options.day = true;
+					}
+
+					let hour = parseInt(split[i]);
+
+					if (!isNaN(hour) && hour >= 0 && hour < 24) {
+						options.time = hour;
+					}
 				}
 
 				if (!(this.canUse(3))) return this.pmreply("Permission denied.");
 
-				let linecount = await ChatLogger.getUserActivity(room, day);
+				let linecount = await ChatLogger.getUserActivity(room, options);
 
 				if (!linecount.length) return this.reply("This room has no activity.");
 
-				return this.reply(`Top 5 most active chatters in ${room}${day ? ' today' : ''}: ${linecount.slice(0, 5).map(val => `${val[0]} (${val[1]})`).join(', ')}`);
+				return this.reply(`Top 5 most active chatters in ${room}${options.day ? ' today' : ''}${'time' in options ? ` from ${options.time}:00 to ${options.time + 1}:00` : ''}: ${linecount.slice(0, 5).map(val => `${val[0]} (${val[1]})`).join(', ')}`);
 			},
 		},
 	},
