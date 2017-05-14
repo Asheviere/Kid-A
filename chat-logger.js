@@ -2,8 +2,6 @@
 
 const redis = require('./redis.js');
 
-const MONTH = 31 * 24 * 60 * 60 * 1000;
-
 let leftpad = val => (val < 10 ? `0${val}`: `${val}`);
 
 class ChatLogger {
@@ -41,14 +39,29 @@ class ChatLogger {
 		let linecount = await this.logs.hgetall(`${room}:${userid}`);
 		let output = {};
 
+		// used for pruning
+		let today = new Date();
+		let toPrune = [];
+
 		for (let key in linecount) {
 			let [day, month] = key.split(':');
+
+			if (parseInt(month) < today.getUTCMonth() + 1 && (parseInt(day) < today.getUTCDate() || parseInt(month) < today.getUTCMonth())) {
+				toPrune.push(key);
+				continue;
+			}
+
 			let outputkey = `${day}/${month}`;
 			if (outputkey in output) {
 				output[outputkey] += parseInt(linecount[key]);
 			} else {
 				output[outputkey] = parseInt(linecount[key]);
 			}
+		}
+
+		if (toPrune.length) {
+			toPrune.unshift(`${room}:${userid}`);
+			this.logs.hdel.apply(this.logs, toPrune);
 		}
 
 		return output;
@@ -59,35 +72,40 @@ class ChatLogger {
 
 		let output = {};
 
+		// used for pruning
+		let today = new Date();
+
 		for (let i = 0; i < users.length; i++) {
 			let user = users[i].split(':')[1];
 			let count = 0;
 
-			if (options) {
-				let userlogs = await this.logs.hgetall(users[i]);
-				let keys = Object.keys(userlogs);
+			let userlogs = await this.logs.hgetall(users[i]);
+			let keys = Object.keys(userlogs);
 
-				if (options.day) {
-					let today = leftpad(new Date().getUTCDate());
-					let thisMonth = leftpad(new Date().getUTCMonth() + 1);
+			let toPrune = keys.filter(key => parseInt(key.split(':')[1]) < today.getUTCMonth() + 1 && (parseInt(key.split(':')[0]) < today.getUTCDate() || parseInt(key.split(':')[1]) < today.getUTCMonth()));
+			keys = keys.filter(key => !toPrune.includes(key));
 
-					keys = keys.filter(key => key.split(':')[0] === today && key.split(':')[1] === thisMonth);
-				}
+			if (options.day) {
+				keys = keys.filter(key => key.split(':')[0] === leftpad(today.getUTCDate()) && key.split(':')[1] === leftpad(today.getUTCMonth()));
+			}
 
-				if (options.time) {
-					let hour = leftpad(options.time);
+			if (options.time) {
+				let hour = leftpad(options.time);
 
-					keys = keys.filter(key => key.split(':')[2] === hour);
-				}
+				keys = keys.filter(key => key.split(':')[2] === hour);
+			}
 
-				for (let i = 0; i < keys.length; i++) {
-					count += parseInt(userlogs[keys[i]]);
-				}
-			} else {
-				count = await this.logs.hlen(users[i]);
+			for (let i = 0; i < keys.length; i++) {
+				count += parseInt(userlogs[keys[i]]);
 			}
 
 			output[user] = count;
+
+			if (toPrune.length) {
+				console.log(toPrune);
+				toPrune.unshift(users[i]);
+				this.logs.hdel.apply(this.logs, toPrune);
+			}
 		}
 
 		return Object.entries(output).sort((a, b) => (a[1] > b[1] ? -1 : 1));
@@ -98,16 +116,32 @@ class ChatLogger {
 
 		let output = {};
 
+		// used for pruning
+		let today = new Date();
+
 		for (let i = 0; i < users.length; i++) {
 			let userlogs = await this.logs.hgetall(users[i]);
 
+			let toPrune = [];
+
 			for (let time in userlogs) {
-				let hour = time.split(':')[2];
+				let [day, month, hour] = time.split(':');
+
+				if (parseInt(month) < today.getUTCMonth() + 1 && (parseInt(day) < today.getUTCDate() || parseInt(month) < today.getUTCMonth())) {
+					toPrune.push(time);
+					continue;
+				}
+
 				if (hour in output) {
 					output[hour] += parseInt(userlogs[time]);
 				} else {
 					output[hour] = parseInt(userlogs[time]);
 				}
+			}
+
+			if (toPrune.length) {
+				toPrune.unshift(users[i]);
+				this.logs.hdel.apply(this.logs, toPrune);
 			}
 		}
 
