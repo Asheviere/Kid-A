@@ -7,6 +7,7 @@ const redis = require('../redis.js');
 const utils = require('../utils.js');
 
 const WEEK = 7 * 24 * 60 * 60 * 1000;
+const HOUR = 60 * 60 * 1000;
 
 const FC_REGEX = /[0-9]{4}[- ]?[0-9]{4}[- ]?[0-9]{4}/;
 
@@ -263,7 +264,7 @@ const clonerList = new WifiList('cloners', './data/cloners.tsv', ['PS Username',
 //const trainerList = new WifiList('trainers', './data/trainers.tsv', ['PS Username', 'IGN', 'Friend code', 'EV Spread Type', 'How many simultaneously', 'Notes', 'Date of last activity check'], ['username', 'ign', 'fc', 'evs', 'collateral', 'notes']);
 const scammerList = new WifiList('scammers', './data/scammers.tsv', ['PS Username', 'Alts', 'IGN', 'Friend code', 'Evidence', 'Reason', 'Added by', 'Date added'], ['username', 'alts', 'ign', 'fc', 'evidence', 'reason', 'addedby'], true);
 
-let notified = new Set();
+let notified = {};
 
 module.exports = {
 	onUserJoin: {
@@ -276,11 +277,16 @@ module.exports = {
 				Connection.send(`${WIFI_ROOM}|/rb ${user}, Permabanned scammer.`);
 			}
 
-			let now = Date.now();
+			let now = new Date();
 
-			if (clonerList.data[user] && parseInt(clonerList.data[user].date) && now - parseInt(clonerList.data[user].date) > 4 * WEEK && !notified.has(user)) {
-				Connection.send(`|/pm ${user}, Reminder: You have not done your cloner giveaway in the past month. If you fail to do this before the start of the new month, you will be purged from the list. NB: It's required to notify an editor of the cloner list that you've done your cloner GA.`);
-				notified.add(user);
+			if (now.getUTCDate > 26 && clonerList.data[user] && parseInt(clonerList.data[user].date)) {
+				let date = new Date(parseInt(clonerList.data[user].date));
+				if (date.getUTCMonth !== now.getUTCMonth) {
+					if (user in notified && notified[user] > Date.now() - 4 * HOUR) return;
+
+					Connection.send(`|/pm ${user}, Reminder: You have not done your cloner giveaway this month. If you fail to do this before the start of the new month, you will be purged from the list. NB: It's required to notify an editor of the cloner list that you've done your cloner GA.`);
+					notified[user] = Date.now();
+				}
 			}
 		},
 	},
@@ -354,6 +360,7 @@ module.exports = {
 				for (let i = 0; i < removed.length; i += 10) {
 					Connection.send(`${WIFI_ROOM}|/modnote ${removed.slice(i, i + 10)} ${i === removed.length - 1 ? 'was' : 'were'} removed from the cloner list`);
 				}
+				notified = {};
 				return this.reply(`${removed.length} user${(removed.length === 1 ? ' was' : 's were')} removed from the cloner list.`);
 			},
 		},
@@ -685,7 +692,7 @@ module.exports = {
 
 					for (let thisfc of split) {
 						if (thisfc === fc) {
-							this.reply(`This FC belongs to ${scammerList.data[i].username}, who is on the scammers list.`);
+							this.reply(`This FC belongs to ${scammerList.data[i].username}, who is ${typeof(scammerList.data[i].date) === "string" && scammerList.data[i].date.startsWith("PERMA") ? 'a permabanned scammer' : 'on the scammers list'}.`);
 							return this.reply(`Reason: ${scammerList.data[i].reason}`);
 						}
 					}
