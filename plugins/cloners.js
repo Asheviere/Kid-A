@@ -474,7 +474,7 @@ module.exports = {
 				if (!this.canUse(5)) return this.pmreply("Permission denied.");
 				if (!message) return this.pmreply("Please enter a message.");
 
-				clonerMessage = `message.trim() -${this.username}`;
+				clonerMessage = `${message.trim()} -${this.username}`;
 				notified = new Set();
 
 				return this.reply("New cloner notification set.");
