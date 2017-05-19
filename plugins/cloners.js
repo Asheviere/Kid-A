@@ -479,7 +479,7 @@ module.exports = {
 
 				return this.reply("New cloner notification set.");
 			},
-		}
+		},
 
 		/*addtrainer: {
 			rooms: [WIFI_ROOM],
