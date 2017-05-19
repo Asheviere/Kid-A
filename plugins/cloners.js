@@ -264,7 +264,10 @@ const clonerList = new WifiList('cloners', './data/cloners.tsv', ['PS Username',
 //const trainerList = new WifiList('trainers', './data/trainers.tsv', ['PS Username', 'IGN', 'Friend code', 'EV Spread Type', 'How many simultaneously', 'Notes', 'Date of last activity check'], ['username', 'ign', 'fc', 'evs', 'collateral', 'notes']);
 const scammerList = new WifiList('scammers', './data/scammers.tsv', ['PS Username', 'Alts', 'IGN', 'Friend code', 'Evidence', 'Reason', 'Added by', 'Date added'], ['username', 'alts', 'ign', 'fc', 'evidence', 'reason', 'addedby'], true);
 
-let notified = {};
+let clonerMessage = '';
+
+let notified = new Set();
+let reminded = {};
 
 module.exports = {
 	onUserJoin: {
@@ -279,13 +282,20 @@ module.exports = {
 
 			let now = new Date();
 
-			if (now.getUTCDate > 26 && clonerList.data[user] && parseInt(clonerList.data[user].date)) {
-				let date = new Date(parseInt(clonerList.data[user].date));
-				if (date.getUTCMonth !== now.getUTCMonth) {
-					if (user in notified && notified[user] > Date.now() - 4 * HOUR) return;
+			if (clonerList.data[user]) {
+				if (clonerMessage && !notified.has(user)) {
+					Connection.send(`|/pm ${user}, ${clonerMessage}`);
+					notified.add(user);
+				}
 
-					Connection.send(`|/pm ${user}, Reminder: You have not done your cloner giveaway this month. If you fail to do this before the start of the new month, you will be purged from the list. NB: It's required to notify an editor of the cloner list that you've done your cloner GA.`);
-					notified[user] = Date.now();
+				if (now.getUTCDate > 26 && parseInt(clonerList.data[user].date)) {
+					let date = new Date(parseInt(clonerList.data[user].date));
+					if (date.getUTCMonth !== now.getUTCMonth) {
+						if (user in reminded && reminded[user] > Date.now() - 4 * HOUR) return;
+
+						Connection.send(`|/pm ${user}, Reminder: You have not done your cloner giveaway this month. If you fail to do this before the start of the new month, you will be purged from the list. NB: It's required to notify an editor of the cloner list that you've done your cloner GA.`);
+						reminded[user] = Date.now();
+					}
 				}
 			}
 		},
@@ -455,6 +465,21 @@ module.exports = {
 				}
 			},
 		},
+		notifycloners: {
+			rooms: [WIFI_ROOM],
+			async action(message) {
+				if (!this.room) {
+					if (!this.getRoomAuth(WIFI_ROOM)) return;
+				}
+				if (!this.canUse(5)) return this.pmreply("Permission denied.");
+				if (!message) return this.pmreply("Please enter a message.");
+
+				clonerMessage = message.trim();
+				notified = new Set();
+
+				return this.reply("New cloner notification set.");
+			},
+		}
 
 		/*addtrainer: {
 			rooms: [WIFI_ROOM],
