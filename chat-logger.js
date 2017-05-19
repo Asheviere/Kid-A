@@ -19,7 +19,7 @@ class ChatLogger {
 		});
 	}
 
-	async log(timestamp, room, userid) {
+	async log(timestamp, room, userid, message) {
 		timestamp = parseInt(timestamp);
 		if (isNaN(timestamp) || !userid || !room) return;
 
@@ -30,20 +30,20 @@ class ChatLogger {
 
 		if (!(this.rooms.includes(room))) this.rooms.push(room);
 
-		this.logs.hincrby(`${room}:${userid}`, key, 1);
+		this.logs.hset(`${room}:${userid}`, key, message);
 
 		if (!Config.privateRooms.has(room)) this.seen.set(userid, timestamp);
 	}
 
 	async getLineCount(room, userid) {
-		let linecount = await this.logs.hgetall(`${room}:${userid}`);
+		let linecount = await this.logs.hkeys(`${room}:${userid}`);
 		let output = {};
 
 		// used for pruning
 		let today = new Date();
 		let toPrune = [];
 
-		for (let key in linecount) {
+		for (let key of linecount) {
 			let [day, month] = key.split(':');
 
 			if (parseInt(month) < today.getUTCMonth() + 1 && (parseInt(day) < today.getUTCDate() || parseInt(month) < today.getUTCMonth())) {
@@ -53,9 +53,9 @@ class ChatLogger {
 
 			let outputkey = `${day}/${month}`;
 			if (outputkey in output) {
-				output[outputkey] += parseInt(linecount[key]);
+				output[outputkey] ++;
 			} else {
-				output[outputkey] = parseInt(linecount[key]);
+				output[outputkey] = 1;
 			}
 		}
 
@@ -77,10 +77,8 @@ class ChatLogger {
 
 		for (let i = 0; i < users.length; i++) {
 			let user = users[i].split(':')[1];
-			let count = 0;
 
-			let userlogs = await this.logs.hgetall(users[i]);
-			let keys = Object.keys(userlogs);
+			let keys = await this.logs.hkeys(users[i]);
 
 			let toPrune = keys.filter(key => parseInt(key.split(':')[1]) < today.getUTCMonth() + 1 && (parseInt(key.split(':')[0]) < today.getUTCDate() || parseInt(key.split(':')[1]) < today.getUTCMonth()));
 			keys = keys.filter(key => !toPrune.includes(key));
@@ -95,14 +93,9 @@ class ChatLogger {
 				keys = keys.filter(key => key.split(':')[2] === hour);
 			}
 
-			for (let i = 0; i < keys.length; i++) {
-				count += parseInt(userlogs[keys[i]]);
-			}
-
-			output[user] = count;
+			output[user] = keys.length;
 
 			if (toPrune.length) {
-				console.log(toPrune);
 				toPrune.unshift(users[i]);
 				this.logs.hdel.apply(this.logs, toPrune);
 			}
@@ -120,11 +113,11 @@ class ChatLogger {
 		let today = new Date();
 
 		for (let i = 0; i < users.length; i++) {
-			let userlogs = await this.logs.hgetall(users[i]);
+			let userlogs = await this.logs.hkeys(users[i]);
 
 			let toPrune = [];
 
-			for (let time in userlogs) {
+			for (let time of userlogs) {
 				let [day, month, hour] = time.split(':');
 
 				if (parseInt(month) < today.getUTCMonth() + 1 && (parseInt(day) < today.getUTCDate() || parseInt(month) < today.getUTCMonth())) {
@@ -133,9 +126,9 @@ class ChatLogger {
 				}
 
 				if (hour in output) {
-					output[hour] += parseInt(userlogs[time]);
+					output[hour] ++;
 				} else {
-					output[hour] = parseInt(userlogs[time]);
+					output[hour] = 1;
 				}
 			}
 
