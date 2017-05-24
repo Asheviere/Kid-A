@@ -30,7 +30,7 @@ class ChatLogger {
 
 		if (!(this.rooms.includes(room))) this.rooms.push(room);
 
-		this.logs.hset(`${room}:${userid}`, key, message);
+		this.logs.hset(`${room}:${userid}`, key, 1);
 
 		if (!Config.privateRooms.has(room)) this.seen.set(userid, timestamp);
 	}
