@@ -2,6 +2,8 @@
 
 const redis = require('./redis.js');
 
+const MINUTE = 1000 * 60;
+
 let leftpad = val => (val < 10 ? `0${val}`: `${val}`);
 
 class ChatLogger {
@@ -10,6 +12,7 @@ class ChatLogger {
 		this.seen = redis.useDatabase('seen');
 
 		this.rooms = [];
+		this.queue = [];
 
 		this.logs.keys('*').then(keys => {
 			for (let i = 0; i < keys.length; i++) {
@@ -17,6 +20,20 @@ class ChatLogger {
 				if (!this.rooms.includes(roomid)) this.rooms.push(roomid);
 			}
 		});
+
+		setInterval(async () => {
+			let oldqueue = this.queue;
+			this.queue = [];
+
+			if (oldqueue.length) {
+				await this.logs.multi();
+				for (let msg of oldqueue) {
+					console.log(msg);
+					await this.logs.hset(msg[0], msg[1], msg[2]);
+				}
+				await this.logs.exec();
+			}
+		}, 5 * MINUTE);
 	}
 
 	async log(timestamp, room, userid, message) {
@@ -30,7 +47,7 @@ class ChatLogger {
 
 		if (!(this.rooms.includes(room))) this.rooms.push(room);
 
-		this.logs.hset(`${room}:${userid}`, key, 1);
+		this.queue.push([`${room}:${userid}`, key, message]);
 
 		if (!Config.privateRooms.has(room)) this.seen.set(userid, timestamp);
 	}
