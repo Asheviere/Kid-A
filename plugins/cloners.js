@@ -384,7 +384,7 @@ module.exports = {
 
 				if (await settings.hexists('whitelist:cloners', toId(message))) return this.reply("This user is already whitelisted.");
 
-				settings.hset('whitelist:cloners', toId(message), message);
+				await settings.hset('whitelist:cloners', toId(message), message);
 				Connection.send(`${WIFI_ROOM}|/modnote ${toId(message)} was whitelisted for the cloner list by ${this.username}.`);
 				return this.reply("User successfully whitelisted.");
 			},
@@ -399,7 +399,7 @@ module.exports = {
 
 				if (!await settings.hexists('whitelist:cloners', toId(message))) return this.reply("This user isn't whitelisted.");
 
-				settings.hdel('whitelist:cloners', toId(message));
+				await settings.hdel('whitelist:cloners', toId(message));
 				Connection.send(`${WIFI_ROOM}|/modnote ${toId(message)} was unwhitelisted for the cloner list by ${this.username}.`);
 				return this.reply("User successfully removed from the whitelist.");
 			},
