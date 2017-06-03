@@ -13,6 +13,8 @@ class ChatLogger {
 
 		this.rooms = [];
 		this.queue = [];
+		this.queuedOperations = [];
+		this.syncing = false;
 
 		this.logs.keys('*').then(keys => {
 			for (let i = 0; i < keys.length; i++) {
@@ -22,6 +24,7 @@ class ChatLogger {
 		});
 
 		setInterval(async () => {
+			this.syncing = true;
 			let oldqueue = this.queue;
 			this.queue = [];
 
@@ -32,7 +35,19 @@ class ChatLogger {
 				}
 				await this.logs.exec();
 			}
+
+			this.queuedOperations.forEach(val => val());
+
+			this.syncing = false;
 		}, 5 * MINUTE);
+	}
+
+	waitForSync() {
+		return new Promise(resolve => {
+			if (!this.syncing) resolve();
+
+			this.queuedOperations.push(resolve);
+		});
 	}
 
 	async log(timestamp, room, userid, message) {
@@ -54,6 +69,8 @@ class ChatLogger {
 	}
 
 	async getLineCount(room, userid) {
+		await this.waitForSync();
+
 		let linecount = await this.logs.hkeys(`${room}:${userid}`);
 		let output = {};
 
@@ -86,6 +103,8 @@ class ChatLogger {
 	}
 
 	async getUserActivity(room, options) {
+		await this.waitForSync();
+
 		let users = await this.logs.keys(`${room}:*`);
 
 		let output = {};
@@ -123,6 +142,8 @@ class ChatLogger {
 	}
 
 	async getRoomActivity(room) {
+		await this.waitForSync();
+
 		let users = await this.logs.keys(`${room}:*`);
 
 		let output = {};
@@ -160,10 +181,14 @@ class ChatLogger {
 	}
 
 	async getUniqueUsers(room) {
+		await this.waitForSync();
+
 		return (await this.logs.keys(`${room}*`)).length;
 	}
 
 	async getLastSeen(userid) {
+		await this.waitForSync();
+
 		return (await this.seen.get(userid));
 	}
 }
