@@ -28,7 +28,7 @@ class ChatLogger {
 			let oldqueue = this.queue;
 			this.queue = {};
 
-			if (oldqueue.length) {
+			if (Object.keys(oldqueue).length) {
 				await this.logs.multi();
 				for (let key in oldqueue) {
 					oldqueue[key].unshift(key);
