@@ -26,12 +26,13 @@ class ChatLogger {
 		setInterval(async () => {
 			this.syncing = true;
 			let oldqueue = this.queue;
-			this.queue = [];
+			this.queue = {};
 
 			if (oldqueue.length) {
 				await this.logs.multi();
-				for (let msg of oldqueue) {
-					await this.logs.hset(msg[0], msg[1], msg[2]);
+				for (let key in oldqueue) {
+					oldqueue[key].unshift(key);
+					this.logs.hmset.apply(this.logs, oldqueue[key]);
 				}
 				await this.logs.exec();
 			}
@@ -59,11 +60,16 @@ class ChatLogger {
 		timestamp = timestamp * 1000;
 		let date = new Date(timestamp);
 
-		let key = `${leftpad(date.getUTCDate())}:${leftpad(date.getUTCMonth() + 1)}:${leftpad(date.getUTCHours())}:${leftpad(date.getMinutes())}:${leftpad(date.getSeconds())}`;
-
 		if (!(this.rooms.includes(room))) this.rooms.push(room);
 
-		this.queue.push([`${room}:${userid}`, key, message]);
+		let key = `${room}:${userid}`;
+
+		if (!(key in this.queue)) {
+			this.queue[key] = [];
+		}
+
+		this.queue[key].push(`${leftpad(date.getUTCDate())}:${leftpad(date.getUTCMonth() + 1)}:${leftpad(date.getUTCHours())}:${leftpad(date.getMinutes())}:${leftpad(date.getSeconds())}`);
+		this.queue[key].push(message);
 
 		if (!Config.privateRooms.has(room)) this.seen.set(userid, timestamp);
 	}
