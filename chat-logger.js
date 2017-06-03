@@ -28,7 +28,6 @@ class ChatLogger {
 			if (oldqueue.length) {
 				await this.logs.multi();
 				for (let msg of oldqueue) {
-					console.log(msg);
 					await this.logs.hset(msg[0], msg[1], msg[2]);
 				}
 				await this.logs.exec();
@@ -37,6 +36,8 @@ class ChatLogger {
 	}
 
 	async log(timestamp, room, userid, message) {
+		if (Config.disableLogging) return;
+
 		timestamp = parseInt(timestamp);
 		if (isNaN(timestamp) || !userid || !room) return;
 
