@@ -284,7 +284,7 @@ module.exports = {
 				} else if (parseInt(scammerList.data[user].date)) {
 					let date = new Date(parseInt(scammerList.data[user].date));
 
-					if (!(date.getUTCFullYear() < now.getUTCFullYear() && (date.getUTCMonth() < now.getUTCMonth() || (date.getUTCMonth() === now.getUTCMonth() && date.getUTCDate() < now.getUTCDate())))) {
+					if (!(date.getUTCFullYear() < now.getUTCFullYear() - 1 || (date.getUTCFullYear() < now.getUTCFullYear() && (date.getUTCMonth() < now.getUTCMonth() || (date.getUTCMonth() === now.getUTCMonth() && date.getUTCDate() < now.getUTCDate()))))) {
 						Connection.send(`${WIFI_ROOM}|/rb ${user}, Scammer.`);
 					}
 				}
