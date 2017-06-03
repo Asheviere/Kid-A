@@ -275,12 +275,20 @@ module.exports = {
 		action(user) {
 			user = toId(user);
 
-			// Autoban permabanned scammers
-			if (scammerList.data[user] && typeof(scammerList.data[user].date) === "string" && scammerList.data[user].date.startsWith("PERMA")) {
-				Connection.send(`${WIFI_ROOM}|/rb ${user}, Permabanned scammer.`);
-			}
-
 			let now = new Date();
+
+			// Autoban permabanned scammers
+			if (scammerList.data[user]) {
+				if (typeof(scammerList.data[user].date) === "string" && scammerList.data[user].date.startsWith("PERMA")) {
+					Connection.send(`${WIFI_ROOM}|/rb ${user}, Permabanned scammer.`);
+				} else if (parseInt(scammerList.data[user].date)) {
+					let date = new Date(parseInt(scammerList.data[user].date));
+
+					if (!(date.getUTCFullYear() < now.getUTCFullYear() && (date.getUTCMonth() < now.getUTCMonth() || (date.getUTCMonth() === now.getUTCMonth() && date.getUTCDate() < now.getUTCDate())))) {
+						Connection.send(`${WIFI_ROOM}|/rb ${user}, Scammer.`);
+					}
+				}
+			}
 
 			if (clonerList.data[user]) {
 				if (clonerMessage && !notified.has(user)) {
