@@ -1,7 +1,7 @@
 'use strict';
 
 const MINUTE = 1000 * 60;
-const redis = require('./redis.js');
+const redis = require('../redis.js');
 
 const analytics = redis.useDatabase('analytics');
 
