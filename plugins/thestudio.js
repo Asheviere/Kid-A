@@ -6,8 +6,6 @@ const THE_STUDIO = 'thestudio';
 
 let db = redis.useDatabase('thestudio');
 
-// artist|title: {artist: shit, title: shit, user: shit, url: shit, tags: tag1|tag2|tag3}
-
 module.exports = {
 	commands: {
 		addrec: {
@@ -33,7 +31,37 @@ module.exports = {
 
 				await db.hmset(key, 'artist', artist, 'title', title, 'link', link, 'user', this.username, 'tags', tagStr);
 
+				Connection.send(`${THE_STUDIO}|/modnote ${this.username} added a song rec for '${artist} - ${title}'`);
 				return this.reply("Song recommendation added.");
+			},
+		},
+		deleterec: {
+			rooms: [THE_STUDIO],
+			async action(message) {
+				if (!this.room) {
+					if (!this.getRoomAuth(THE_STUDIO)) return;
+				}
+
+				if (!(this.canUse(1))) return this.pmreply("Permission denied.");
+
+				if (!message) return this.reply('Syntax: ``.deleterec artist, title``');
+
+				let [artist, title] = message.split(',').map(param => param.trim());
+
+				if (!toId(artist) || !toId(title)) return this.reply('Syntax: ``.deleterec artist, title``');
+
+				let key = `${toId(artist)}|${toId(title)}}`;
+
+				if (!(await db.exists(key))) return this.reply('This song isn\'t recommended.');
+
+				let entry = await db.hgetall(key);
+
+				if (toId(entry.user) !== this.userid && !this.canUse(2)) return this.reply("Only staff may delete other people's recommendations.");
+
+				await db.del(key);
+
+				Connection.send(`${THE_STUDIO}|/modnote ${this.username} removed the song rec for '${artist} - ${title}'`);
+				return this.reply("Song recommendation deleted.");
 			},
 		},
 		rec: {
