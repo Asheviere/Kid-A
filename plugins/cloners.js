@@ -5,8 +5,8 @@ const fs = require('fs');
 const server = require('../server.js');
 const redis = require('../redis.js');
 const utils = require('../utils.js');
+const Cache = require('../cache.js');
 
-const WEEK = 7 * 24 * 60 * 60 * 1000;
 const HOUR = 60 * 60 * 1000;
 
 const FC_REGEX = /[0-9]{4}[- ]?[0-9]{4}[- ]?[0-9]{4}/;
@@ -14,6 +14,8 @@ const FC_REGEX = /[0-9]{4}[- ]?[0-9]{4}[- ]?[0-9]{4}/;
 const WIFI_ROOM = 'wifi';
 
 const settings = redis.useDatabase('settings');
+
+const cache = new Cache('wifi');
 
 server.addTemplate('cloners', 'cloners.html');
 
@@ -264,10 +266,10 @@ const clonerList = new WifiList('cloners', './data/cloners.tsv', ['PS Username',
 //const trainerList = new WifiList('trainers', './data/trainers.tsv', ['PS Username', 'IGN', 'Friend code', 'EV Spread Type', 'How many simultaneously', 'Notes', 'Date of last activity check'], ['username', 'ign', 'fc', 'evs', 'collateral', 'notes']);
 const scammerList = new WifiList('scammers', './data/scammers.tsv', ['PS Username', 'Alts', 'IGN', 'Friend code', 'Evidence', 'Reason', 'Added by', 'Date added'], ['username', 'alts', 'ign', 'fc', 'evidence', 'reason', 'addedby'], true);
 
-let clonerMessage = '';
+let messages = cache.get('msgs');
 
-let notified = new Set();
-let reminded = {};
+let notified = cache.get('notified');
+let reminded = cache.get('reminded');
 
 module.exports = {
 	onUserJoin: {
@@ -291,18 +293,20 @@ module.exports = {
 			}
 
 			if (clonerList.data[user]) {
-				if (clonerMessage && !notified.has(user)) {
-					Connection.send(`|/pm ${user}, ${clonerMessage}`);
-					notified.add(user);
+				if (messages.cloners && !notified.hasOwnProperty(user)) {
+					Connection.send(`|/pm ${user}, ${messages.cloners}`);
+					notified[user] = 1;
+					cache.write();
 				}
 
 				if (now.getUTCDate > 26 && parseInt(clonerList.data[user].date)) {
 					let date = new Date(parseInt(clonerList.data[user].date));
 					if (date.getUTCMonth !== now.getUTCMonth) {
-						if (user in reminded && reminded[user] > Date.now() - 4 * HOUR) return;
+						if (reminded.hasOwnProperty(user) && reminded[user] > Date.now() - 4 * HOUR) return;
 
 						Connection.send(`|/pm ${user}, Reminder: You have not done your cloner giveaway this month. If you fail to do this before the start of the new month, you will be purged from the list. NB: It's required to notify an editor of the cloner list that you've done your cloner GA.`);
 						reminded[user] = Date.now();
+						cache.write();
 					}
 				}
 			}
@@ -482,8 +486,10 @@ module.exports = {
 				if (!this.canUse(5)) return this.pmreply("Permission denied.");
 				if (!message) return this.pmreply("Please enter a message.");
 
-				clonerMessage = `${message.trim()} -${this.username}`;
-				notified = new Set();
+				messages.cloners = `${message.trim()} -${this.username}`;
+				notified = {};
+
+				cache.write();
 
 				return this.reply("New cloner notification set.");
 			},

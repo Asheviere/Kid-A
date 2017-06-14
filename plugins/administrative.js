@@ -2,8 +2,10 @@
 
 const redis = require('../redis.js');
 const server = require('../server.js');
+const Cache = require('../cache.js');
 
 const DAY = 24 * 60 * 60 * 1000;
+const cache = new Cache('admin');
 
 function parseConsole(req, res) {
 	let query = server.parseURL(req.url);
@@ -21,9 +23,16 @@ function parseConsole(req, res) {
 
 server.addRoute('/console', parseConsole);
 
-let notified = new Set();
-let declareMsg = "";
+let declareObj = cache.get('declare');
 let declareTimeout;
+
+if (declareObj.end) {
+	declareTimeout = setTimeout(() => {
+		declareObj = {};
+		declareTimeout = null;
+		cache.write();
+	}, declareObj.end - Date.now());
+}
 
 module.exports = {
 	onUserJoin: {
@@ -32,9 +41,9 @@ module.exports = {
 
 			user = toId(user);
 
-			if (declareMsg && !notified.has(user) && this.userlists[room] && this.userlists[room][user][0] === '#') {
-				Connection.send(`|/pm ${user}, ${declareMsg}`);
-				notified.add(user);
+			if (declareObj.msg && !declareObj.notified.hasOwnProperty(user) && this.userlists[room] && this.userlists[room][user][0] === '#') {
+				Connection.send(`|/pm ${user}, ${declareObj.msg}`);
+				declareObj.notified[user] = 1;
 			}
 		},
 	},
@@ -79,7 +88,7 @@ module.exports = {
 			permission: 6,
 			async action() {
 				if (Config.checkIps) {
-					let [userid, ips] = await Handler.checkIp(this.userid);
+					let [, ips] = await Handler.checkIp(this.userid);
 
 					let data = {console: true};
 					if (ips) data.ip = ips[0];
@@ -119,15 +128,22 @@ module.exports = {
 					clearTimeout(declareTimeout);
 				}
 
-				declareMsg = msg;
-				setTimeout(() => {
-					declareMsg = '';
-					declareTimeout = null;
-				}, time * DAY);
-				notified.clear();
+				declareObj = {
+					msg: msg,
+					end: Date.now() + time * DAY,
+					notified: {},
+				};
 
-				consoleMsg("Declare made: " + declareMsg);
-				this.pmreply("Declare added");
+				setTimeout(() => {
+					declareObj = {};
+					declareTimeout = null;
+					cache.write();
+				}, time * DAY);
+
+				cache.write();
+
+				consoleMsg(`Declare made: ${msg}`);
+				this.reply("Declare added");
 			},
 		},
 	},

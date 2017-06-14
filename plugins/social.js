@@ -4,21 +4,53 @@ const MINUTE = 60 * 1000;
 const DAY = 24 * 60 * MINUTE;
 
 const redis = require('../redis.js');
+const Cache = require('../cache.js');
 
 let motds = Object.create(null);
-let repeats = Object.create(null);
+let cache = new Cache('social');
 
 let motdTimers = {};
+let repeatTimers = {};
+let motdCache = cache.get('motd');
+let repeats = cache.get('repeat');
+
+for (let i in motdCache) {
+	motdTimers[i] = setTimeout(() => destroyMotd(i), motdCache[i].end - Date.now());
+	motds[i] = motdCache[i].message;
+}
+
+for (let i in repeats) {
+	repeatTimers[i] = setTimeout(() => runRepeat(i), repeats[i].interval * MINUTE);
+}
+
+function setMotd(room, message, endTime) {
+	if (!endTime) endTime = Date.now() + DAY;
+	if (room in motdTimers) clearTimeout(motdTimers[room]);
+	motdTimers[room] = setTimeout(() => destroyMotd(room), endTime - Date.now());
+	motds[room] = message;
+	motdCache[room] = {end: endTime, message: message};
+	cache.write();
+}
+
+function destroyMotd(room) {
+	clearTimeout(motdTimers[room]);
+	delete motds[room];
+	delete motdCache[room];
+	cache.write();
+}
 
 function runRepeat(id) {
 	let obj = repeats[id];
 	if (!obj) return; // failsafe
 	if (obj.timesLeft--) {
 		Connection.send(`${obj.room}|${obj.msg}`);
-		obj.timer = setTimeout(() => runRepeat(id), obj.interval * MINUTE);
+		repeatTimers[id] = setTimeout(() => runRepeat(id), obj.interval * MINUTE);
 	} else {
 		delete repeats[id];
+		delete repeatTimers[id];
 	}
+
+	cache.write();
 }
 
 module.exports = {
@@ -44,11 +76,7 @@ module.exports = {
 
 				if (message.length > 200) return this.reply("Message too long.");
 
-				if (this.room in motdTimers) clearTimeout(motdTimers[this.room]);
-
-				motdTimers[this.room] = setTimeout(() => delete motds[this.room], DAY);
-				motds[this.room] = message;
-
+				setMotd(room, message);
 				return this.reply("The motd was successfully set.");
 			},
 		},
@@ -59,11 +87,7 @@ module.exports = {
 			async action() {
 				if (!(this.room in motds)) return this.reply("This room does not have a motd set.");
 
-				// Failsafe
-				if (this.room in motdTimers) clearTimeout(motdTimers[this.room]);
-
-				delete motds[this.room];
-
+				destroyMotd(this.room);
 				return this.reply("The motd was successfully cleared.");
 			},
 		},
@@ -88,8 +112,9 @@ module.exports = {
 				let id = `${this.room}|${toId(repeatMsg)}`;
 				if (id in repeats) return this.pmreply("This message is already being repeated.");
 
-				let repeatObj = {timer: setTimeout(() => runRepeat(id), MINUTE * interval), msg: repeatMsg, timesLeft: times, interval: interval, room: this.room};
+				let repeatObj = {msg: repeatMsg, timesLeft: times, interval: interval, room: this.room};
 				repeats[id] = repeatObj;
+				repeatTimers[id] = setTimeout(() => runRepeat(id), MINUTE * interval);
 				return this.reply(repeatMsg);
 			},
 		},
@@ -101,8 +126,9 @@ module.exports = {
 			async action(message) {
 				let id = `${this.room}|${toId(message)}`;
 				if (id in repeats) {
-					clearTimeout(repeats[id].timer);
+					clearTimeout(repeatTimers[id]);
 					delete repeats[id];
+					delete repeatTimers[id];
 					this.reply("Stopped repeating this message.");
 				} else {
 					this.pmreply("This message isn't being repeated right now.");
@@ -117,8 +143,9 @@ module.exports = {
 			async action() {
 				for (let id in repeats) {
 					if (id.startsWith(this.room)) {
-						clearTimeout(repeats[id].timer);
+						clearTimeout(repeatTimers[id]);
 						delete repeats[id];
+						delete repeatTimers[id];
 					}
 				}
 

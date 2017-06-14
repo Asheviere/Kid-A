@@ -1,0 +1,1 @@
+This is where the bot stores all cache files used to retain certain (temporary) information after restarts/crashes.
