@@ -102,7 +102,7 @@ module.exports = {
 
 						let tags = entry.tags.split('|');
 
-						if (tags.includes(message)) possibilities.push(entry);
+						if (tags.includes(message) || toId(entry.user) === message) possibilities.push(entry);
 					}
 
 					if (!possibilities.length) return this.reply(`No song found with the tag '${message}'`);
