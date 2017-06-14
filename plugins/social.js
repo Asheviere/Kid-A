@@ -113,6 +113,7 @@ module.exports = {
 				let repeatObj = {msg: repeatMsg, timesLeft: times, interval: interval, room: this.room};
 				cache.setProperty('repeats', id, repeatObj);
 				repeatTimers[id] = setTimeout(() => runRepeat(id), MINUTE * interval);
+				cache.write();
 				return this.reply(repeatMsg);
 			},
 		},
@@ -128,6 +129,7 @@ module.exports = {
 					cache.deleteProperty('repeats', id);
 					delete repeatTimers[id];
 					this.reply("Stopped repeating this message.");
+					cache.write();
 				} else {
 					this.pmreply("This message isn't being repeated right now.");
 				}
@@ -147,6 +149,7 @@ module.exports = {
 					}
 				}
 
+				cache.write();
 				this.reply("Cleared all repeated messages in this room.");
 			},
 		},

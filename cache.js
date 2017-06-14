@@ -16,7 +16,7 @@ class Cache {
 	get(key) {
 		if (!(key in this.data)) return {};
 
-		return this.data[key];
+		return this.data[key] || {};
 	}
 
 	set(key, value) {

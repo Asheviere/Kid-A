@@ -127,10 +127,10 @@ module.exports = {
 					clearTimeout(declareTimeout);
 				}
 
-				cache.set('declare'), {
+				cache.set('declare', {
 					msg: msg,
 					end: Date.now() + time * DAY,
-				};
+				});
 
 				cache.set('notified', {});
 
