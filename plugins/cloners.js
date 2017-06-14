@@ -266,11 +266,6 @@ const clonerList = new WifiList('cloners', './data/cloners.tsv', ['PS Username',
 //const trainerList = new WifiList('trainers', './data/trainers.tsv', ['PS Username', 'IGN', 'Friend code', 'EV Spread Type', 'How many simultaneously', 'Notes', 'Date of last activity check'], ['username', 'ign', 'fc', 'evs', 'collateral', 'notes']);
 const scammerList = new WifiList('scammers', './data/scammers.tsv', ['PS Username', 'Alts', 'IGN', 'Friend code', 'Evidence', 'Reason', 'Added by', 'Date added'], ['username', 'alts', 'ign', 'fc', 'evidence', 'reason', 'addedby'], true);
 
-let messages = cache.get('msgs');
-
-let notified = cache.get('notified');
-let reminded = cache.get('reminded');
-
 module.exports = {
 	onUserJoin: {
 		rooms: [WIFI_ROOM],
@@ -293,19 +288,19 @@ module.exports = {
 			}
 
 			if (clonerList.data[user]) {
-				if (messages.cloners && !notified.hasOwnProperty(user)) {
-					Connection.send(`|/pm ${user}, ${messages.cloners}`);
-					notified[user] = 1;
+				if (cache.get('messages').cloners && !cache.get('notified').hasOwnProperty(user)) {
+					Connection.send(`|/pm ${user}, ${cache.get('messages').cloners}`);
+					cache.setProperty('notified', user, 1);
 					cache.write();
 				}
 
 				if (now.getUTCDate > 26 && parseInt(clonerList.data[user].date)) {
 					let date = new Date(parseInt(clonerList.data[user].date));
 					if (date.getUTCMonth !== now.getUTCMonth) {
-						if (reminded.hasOwnProperty(user) && reminded[user] > Date.now() - 4 * HOUR) return;
+						if (cache.get('reminded').hasOwnProperty(user) && cache.get('reminded')[user] > Date.now() - 4 * HOUR) return;
 
 						Connection.send(`|/pm ${user}, Reminder: You have not done your cloner giveaway this month. If you fail to do this before the start of the new month, you will be purged from the list. NB: It's required to notify an editor of the cloner list that you've done your cloner GA.`);
-						reminded[user] = Date.now();
+						cache.setProperty('reminded', user, Date.now());
 						cache.write();
 					}
 				}
@@ -382,7 +377,7 @@ module.exports = {
 				for (let i = 0; i < removed.length; i += 10) {
 					Connection.send(`${WIFI_ROOM}|/modnote ${removed.slice(i, i + 10)} ${i === removed.length - 1 ? 'was' : 'were'} removed from the cloner list`);
 				}
-				notified = {};
+				cache.set('reminded', {});
 				return this.reply(`${removed.length} user${(removed.length === 1 ? ' was' : 's were')} removed from the cloner list.`);
 			},
 		},
@@ -486,8 +481,8 @@ module.exports = {
 				if (!this.canUse(5)) return this.pmreply("Permission denied.");
 				if (!message) return this.pmreply("Please enter a message.");
 
-				messages.cloners = `${message.trim()} -${this.username}`;
-				notified = {};
+				cache.setProperty('messages', 'cloners', `${message.trim()} -${this.username}`);
+				cache.set('notified', {});
 
 				cache.write();
 

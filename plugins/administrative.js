@@ -23,15 +23,14 @@ function parseConsole(req, res) {
 
 server.addRoute('/console', parseConsole);
 
-let declareObj = cache.get('declare');
 let declareTimeout;
 
-if (declareObj.end) {
+if (cache.get('declare').end) {
 	declareTimeout = setTimeout(() => {
-		declareObj = {};
+		cache.set('declare', {});
 		declareTimeout = null;
 		cache.write();
-	}, declareObj.end - Date.now());
+	}, cache.get('declare').end - Date.now());
 }
 
 module.exports = {
@@ -41,9 +40,9 @@ module.exports = {
 
 			user = toId(user);
 
-			if (declareObj.msg && !declareObj.notified.hasOwnProperty(user) && this.userlists[room] && this.userlists[room][user][0] === '#') {
-				Connection.send(`|/pm ${user}, ${declareObj.msg}`);
-				declareObj.notified[user] = 1;
+			if (cache.get('declare').msg && !cache.get('notified').hasOwnProperty(user) && this.userlists[room] && this.userlists[room][user][0] === '#') {
+				Connection.send(`|/pm ${user}, ${cache.get('declare').msg}`);
+				cache.setProperty('notified', user, 1);
 			}
 		},
 	},
@@ -128,14 +127,15 @@ module.exports = {
 					clearTimeout(declareTimeout);
 				}
 
-				declareObj = {
+				cache.set('declare'), {
 					msg: msg,
 					end: Date.now() + time * DAY,
-					notified: {},
 				};
 
+				cache.set('notified', {});
+
 				setTimeout(() => {
-					declareObj = {};
+					cache.set('declare', {});
 					declareTimeout = null;
 					cache.write();
 				}, time * DAY);

@@ -11,16 +11,14 @@ let cache = new Cache('social');
 
 let motdTimers = {};
 let repeatTimers = {};
-let motdCache = cache.get('motd');
-let repeats = cache.get('repeat');
 
-for (let i in motdCache) {
-	motdTimers[i] = setTimeout(() => destroyMotd(i), motdCache[i].end - Date.now());
-	motds[i] = motdCache[i].message;
+for (let i in cache.get('motd')) {
+	motdTimers[i] = setTimeout(() => destroyMotd(i), cache.get('motd')[i].end - Date.now());
+	motds[i] = cache.get('motd')[i].message;
 }
 
-for (let i in repeats) {
-	repeatTimers[i] = setTimeout(() => runRepeat(i), repeats[i].interval * MINUTE);
+for (let i in cache.get('repeats')) {
+	repeatTimers[i] = setTimeout(() => runRepeat(i), cache.get('repeats')[i].interval * MINUTE);
 }
 
 function setMotd(room, message, endTime) {
@@ -28,25 +26,25 @@ function setMotd(room, message, endTime) {
 	if (room in motdTimers) clearTimeout(motdTimers[room]);
 	motdTimers[room] = setTimeout(() => destroyMotd(room), endTime - Date.now());
 	motds[room] = message;
-	motdCache[room] = {end: endTime, message: message};
+	cache.setProperty('motd', room, {end: endTime, message: message});
 	cache.write();
 }
 
 function destroyMotd(room) {
 	clearTimeout(motdTimers[room]);
 	delete motds[room];
-	delete motdCache[room];
+	cache.deleteProperty('motd', room);
 	cache.write();
 }
 
 function runRepeat(id) {
-	let obj = repeats[id];
+	let obj = cache.get('repeats')[id];
 	if (!obj) return; // failsafe
 	if (obj.timesLeft--) {
 		Connection.send(`${obj.room}|${obj.msg}`);
 		repeatTimers[id] = setTimeout(() => runRepeat(id), obj.interval * MINUTE);
 	} else {
-		delete repeats[id];
+		cache.deleteProperty('motd', id);
 		delete repeatTimers[id];
 	}
 
@@ -110,10 +108,10 @@ module.exports = {
 				if (repeatMsg.startsWith('!') || (repeatMsg.startsWith('/') && !(repeatMsg.startsWith('/announce ') || repeatMsg.startsWith('/wall ')))) return this.pmreply ("Please do not enter commands in ``.repeat`` except for ``/announce``");
 
 				let id = `${this.room}|${toId(repeatMsg)}`;
-				if (id in repeats) return this.pmreply("This message is already being repeated.");
+				if (id in cache.get('repeats')) return this.pmreply("This message is already being repeated.");
 
 				let repeatObj = {msg: repeatMsg, timesLeft: times, interval: interval, room: this.room};
-				repeats[id] = repeatObj;
+				cache.setProperty('repeats', id, repeatObj);
 				repeatTimers[id] = setTimeout(() => runRepeat(id), MINUTE * interval);
 				return this.reply(repeatMsg);
 			},
@@ -125,9 +123,9 @@ module.exports = {
 			disallowPM: true,
 			async action(message) {
 				let id = `${this.room}|${toId(message)}`;
-				if (id in repeats) {
+				if (id in cache.get('repeats')) {
 					clearTimeout(repeatTimers[id]);
-					delete repeats[id];
+					cache.deleteProperty('repeats', id);
 					delete repeatTimers[id];
 					this.reply("Stopped repeating this message.");
 				} else {
@@ -141,10 +139,10 @@ module.exports = {
 			hidden: true,
 			disallowPM: true,
 			async action() {
-				for (let id in repeats) {
+				for (let id in cache.get('repeats')) {
 					if (id.startsWith(this.room)) {
 						clearTimeout(repeatTimers[id]);
-						delete repeats[id];
+						cache.deleteProperty('repeats', id);
 						delete repeatTimers[id];
 					}
 				}

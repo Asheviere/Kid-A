@@ -7,7 +7,7 @@ class Cache {
 		this.name = toId(plugin);
 
 		try {
-			this.data = fs.readFileSync(`./cache/${this.name}.json`);
+			this.data = JSON.parse(fs.readFileSync(`./cache/${this.name}.json`));
 		} catch (e) {
 			this.data = {};
 		}
@@ -17,6 +17,19 @@ class Cache {
 		if (!(key in this.data)) return {};
 
 		return this.data[key];
+	}
+
+	set(key, value) {
+		this.data[key] = value;
+	}
+
+	setProperty(key, property, value) {
+		if (!this.data[key]) this.data[key] = {};
+		this.data[key][property] = value;
+	}
+
+	deleteProperty(key, property) {
+		delete this.data[key][property];
 	}
 
 	write() {
