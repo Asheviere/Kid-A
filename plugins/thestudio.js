@@ -1,10 +1,31 @@
 'use strict';
 
+const server = require('../server.js');
 const redis = require('../redis.js');
 
 const THE_STUDIO = 'thestudio';
 
 let db = redis.useDatabase('thestudio');
+
+// Load anyway in case the userlist plugin is disabled.
+server.addTemplate('userlist', 'userlist.html');
+
+async function recsResolver(req, res) {
+	let keys = ['Song', 'Tags', 'Recommended by'];
+	let data = [];
+
+	let recs = await db.keys('*');
+
+	for (let i = 0; i < recs.length; i++) {
+		let entry = await db.hgetall(recs[i]);
+
+		data.push([`<a href="${entry.link}">${entry.artist} - ${entry.title}</a>`, entry.tags.split('|').join(', '), entry.user]);
+	}
+
+	res.end(server.renderTemplate('userlist', {room: THE_STUDIO, columnNames: keys, entries: data}));
+}
+
+server.addRoute(`/${THE_STUDIO}/recs`, recsResolver);
 
 module.exports = {
 	commands: {
@@ -98,7 +119,7 @@ module.exports = {
 					tagStr = ` Tag${rec.tags.length > 1 ? 's' : ''}: ${rec.tags.split('|').join(', ')})`;
 				}
 
-				return this.reply(`${rec.artist} - ${rec.title}: ${rec.link} (recommended by ${rec.user}.${tagStr}`);
+				return this.reply(`${rec.artist} - ${rec.title}: ${rec.link} (recommended by ${rec.user}.${tagStr})`);
 			},
 		},
 	},
