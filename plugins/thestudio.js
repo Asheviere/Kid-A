@@ -7,8 +7,7 @@ const THE_STUDIO = 'thestudio';
 
 let db = redis.useDatabase('thestudio');
 
-// Load anyway in case the userlist plugin is disabled.
-server.addTemplate('userlist', 'userlist.html');
+server.addTemplate('songrecs', 'songrecs.html');
 
 async function recsResolver(req, res) {
 	let keys = ['Song', 'Tags', 'Recommended by'];
@@ -22,7 +21,7 @@ async function recsResolver(req, res) {
 		data.push([`<a href="${entry.link}">${entry.artist} - ${entry.title}</a>`, entry.tags.split('|').join(', '), entry.user]);
 	}
 
-	res.end(server.renderTemplate('userlist', {room: THE_STUDIO, columnNames: keys, entries: data}));
+	res.end(server.renderTemplate('songrecs', {room: THE_STUDIO, columnNames: keys, entries: data}));
 }
 
 server.addRoute(`/${THE_STUDIO}/recs`, recsResolver);
