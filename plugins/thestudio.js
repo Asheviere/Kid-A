@@ -115,7 +115,7 @@ module.exports = {
 				let tagStr = '';
 
 				if (rec.tags.length) {
-					tagStr = ` Tag${rec.tags.length > 1 ? 's' : ''}: ${rec.tags.split('|').join(', ')})`;
+					tagStr = ` Tag${rec.tags.length > 1 ? 's' : ''}: ${rec.tags.split('|').join(', ')}`;
 				}
 
 				return this.reply(`${rec.artist} - ${rec.title}: ${rec.link} (recommended by ${rec.user}.${tagStr})`);
