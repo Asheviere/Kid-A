@@ -28,7 +28,7 @@ async function quoteResolver(req, res) {
 	let query = server.parseURL(req.url);
 	let token = query.token;
 	let quotes = await redis.getList(quotedata, room);
-	if (!token && Config.privateRooms.has(room)) return res.end('Private Room quotes require an access token to be viewed.');
+	if (!token && Handler.privateRooms.has(room)) return res.end('Private Room quotes require an access token to be viewed.');
 	if (token) {
 		let data = server.getAccessToken(token);
 		if (!data) return res.end('Invalid access token.');
@@ -64,7 +64,7 @@ module.exports = {
 				if (!message.length) return this.pmreply("Please enter a valid quote.");
 
 				if (!(await quotedata.exists(this.room))) {
-					if (!Config.privateRooms.has(this.room)) {
+					if (!Handler.privateRooms.has(this.room)) {
 						server.addRoute('/' + this.room + '/quotes', quoteResolver);
 						// Wait 500ms to make sure everything's ready.
 						setTimeout(() => server.restart(), 500);
@@ -114,7 +114,7 @@ module.exports = {
 				if (await quotedata.exists(this.room)) {
 					let fname = this.room + "/quotes";
 					let permission = (pm && this.canUse(5));
-					if (Config.privateRooms.has(this.room) || permission) {
+					if (Handler.privateRooms.has(this.room) || permission) {
 						let data = {};
 						data.room = this.room;
 						data.permission = (permission ? 'quotes' : false);

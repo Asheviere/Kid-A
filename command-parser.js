@@ -122,7 +122,7 @@ class ChatHandler {
 
 		this.dataResolver = async (req, res) => {
 			let room = req.originalUrl.split('/')[1];
-			if (Config.privateRooms.has(room)) {
+			if (Handler.privateRooms.has(room)) {
 				let query = server.parseURL(req.url);
 				let token = query.token;
 				if (!token) return res.end('Private room data requires an access token to be viewed.');

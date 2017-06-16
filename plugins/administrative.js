@@ -36,8 +36,6 @@ if (cache.get('declare').end) {
 module.exports = {
 	onUserJoin: {
 		action(user, room) {
-			if (Config.privateRooms.has(room)) return;
-
 			user = toId(user);
 
 			if (cache.get('declare').msg && !cache.get('notified').hasOwnProperty(user) && this.userlists[room] && this.userlists[room][user][0] === '#') {
@@ -145,6 +143,30 @@ module.exports = {
 				consoleMsg(`Declare made: ${msg}`);
 				this.reply("Declare added");
 			},
+		},
+
+		privateroom: {
+			permission: 5,
+			hidden: true,
+			async action(message) {
+				let room = this.room || toId(message);
+				if (!room) return this.reply("No room specified.");
+				if (!this.room) {
+					if (!(room in this.userlists)) return this.reply(`Invalid room: ${room}`);
+					if (!this.getRoomAuth(room)) return;
+				}
+
+				if (Handler.privateRooms.has(room)) {
+					if (!(await this.settings.lrem('privaterooms', 0, room))) return this.reply("This room is set as private in the bot's config files. Please contact the bot owner if you wish to unprivate your room.");
+
+					Handler.privateRooms.delete(room);
+					return this.reply(`The room ${room} was successfully unprivated.`);
+				}
+
+				await this.settings.rpush('privaterooms', room);
+				Handler.privateRooms.add(room);
+				return this.reply(`The room ${room} was successfully made private.`);
+			}
 		},
 	},
 };

@@ -15,6 +15,7 @@ const userlists = {};
 module.exports = {
 	ipQueue: [],
 	toJoin: [],
+	privateRooms: Config.privateRooms,
 	userlists: userlists,
 	chatHandler: commandParser.new(userlists, settings),
 
@@ -32,6 +33,7 @@ module.exports = {
 		Array.prototype.push.apply(this.toJoin, Config.rooms);
 
 		let autojoin = await redis.getList(settings, 'autojoin');
+		let privateRooms = await redis.getList(settings, 'privaterooms');
 
 		if (autojoin && autojoin.length) {
 			Array.prototype.push.apply(
@@ -39,6 +41,8 @@ module.exports = {
 				autojoin.filter(r => !this.toJoin.includes(r))
 			);
 		}
+
+		if (privateRooms) privateRooms.forEach(val => this.privateRooms.add(val));
 
 		Connection.send('|/autojoin ' + this.toJoin.slice(0, 11).join(','));
 		Connection.send('|/trn ' + Config.username + ',0,' + assertion);

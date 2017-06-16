@@ -71,7 +71,7 @@ class ChatLogger {
 		this.queue[key].push(`${leftpad(date.getUTCDate())}:${leftpad(date.getUTCMonth() + 1)}:${leftpad(date.getUTCHours())}:${leftpad(date.getMinutes())}:${leftpad(date.getSeconds())}`);
 		this.queue[key].push(message);
 
-		if (!Config.privateRooms.has(room)) this.seen.set(userid, timestamp);
+		if (!Handler.privateRooms.has(room)) this.seen.set(userid, timestamp);
 	}
 
 	async getLineCount(room, userid) {

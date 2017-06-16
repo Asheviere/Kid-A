@@ -32,7 +32,7 @@ module.exports = {
 			async action() {
 				if ((await this.data.keys(`*:${this.room}`)).length) {
 					let fname = `${this.room}/data`;
-					if (Config.privateRooms.has(this.room)) {
+					if (Handler.privateRooms.has(this.room)) {
 						if (!this.canUse(1)) return this.pmreply("Permission denied.");
 						let data = {};
 						data[this.room] = true;
