@@ -18,12 +18,12 @@
 				<ul>
 					{{#each data}}
 						{{#if ../permission}}
-							<li>
+							<li class="quote">
 								<input type="checkbox" name="{{@index}}" onclick="this.parentElement.style.background = (this.checked ? 'red' : 'white');">
 								<input type="text" name="{{@index}}" class="disabledinput" value="{{this}}" onclick="edit(this)" onkeyup="markEdited(this)"/>
 							</li>
 						{{else}}
-							<li>{{this}}</li>
+							<li class="quote">{{this}}</li>
 						{{/if}}
 					{{/each}}
 				</ul>
