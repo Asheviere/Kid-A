@@ -15,18 +15,18 @@
 				{{#if permission}}
 					<p class="note">Check quotes to mark them for removal. Click a quote to edit it.</p>
 				{{/if}}
-				<div class="quotes">
+				<ul>
 					{{#each data}}
 						{{#if ../permission}}
-							<p>
+							<li>
 								<input type="checkbox" name="{{@index}}" onclick="this.parentElement.style.background = (this.checked ? 'red' : 'white');">
 								<input type="text" name="{{@index}}" class="disabledinput" value="{{this}}" onclick="edit(this)" onkeyup="markEdited(this)"/>
-							</p>
+							</li>
 						{{else}}
-							<p>{{this}}</p>
+							<li>{{this}}</li>
 						{{/if}}
 					{{/each}}
-				</div>
+				</ul>
 				{{#if permission}}
 					<div class="popup"><button onclick="submit()">Submit changes</button></div>
 				{{/if}}
