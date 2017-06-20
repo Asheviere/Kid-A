@@ -84,13 +84,9 @@ tr:hover {
 .helptopic span {
     font-weight: bold;
 }
-.quotes {
-    margin-left: 6px;
-    overflow: auto;
-}
-.quotes p {
-	margin: 1px 0px 4px;
-	opacity: 0.87;
+.quote {
+    padding: 5px 8px;
+    line-height: 1.5;
 }
 .input {
     padding-bottom: 10px;
