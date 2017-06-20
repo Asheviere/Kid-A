@@ -122,14 +122,15 @@ class WifiList {
 			return res.end(server.renderTemplate('cloners', data));
 		};
 
-		server.addRoute('/' + WIFI_ROOM + '/' + this.name, generatePage);
+		server.addRoute(`/${WIFI_ROOM}/${this.name}`, generatePage);
 	}
 
-	addUser(user, params) {
-		if (params.length !== this.columnKeys.length - (this.noTime ? 0 : 1)) return "Invalid amount of arguments";
-		if (toId(params[0]) in this.data) return "'" + params[0] + "' is already a " + this.name.slice(0, -1) + ".";
+	add(user, params, identifier) {
+		let key = toId(identifier || params[0]);
 
-		let userid = toId(params[0]);
+		if (params.length !== this.columnKeys.length - (this.noTime ? 0 : 1)) return "Invalid amount of arguments";
+		if (key in this.data) return `'${(identifier || params[0])}' is already a ${this.name.slice(0, -1)}.`;
+
 		let data = {};
 		if (!this.noTime) {
 			params.push(Date.now());
@@ -142,7 +143,7 @@ class WifiList {
 				for (let fc of split) {
 					if (!FC_REGEX.test(fc)) return "Invalid formatting for Friend Code. format: ``1111-2222-3333``";
 					fc = toId(fc);
-					fc = fc.substr(0, 4) + '-' + fc.substr(4, 4) + '-' + fc.substr(8, 4);
+					fc = `${fc.substr(0, 4)}-${fc.substr(4, 4)}-${fc.substr(8, 4)}`;
 					if (!utils.validateFc(fc)) return "The Friend code you entered is invalid";
 				}
 
@@ -150,26 +151,26 @@ class WifiList {
 			}
 			data[this.columnKeys[i]] = params[i];
 		}
-		this.data[userid] = data;
-		fs.appendFileSync(this.file, params.join('\t') + '\n');
+		this.data[key] = data;
+		fs.appendFileSync(this.file, `${params.join('\t')}\n`);
 
-		Connection.send(WIFI_ROOM + '|/modnote ' + user + ' added ' + toId(params[0]) + ' to the ' + this.name.slice(0, -1) + ' list.');
+		Connection.send(`${WIFI_ROOM}|/modnote ${user} added ${key} to the ${this.name.slice(0, -1)} list.`);
 
-		return "'" + params[0] + "' was successfully added to the " + this.name.slice(0, -1) + " list.";
+		return `'${(identifier || params[0])}' was successfully added to the ${this.name.slice(0, -1)} list.`;
 	}
 
-	removeUser(user, target) {
-		if (!(target in this.data)) return "User is not on the " + this.name.slice(0, -1) + " list.";
+	remove(user, target) {
+		if (!(target in this.data)) return `${target} is not on the ${this.name.slice(0, -1)} list.`;
 		delete this.data[target];
 		this.writeList();
-		Connection.send(WIFI_ROOM + '|/modnote ' + user + ' deleted ' + target + ' from the ' + this.name.slice(0, -1) + ' list.');
-		return "User successfully removed.";
+		Connection.send(`${WIFI_ROOM}|/modnote ${user} deleted ${target} from the ${this.name.slice(0, -1)} list.`);
+		return `${target} successfully removed.`;
 	}
 
-	updateUser(user, params) {
+	update(user, params) {
 		if (params.length < 2) return "Invalid number of arguments provided.";
 
-		let userid = toId(params[0]);
+		let identifier = toId(params[0]);
 		for (let i = 1; i < params.length; i++) {
 			let [key, ...values] = params[i].split(':');
 			if (!key || !values.length) return "Syntax error.";
@@ -193,12 +194,12 @@ class WifiList {
 				value = split.join(', ');
 			}
 
-			this.data[userid][key] = value;
+			this.data[identifier][key] = value;
 		}
 
 		this.writeList();
-		Connection.send(WIFI_ROOM + '|/modnote ' + user + ' updated ' + (toId(user) === userid ? 'their' : userid + "'s'") + ' ' + this.name.slice(0, -1) + ' info.');
-		return "User successfully updated.";
+		Connection.send(`${WIFI_ROOM}|/modnote ${user} updated ${(toId(user) === identifier ? 'their' : `${identifier}'s`)} ${this.name.slice(0, -1)} info.`);
+		return "${identifier} successfully updated.";
 	}
 
 	purgeList() {
@@ -263,8 +264,8 @@ class WifiList {
 }
 
 const clonerList = new WifiList('cloners', './data/cloners.tsv', ['PS Username', 'Friend code', 'IGN', 'Notes', 'Date of last giveaway'], ['username', 'fc', 'ign', 'notes']);
-//const trainerList = new WifiList('trainers', './data/trainers.tsv', ['PS Username', 'IGN', 'Friend code', 'EV Spread Type', 'How many simultaneously', 'Notes', 'Date of last activity check'], ['username', 'ign', 'fc', 'evs', 'collateral', 'notes']);
 const scammerList = new WifiList('scammers', './data/scammers.tsv', ['PS Username', 'Alts', 'IGN', 'Friend code', 'Evidence', 'Reason', 'Added by', 'Date added'], ['username', 'alts', 'ign', 'fc', 'evidence', 'reason', 'addedby'], true);
+const hackmonList = new WifiList('hackmons', './data/hackmons.tsv', ['Pokémon', 'OT', 'TID', 'Details', 'Reasoning', 'Notes', 'Added By', 'Date Added'], ['species', 'ot', 'tid', 'details', 'reasoning', 'addedby'], true);
 
 module.exports = {
 	onUserJoin: {
@@ -317,7 +318,7 @@ module.exports = {
 				if (!(this.canUse(5) || await settings.hexists('whitelist:cloners', this.userid))) return this.pmreply("Permission denied.");
 
 				let params = message.split((message.includes('|') ? '|' : ',')).map(param => param.trim());
-				return this.reply(clonerList.addUser(this.username, params));
+				return this.reply(clonerList.add(this.username, params));
 			},
 		},
 		removecloner: {
@@ -328,7 +329,7 @@ module.exports = {
 				}
 				if (!(this.canUse(5) || await settings.hexists('whitelist:cloners', this.userid))) return this.pmreply("Permission denied.");
 
-				return this.reply(clonerList.removeUser(this.username, toId(message)));
+				return this.reply(clonerList.remove(this.username, toId(message)));
 			},
 		},
 		updatecloner: {
@@ -343,7 +344,7 @@ module.exports = {
 				if (!(targetId in clonerList.data)) return this.pmreply("User is not on the cloner list.");
 				if (!(this.canUse(5) || await settings.hexists('whitelist:cloners', this.userid) || this.userid === targetId)) return this.pmreply("Permission denied.");
 
-				return this.reply(clonerList.updateUser(this.username, params));
+				return this.reply(clonerList.update(this.username, params));
 			},
 		},
 		clonerga: {
@@ -490,170 +491,6 @@ module.exports = {
 			},
 		},
 
-		/*addtrainer: {
-			rooms: [WIFI_ROOM],
-			async action(message) {
-				if (!this.room) {
-					if (!this.getRoomAuth(WIFI_ROOM)) return;
-				}
-				if (!(this.canUse(5) || await settings.hexists('whitelist:trainers', this.userid))) return this.pmreply("Permission denied.");
-
-				let params = message.split((message.includes('|') ? '|' : ',')).map(param => param.trim());
-				return this.reply(trainerList.addUser(this.username, params));
-			},
-		},
-		removetrainer: {
-			rooms: [WIFI_ROOM],
-			async action(message) {
-				if (!this.room) {
-					if (!this.getRoomAuth(WIFI_ROOM)) return;
-				}
-				if (!(this.canUse(5) || await settings.hexists('whitelist:trainers', this.userid))) return this.pmreply("Permission denied.");
-
-				return this.reply(trainerList.removeUser(this.username, toId(message)));
-			},
-		},
-		updatetrainer: {
-			rooms: [WIFI_ROOM],
-			async action(message) {
-				if (!this.room) {
-					if (!this.getRoomAuth(WIFI_ROOM)) return;
-				}
-				let params = message.split((message.includes('|') ? '|' : ',')).map(param => param.trim());
-				let targetId = toId(params[0]);
-
-				if (!(targetId in trainerList.data)) return this.pmreply("User is not on the trainer list.");
-				if (!(this.canUse(5) || await settings.hexists('whitelist:trainers', this.userid) || this.userid === targetId)) return this.pmreply("Permission denied.");
-
-				return this.reply(trainerList.updateUser(this.username, params));
-			},
-		},
-		traineractivity: {
-			rooms: [WIFI_ROOM],
-			async action(message) {
-				if (!this.room) {
-					if (!this.getRoomAuth(WIFI_ROOM)) return;
-				}
-				if (!(this.canUse(3) || await settings.hexists('whitelist:trainers', this.userid))) return this.pmreply("Permission denied.");
-
-				let targetId = toId(message);
-				if (!(targetId in trainerList.data)) return this.reply("User is not on the trainer list.");
-				trainerList.data[targetId].date = Date.now();
-				trainerList.writeList();
-
-				Connection.send(`${WIFI_ROOM}|/modnote ${this.username} has approved ${targetId}'s EV training.`);
-
-				return this.reply("trainer list updated.");
-			},
-		},
-		purgetrainers: {
-			rooms: [WIFI_ROOM],
-			async action() {
-				if (!this.room) {
-					if (!this.getRoomAuth(WIFI_ROOM)) return;
-				}
-				if (!this.canUse(5)) return this.pmreply("Permission denied.");
-
-				let removed = trainerList.purgeList();
-				// Do 10 names per time. Max length for a modnote is 300, assuming all names are the max length (19 characters), plus 2 for the ', ' sep. This would fit 14 names, but doing 10 since I need space for the rest of the message.
-				for (let i = 0; i < removed.length; i += 10) {
-					Connection.send(`${WIFI_ROOM}|/modnote ${removed.slice(i, i + 10)} ${i === removed.length - 1 ? 'was' : 'were'} removed from the trainer list`);
-				}
-				return this.reply(`${removed.length} user${(removed.length === 1 ? ' was' : 's were')} removed from the trainer list.`);
-			},
-		},
-		settrainerflag: {
-			rooms: [WIFI_ROOM],
-			async action(message) {
-				if (!this.room) {
-					if (!this.getRoomAuth(WIFI_ROOM)) return;
-				}
-				if (!this.canUse(5)) return this.pmreply("Permission denied.");
-
-				let [user, flag] = message.split(',').map(param => param.trim());
-
-				user = toId(user);
-				if (!(user in trainerList.data)) return this.reply("User is not on the trainer list.");
-
-				if (flag) {
-					flag = flag.toUpperCase();
-
-					trainerList.data[user].date = flag;
-
-					trainerList.writeList();
-					Connection.send(`${WIFI_ROOM}|/modnote ${user}'s trainer flag was set to ${flag} by ${this.username}.`);
-				} else {
-					trainerList.data[user].date = Date.now();
-					trainerList.writeList();
-
-					Connection.send(`${WIFI_ROOM}|/modnote ${user}'s trainer flag was removed by ${this.username}.`);
-				}
-
-				return this.reply("User's flag has been successfully updated.");
-			},
-		},
-		whitelisttrainer: {
-			rooms: [WIFI_ROOM],
-			async action(message) {
-				if (!this.room) {
-					if (!this.getRoomAuth(WIFI_ROOM)) return;
-				}
-				if (!this.canUse(5)) return this.pmreply("Permission denied.");
-
-				if (await settings.hexists('whitelist:trainers', toId(message))) return this.reply("This user is already whitelisted.");
-
-				settings.hset('whitelist:trainers', toId(message), message);
-				Connection.send(`${WIFI_ROOM}|/modnote ${toId(message)} was whitelisted for the trainer list by ${this.username}.`);
-				return this.reply("User successfully whitelisted.");
-			},
-		},
-		unwhitelisttrainer: {
-			rooms: [WIFI_ROOM],
-			async action(message) {
-				if (!this.room) {
-					if (!this.getRoomAuth(WIFI_ROOM)) return;
-				}
-				if (!this.canUse(5)) return this.pmreply("Permission denied.");
-
-				if (!await settings.hexists('whitelist:trainers', toId(message))) return this.reply("This user isn't whitelisted.");
-
-				settings.hdel('whitelist:trainers', toId(message));
-				Connection.send(`${WIFI_ROOM}|/modnote ${toId(message)} was unwhitelisted for the trainer list by ${this.username}.`);
-				return this.reply("User successfully removed from the whitelist.");
-			},
-		},
-		edittrainers: {
-			rooms: [WIFI_ROOM],
-			async action() {
-				if (!this.room) {
-					if (!this.getRoomAuth(WIFI_ROOM)) return;
-				}
-				let permission = this.canUse(5) || await settings.hexists('whitelist:trainers', this.userid);
-				let editSelf = (this.userid in trainerList.data);
-				if (!(permission || editSelf)) return this.pmreply("Permission denied.");
-
-				if (Config.checkIps) {
-					let [, ips] = await Handler.checkIp(this.userid);
-					let data = {list: 'trainers'};
-					if (permission) {
-						data.permission = true;
-					}
-					data.user = this.userid;
-					if (ips) data.ip = ips[0];
-					let token = server.createAccessToken(data, 15);
-					this.pmreply(`Edit link for the trainer list **DON'T SHARE THIS LINK**: ${server.url}${WIFI_ROOM}/trainers?token=${token}`);
-				} else {
-					let data = {list: 'trainers'};
-					if (permission) {
-						data.permission = true;
-					}
-					data.user = this.userid;
-					let token = server.createAccessToken(data, 15);
-					this.pmreply(`Edit link for the trainer list **DON'T SHARE THIS LINK**: ${server.url}${WIFI_ROOM}/trainers?token=${token}`);
-				}
-			},
-		},*/
-
 		addscammer: {
 			rooms: [WIFI_ROOM],
 			action(message) {
@@ -664,7 +501,7 @@ module.exports = {
 
 				let params = message.split((message.includes('|') ? '|' : ',')).map(param => param.trim());
 				params.push(this.username);
-				return this.reply(scammerList.addUser(this.username, params));
+				return this.reply(scammerList.add(this.username, params));
 			},
 		},
 		removescammer: {
@@ -675,7 +512,7 @@ module.exports = {
 				}
 				if (!this.canUse(3)) return this.pmreply("Permission denied.");
 
-				return this.reply(scammerList.removeUser(this.username, toId(message)));
+				return this.reply(scammerList.remove(this.username, toId(message)));
 			},
 		},
 		updatescammer: {
@@ -690,7 +527,7 @@ module.exports = {
 
 				if (!(toId(params[0]) in scammerList.data)) return this.pmreply("User is not on the scammer list.");
 
-				return this.reply(scammerList.updateUser(this.username, params));
+				return this.reply(scammerList.update(this.username, params));
 			},
 		},
 		addscammeralt: {
@@ -706,7 +543,7 @@ module.exports = {
 
 				if (!(targetId in scammerList.data)) return this.pmreply("User is not on the scammer list.");
 
-				return this.reply(scammerList.updateUser(this.username, [targetId, 'alts:' + scammerList.data[targetId].alts + ', ' + params.slice(1).join(', ')]));
+				return this.reply(scammerList.update(this.username, [targetId, 'alts:' + scammerList.data[targetId].alts + ', ' + params.slice(1).join(', ')]));
 			},
 		},
 		checkfc: {
@@ -780,6 +617,46 @@ module.exports = {
 				}
 
 				return this.reply("User's flag has been successfully updated.");
+			},
+		},
+		addhackmon: {
+			rooms: [WIFI_ROOM],
+			action(message) {
+				if (!this.room) {
+					if (!this.getRoomAuth(WIFI_ROOM)) return;
+				}
+				if (!this.canUse(4)) return this.pmreply("Permission denied.");
+
+				let params = message.split((message.includes('|') ? '|' : ',')).map(param => param.trim());
+				params.push(this.username);
+				let date = new Date();
+				return this.reply(hackmonList.add(this.username, params, `${params[0]}${date.getUTCDate}${date.getUTCMonth() + 1}${date.getUTCFullYear() - 2000}`));
+			},
+		},
+		removehackmon: {
+			rooms: [WIFI_ROOM],
+			action(message) {
+				if (!this.room) {
+					if (!this.getRoomAuth(WIFI_ROOM)) return;
+				}
+				if (!this.canUse(4)) return this.pmreply("Permission denied.");
+
+				return this.reply(hackmonList.remove(this.username, toId(message)));
+			},
+		},
+		updatehackmon: {
+			rooms: [WIFI_ROOM],
+			action(message) {
+				if (!this.room) {
+					if (!this.getRoomAuth(WIFI_ROOM)) return;
+				}
+				if (!this.canUse(4)) return this.pmreply("Permission denied.");
+
+				let params = message.split((message.includes('|') ? '|' : ',')).map(param => param.trim());
+
+				if (!(toId(params[0]) in hackmonList.data)) return this.pmreply("This mon isn't on the hackmon list.");
+
+				return this.reply(hackmonList.update(this.username, params));
 			},
 		},
 	},
