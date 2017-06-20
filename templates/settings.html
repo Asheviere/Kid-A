@@ -10,7 +10,8 @@
     
     <body>
         <div class="container">
-            <h2>Options</h2>
+            <h1>Settings for room {{room}}</h1>
+            <h2>Options:</h2>
             <table>
                 {{#each options}}
                     {{#mod @index 3 0}}
@@ -27,7 +28,7 @@
                 {{/each}}
             </table>
 
-            <h2>Disabled Commands</h2>
+            <h2>Disabled Commands:</h2>
             <table>
                 {{#each commands}}
                     {{#mod @index 3 0}}

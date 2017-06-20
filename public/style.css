@@ -120,3 +120,6 @@ tr:hover {
     text-decoration: underline #5253D2;
     border-radius: 10px;
 }
+button {
+    margin: 20px;
+}
