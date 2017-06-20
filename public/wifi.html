@@ -38,6 +38,10 @@
 				<span>whitelistcloner (username):</span>
 				Adds the given user to the cloner whitelist, allowing them to use cloner commands. Requires Room Owner.
 			</p>
+			<p class="helptopic">
+				<span>notifycloners (message):</span>
+				Sets a message that will be sent to all cloners when they log on. Requires Room Owner.
+			</p>
         </div>
 		
 		<div>
@@ -61,6 +65,25 @@
 			<p class="helptopic">
 				<span>checkfc (fc):</span>
 				Checks if the given FC is on the scammer list, on the cloner or trainer list, or if the FC belongs to a user in the room.
+			</p>
+		</div>
+
+		<div>
+			<h2 id="hackmons">Hackmon list:</h2>
+			<p class="helptopic">
+				The identifier for editing and deleting hacked mons is <code>species-day-month-year</code>. Use this in <code>.removehackmon</code> and <code>updatehackmon</code>. It is not needed for adding mons.
+			</p>
+			<p class="helptopic">
+				<span>addhackmon (species, ot, tid, details, reasoning):</span>
+				Adds a hackmon to the hacked mons list. If you wish to have commas in any of the fields, use '|' as the separator instead of ','. Requires Room Moderator.
+			</p>
+			<p class="helptopic">
+				<span>removehackmon (identifier):</span>
+				Removes a hackmon from the list. Requires Room Moderator.
+			</p>
+			<p class="helptopic">
+				<span>updatehackmon (identifier, [key: value, key: value]):</span>
+				Updates the information of a hacked mon. Possible values for keys are: <strong>species, ot, tid, details, reasoning</strong>. If you wish to have commas in any of the fields, use '|' as the separator instead of ','. Requires Room Moderator.
 			</p>
 		</div>
 

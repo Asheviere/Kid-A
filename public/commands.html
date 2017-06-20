@@ -26,6 +26,9 @@
                     <span>leave:</span> Makes the bot leave, and take the room off of autojoin (if autojoin is provided by inviting the bot). If the bot is set to autojoin by Config, the bot will leave, but rejoin next restart. Requires Room Owner in
                     the room.
                 </p>
+                <p class="helptopic">
+                    <span>privateroom:</span> Toggles the privacy of a room. Requires Room Owner.
+                </p>
             </div>
             <div>
                 <h2 id="hangman">Hangman:</h2>
@@ -66,14 +69,21 @@
                     again with the updated last.fm username.
                 </p>
             </div>
-
+            <div>
+                <h2 id="linecount">Linecount:</h2>
+                <p class="helptopic">
+                    <span>linecount (room, username):</span> Gives you a link to check the linecount of the given username in the given room the past month. Requires Room Driver.
+                </p>
+                <p class="helptopic">
+                    <span>topusers (room [, today|0-24]):</span> Shows the 5 most active users in the given room the past month. If 'today' is passed as an additional parameter, shows the most active users today. If a number between 0 and 24 is passed as an additional parameter, shows the most active users during that hour of the day (GMT). Requires Room Driver.
+                </p>
+            </div>
             <div>
                 <h2 id="moderation">Moderation:</h2>
                 <p class="helptopic">
                     Use the settings feature to edit settings for bot moderation in the rooms you're Room Owner in.
                 </p>
             </div>
-
             <div>
                 <h2 id="quotes">Quotes:</h2>
                 <p class="helptopic">
@@ -89,7 +99,6 @@
                     <span>randquote:</span> Says a random quote from the quote page of the current room.
                 </p>
             </div>
-
             <div>
                 <h2 id="social">Social:</h2>
                 <p class="helptopic">
@@ -111,7 +120,6 @@
                     <span>clearrepeats:</span> Stops all repeating messages in this room. Requires Room Driver in the room.
                 </p>
             </div>
-
             <div>
                 <h2 id="userlist">Userlist:</h2>
                 <p class="helptopic">
