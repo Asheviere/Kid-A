@@ -267,7 +267,7 @@ class WifiList {
 
 const clonerList = new WifiList('cloners', './data/cloners.tsv', ['PS Username', 'Friend code', 'IGN', 'Notes', 'Date of last giveaway'], ['username', 'fc', 'ign', 'notes']);
 const scammerList = new WifiList('scammers', './data/scammers.tsv', ['PS Username', 'Alts', 'IGN', 'Friend code', 'Evidence', 'Reason', 'Added by', 'Date added'], ['username', 'alts', 'ign', 'fc', 'evidence', 'reason', 'addedby'], true);
-const hackmonList = new WifiList('hackmons', './data/hackmons.tsv', ['Pokémon', 'OT', 'TID', 'Details', 'Reasoning', 'Notes', 'Added By', 'Date Added'], ['species', 'ot', 'tid', 'details', 'reasoning', 'addedby'], true);
+const hackmonList = new WifiList('hackmons', './data/hackmons.tsv', ['Pokémon', 'OT', 'TID', 'Details', 'Reasoning', 'Notes', 'Added By', 'Date Added'], ['species', 'ot', 'tid', 'details', 'reasoning', 'notes', 'addedby'], true);
 
 module.exports = {
 	onUserJoin: {
@@ -629,7 +629,7 @@ module.exports = {
 				let params = message.split((message.includes('|') ? '|' : ',')).map(param => param.trim());
 				params.push(this.username);
 				let date = new Date();
-				return this.reply(hackmonList.add(this.username, params, `${params[0]}${leftpad(date.getUTCDate())}${leftpad(date.getUTCMonth() + 1)}${leftpad(date.getUTCFullYear() - 2000)}`));
+				return this.reply(hackmonList.add(this.username, params, `${params[0]}-${leftpad(date.getUTCDate())}-${leftpad(date.getUTCMonth() + 1)}-${leftpad(date.getUTCFullYear() - 2000)}`));
 			},
 		},
 		removehackmon: {
