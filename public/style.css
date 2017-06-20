@@ -24,6 +24,10 @@ h2 {
     padding: 2px;
     text-decoration: underline #5253D2;
 }
+h3 {
+    margin: 0px 36px 0px;
+    padding: 2px;
+}
 li {
     font-weight: normal;
     padding-top: 3px;
@@ -37,7 +41,7 @@ a {
 a:hover {
     color: #3E3BD8;
 }
-a:pressed {
+a:visited {
     color: #5253D2;
 }
 table {
