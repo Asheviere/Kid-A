@@ -19,6 +19,8 @@ const cache = new Cache('wifi');
 
 server.addTemplate('cloners', 'cloners.html');
 
+let leftpad = val => (val < 10 ? `0${val}`: `${val}`);
+
 class WifiList {
 	constructor(name, file, columnNames, columnKeys, noOnlinePage, noTime) {
 		this.name = name;
@@ -230,11 +232,11 @@ class WifiList {
 
 	loadList() {
 		let users = Object.create(null);
-		let data;
+		let data = '';
 		try {
 			data = fs.readFileSync(this.file);
 		} catch (e) {
-			return;
+			if (e.code !== 'ENOENT') throw e;
 		}
 		data = ('' + data).split("\n");
 		for (let i = 0; i < data.length; i++) {
@@ -573,9 +575,6 @@ module.exports = {
 				for (let i in clonerList.data) {
 					if (clonerList.data[i].fc === fc) return this.reply(`This FC belongs to ${clonerList.data[i].username}, who is an approved cloner.`);
 				}
-				/*for (let i in trainerList.data) {
-					if (trainerList.data[i].fc === fc) return this.reply(`This FC belongs to ${trainerList.data[i].username}, who is an approved trainer.`);
-				}*/
 
 				// Lastly, if available, check the .fc database
 				let db = redis.useDatabase('friendcodes');
@@ -630,7 +629,7 @@ module.exports = {
 				let params = message.split((message.includes('|') ? '|' : ',')).map(param => param.trim());
 				params.push(this.username);
 				let date = new Date();
-				return this.reply(hackmonList.add(this.username, params, `${params[0]}${date.getUTCDate}${date.getUTCMonth() + 1}${date.getUTCFullYear() - 2000}`));
+				return this.reply(hackmonList.add(this.username, params, `${params[0]}${leftpad(date.getUTCDate())}${leftpad(date.getUTCMonth() + 1)}${leftpad(date.getUTCFullYear() - 2000)}`));
 			},
 		},
 		removehackmon: {
