@@ -28,6 +28,7 @@ class WifiList {
 		this.columnNames = columnNames;
 		this.columnKeys = columnKeys;
 		this.noTime = noTime;
+		this.noOnlinePage = noOnlinePage;
 
 		if (!noTime) {
 			columnKeys.push('date');
@@ -79,7 +80,7 @@ class WifiList {
 			let query = server.parseURL(req.url);
 			let token = query.token;
 
-			let data = {name: this.name, columnNames: this.columnNames};
+			let data = {name: this.name, columnNames: this.columnNames, noOnline: this.noOnlinePage};
 
 			if (token) {
 				let tokenData = server.getAccessToken(token);
@@ -119,7 +120,7 @@ class WifiList {
 				if (a[i] < b[i]) return -1;
 				if (a[i] > b[i]) return 1;
 				return 0;
-			}).map(val => ({data: this.data[val], online: (Handler.userlists[WIFI_ROOM] && (val in Handler.userlists[WIFI_ROOM]))}));
+			}).map(val => ({data: this.data[val], online: (!this.noOnlinePage && (Handler.userlists[WIFI_ROOM] && (val in Handler.userlists[WIFI_ROOM])))}));
 
 			return res.end(server.renderTemplate('cloners', data));
 		};
@@ -266,7 +267,7 @@ class WifiList {
 }
 
 const clonerList = new WifiList('cloners', './data/cloners.tsv', ['PS Username', 'Friend code', 'IGN', 'Notes', 'Date of last giveaway'], ['username', 'fc', 'ign', 'notes']);
-const scammerList = new WifiList('scammers', './data/scammers.tsv', ['PS Username', 'Alts', 'IGN', 'Friend code', 'Evidence', 'Reason', 'Added by', 'Date added'], ['username', 'alts', 'ign', 'fc', 'evidence', 'reason', 'addedby'], true);
+const scammerList = new WifiList('scammers', './data/scammers.tsv', ['PS Username', 'Alts', 'IGN', 'Friend code', 'Evidence', 'Reason', 'Added by', 'Date added'], ['username', 'alts', 'ign', 'fc', 'evidence', 'reason', 'addedby']);
 const hackmonList = new WifiList('hackmons', './data/hackmons.tsv', ['Pokémon', 'OT', 'TID', 'Details', 'Reasoning', 'Notes', 'Added By', 'Date Added'], ['species', 'ot', 'tid', 'details', 'reasoning', 'notes', 'addedby'], true);
 
 module.exports = {

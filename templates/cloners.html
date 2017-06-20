@@ -20,7 +20,9 @@ https://docs.google.com/spreadsheets/d/1aj7bIySJI1JwCD8KHeBOlZnG4Hg27KI12H8RiNyn
                 <p class="note"><strong>If you wish to become an approved EV trainer, please read <a href="https://docs.google.com/document/d/1eKzzvcZ1zWZXU_GyFhhBUT2wj4dMaiJOCnn669VR83U">this document</a> before applying.</strong></p>
             {{/if_eq}}
             {{#unless tokenData}}
-                <div class="popup"><input type="checkbox" onclick="toggleFilter(this)">Only show online {{name}}.</div>
+                {{#unless noOnline}}
+                    <div class="popup"><input type="checkbox" onclick="toggleFilter(this)">Only show online {{name}}.</div>
+                {{/unless}}
             {{/unless}}
             
 			<table>
