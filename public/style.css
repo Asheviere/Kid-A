@@ -1,28 +1,44 @@
-@import url(https://fonts.googleapis.com/css?family=Ubuntu:400,700);
 body {
-    background: #e8eaf6;
-    font-family: ubuntu, sans;
-    font-size: 10pt;
-    height:97vh;
+    background: #D7D7D7;
+    font-family: Droid Sans, Liberation Sans, sans;
+    font-size: 11pt;
+    line-height: 1.4;
 }
 .container {
-    margin-left: 5%;
-    margin-right: 5%;
+    margin: auto;
     overflow: auto;
-    padding: 5px;
-	background: white;
+	background: #FDFDFD;
     height:100%;
+    padding: 0px;
+    max-width: 1300px;
 }
 h1 {
     text-align: center;
-    background: #1a237e;
+    background: #5253D2;
     color: white;
     padding: 7px;
-    margin: 6px 0px 8px;
+    margin: 0px 0px 20px;
 }
 h2 {
-    margin: 0px;
-    text-decoration: underline #dd2c00;
+    margin: 0px 36px 0px;
+    padding: 2px;
+    text-decoration: underline #5253D2;
+}
+li {
+    font-weight: normal;
+    padding-top: 3px;
+    margin: 2px 45px;
+}
+a {
+    color: #5253D2;
+    font-weight: bold;
+    text-decoration: underline #586A8B;
+}
+a:hover {
+    color: #3E3BD8;
+}
+a:pressed {
+    color: #5253D2;
 }
 table {
     margin-top:10px;
@@ -59,6 +75,7 @@ tr:hover {
 .note {
     font-size: 9pt;
     opacity: 0.7;
+    margin-left: 60px;
 }
 .helptopic {
     margin-left: 10px;
