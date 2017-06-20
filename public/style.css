@@ -56,14 +56,14 @@ th, td {
 th {
    padding:13px;
    font-size:15pt;
-   background: #1a237e;
+   background: #5253D2;
    color: white;
 }
 .online {
-    background-color: #aac4f3;
+    background-color: #C3D7FC;
 }
 .online:hover {
-    background-color: #9ab4e3;
+    background-color: #ADC9FC;
 }
 td {
    padding:7px;
@@ -110,8 +110,11 @@ tr:hover {
 	opacity: 0.87;
 }
 .popup {
-    padding: 8px;
-    margin: 4px;
-    max-width: 20%;
-    background: #e8eaf6;
+    font-size: 12pt;
+    padding: 7px 15px;
+    margin: 4px 60px;
+    display: inline-block;
+    background: #C3D7FC;
+    text-decoration: underline #5253D2;
+    border-radius: 10px;
 }
