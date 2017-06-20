@@ -104,12 +104,16 @@ tr:hover {
     color: inherit;
 }
 .analyzer {
+    margin-bottom: 10px;
 	overflow: auto;
 }
 .analyzer li {
-	margin: 1px 0px 4px;
+	margin: 1px 30px 4px;
 	font-size: 9pt;
 	opacity: 0.87;
+}
+.analyzer p {
+    margin: 0px 40px;
 }
 .popup {
     font-size: 12pt;
