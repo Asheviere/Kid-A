@@ -155,7 +155,7 @@ class WifiList {
 			data[this.columnKeys[i]] = params[i];
 		}
 		this.data[key] = data;
-		fs.appendFileSync(this.file, `${params.join('\t')}\n`);
+		fs.appendFile(this.file, this.renderEntry(key), () => {});
 
 		Connection.send(`${WIFI_ROOM}|/modnote ${user} added ${key} to the ${this.name.slice(0, -1)} list.`);
 
@@ -245,24 +245,36 @@ class WifiList {
 			let row = data[i].trim().split("\t");
 			if (row[0] === this.columnNames[0]) continue;
 
-			let userid = toId(row[0]);
-			users[userid] = {};
-			for (let i = 0; i < this.columnKeys.length; i++) {
-				users[userid][this.columnKeys[i]] = row[i];
+			let j = 0;
+			let key = '';
+			if (row[0].startsWith('id:')) {
+				j++;
+				key = toId(row[0].substr(3));
+			} else {
+				key = toId(row[0]);
+			}
+			users[key] = {};
+			for (; j < this.columnKeys.length; j++) {
+				users[key][this.columnKeys[j]] = row[j];
 			}
 		}
 
 		return users;
 	}
 
+	renderEntry(key) {
+		let values = [];
+		for (let j in this.data[key]) values.push(this.data[key][j]);
+		if (key !== toId(values[0])) values.unshift(`id:${key}`);
+		return values.join('\t') + '\n';
+	}
+
 	writeList() {
 		let toWrite = this.columnNames.join('\t') + "\n";
 		for (let i in this.data) {
-			let values = [];
-			for (let j in this.data[i]) values.push(this.data[i][j]);
-			toWrite += values.join('\t') + '\n';
+			toWrite += this.renderEntry(i);
 		}
-		fs.writeFileSync(this.file, toWrite);
+		fs.writeFile(this.file, toWrite, () => {});
 	}
 }
 
