@@ -245,17 +245,17 @@ class WifiList {
 			let row = data[i].trim().split("\t");
 			if (row[0] === this.columnNames[0]) continue;
 
-			let j = 0;
+			let offset = 0;
 			let key = '';
 			if (row[0].startsWith('id:')) {
-				j++;
+				offset++;
 				key = toId(row[0].substr(3));
 			} else {
 				key = toId(row[0]);
 			}
 			users[key] = {};
-			for (; j < this.columnKeys.length; j++) {
-				users[key][this.columnKeys[j]] = row[j];
+			for (let j = 0; j < this.columnKeys.length; j++) {
+				users[key][this.columnKeys[j]] = row[j + offset];
 			}
 		}
 
