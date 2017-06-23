@@ -127,7 +127,7 @@ class ChatLogger {
 			keys = keys.filter(key => !toPrune.includes(key));
 
 			if (options.day) {
-				keys = keys.filter(key => key.split(':')[0] === leftpad(today.getUTCDate()) && key.split(':')[1] === leftpad(today.getUTCMonth()));
+				keys = keys.filter(key => key.split(':')[0] === leftpad(today.getUTCDate()) && key.split(':')[1] === leftpad(today.getUTCMonth() + 1));
 			}
 
 			if (options.time) {
