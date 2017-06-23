@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>Editing {{name}} - Kid A</title>
+        <script>
+            var form = document.getElementById('form');
+            form.action = window.location.href;
+        </script>
+	</head>
+	
+	<body>
+		<form id="form" method="post">
+            <textarea rows="50" cols="200" name="content">{{content}}</textarea>
+            <input type="submit" value="Submit">
+        </form>
+	</body>
+</html>
