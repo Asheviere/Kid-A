@@ -21,7 +21,6 @@ function renderEditor(res, name) {
 		} else {
 			content = String(data);
 		}
-		console.log(server.renderTemplate('editdoc', {name: name, content: content}));
 		return res.end(server.renderTemplate('editdoc', {name: name, content: content}));
 	});
 }
@@ -39,6 +38,7 @@ function docEditResolver(req, res) {
 
 			fs.writeFile(`./public/wifi/${name}.html`, req.body.content, err => {
 				if (err) return res.end("Something went wrong saving the file.");
+				Connection.send(`${WIFI_ROOM}|/modnote ${token.user} updated ${name}.html`);
 				renderEditor(res, name);
 			});
 		} else {
