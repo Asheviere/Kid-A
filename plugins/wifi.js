@@ -38,7 +38,7 @@ function docEditResolver(req, res) {
 
 			fs.writeFile(`./public/wifi/${name}.html`, req.body.content, err => {
 				if (err) return res.end("Something went wrong saving the file.");
-				Connection.send(`${WIFI_ROOM}|/modnote ${token.user} updated ${name}.html`);
+				Connection.send(`${WIFI_ROOM}|/modnote ${data.user} updated ${name}.html`);
 				renderEditor(res, name);
 			});
 		} else {
