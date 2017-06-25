@@ -358,8 +358,9 @@ module.exports = {
 				let targetId = toId(params[0]);
 
 				if (!(targetId in clonerList.data)) return this.pmreply("User is not on the cloner list.");
-				let self = !this.canUse(5) && (this.userid === targetId);
-				if (!(this.canUse(5) || await settings.hexists('whitelist:cloners', this.userid) || self)) return this.pmreply("Permission denied.");
+				let hasPerms = !this.canUse(5) || (await settings.hexists('whitelist:cloners', this.userid));
+				let self = !hasPerms && (this.userid === targetId);
+				if (!(hasPerms || self)) return this.pmreply("Permission denied.");
 
 				return this.reply(clonerList.update(this.username, params, self));
 			},
