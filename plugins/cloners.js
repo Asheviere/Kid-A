@@ -170,7 +170,7 @@ class WifiList {
 		return `${target} successfully removed.`;
 	}
 
-	update(user, params) {
+	update(user, params, self) {
 		if (params.length < 2) return "Invalid number of arguments provided.";
 
 		let identifier = toId(params[0]);
@@ -185,6 +185,7 @@ class WifiList {
 			if (!this.columnKeys.includes(key)) return `Invalid key: ${key}`;
 
 			if (key === 'fc') {
+				if (self) return "Users are not allowed to change their own Friend Code";
 				let split = value.split(',').map(param => param.trim());
 
 				for (let fc of split) {
@@ -357,9 +358,10 @@ module.exports = {
 				let targetId = toId(params[0]);
 
 				if (!(targetId in clonerList.data)) return this.pmreply("User is not on the cloner list.");
-				if (!(this.canUse(5) || await settings.hexists('whitelist:cloners', this.userid) || this.userid === targetId)) return this.pmreply("Permission denied.");
+				let self = !this.canUse(5) && (this.userid === targetId);
+				if (!(this.canUse(5) || await settings.hexists('whitelist:cloners', this.userid) || self)) return this.pmreply("Permission denied.");
 
-				return this.reply(clonerList.update(this.username, params));
+				return this.reply(clonerList.update(this.username, params, self));
 			},
 		},
 		clonerga: {
