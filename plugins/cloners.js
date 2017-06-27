@@ -120,7 +120,7 @@ class WifiList {
 				if (a[i] < b[i]) return -1;
 				if (a[i] > b[i]) return 1;
 				return 0;
-			}).map(val => ({data: this.data[val], online: (!this.noOnlinePage && (Handler.userlists[WIFI_ROOM] && (val in Handler.userlists[WIFI_ROOM])))}));
+			}).map(val => ({data: this.data[val], online: (!this.noOnlinePage && (Handler.userlists[WIFI_ROOM] && (val in Handler.userlists[WIFI_ROOM] || (this.data[val].alts && this.data[val].alts.split(',').map(val => toId(val)).filter(val => val in Handler.userlists[WIFI_ROOM]).length))))}));
 
 			return res.end(server.renderTemplate('cloners', data));
 		};
@@ -283,6 +283,17 @@ const clonerList = new WifiList('cloners', './data/cloners.tsv', ['PS Username',
 const scammerList = new WifiList('scammers', './data/scammers.tsv', ['PS Username', 'Alts', 'IGN', 'Friend code', 'Evidence', 'Reason', 'Added by', 'Date added'], ['username', 'alts', 'ign', 'fc', 'evidence', 'reason', 'addedby']);
 const hackmonList = new WifiList('hackmons', './data/hackmons.tsv', ['Pokémon', 'OT', 'TID', 'Details', 'Reasoning', 'Notes', 'Added By', 'Date Added'], ['species', 'ot', 'tid', 'details', 'reasoning', 'notes', 'addedby'], true);
 
+function getScammerEntry(userid) {
+	for (let key in scammerList.data) {
+		if (key === userid) return key;
+
+		let alts = scammerList.data[key].alts.split(',').map(alt => toId(alt));
+		if (alts.includes(userid)) return key;
+	}
+
+	return false;
+}
+
 module.exports = {
 	onUserJoin: {
 		rooms: [WIFI_ROOM],
@@ -290,13 +301,14 @@ module.exports = {
 			user = toId(user);
 
 			let now = new Date();
+			let scammer = getScammerEntry(user);
 
 			// Autoban permabanned scammers
-			if (scammerList.data[user]) {
-				if (typeof(scammerList.data[user].date) === "string" && scammerList.data[user].date.startsWith("PERMA")) {
+			if (scammer) {
+				if (typeof(scammerList.data[scammer].date) === "string" && scammerList.data[scammer].date.startsWith("PERMA")) {
 					Connection.send(`${WIFI_ROOM}|/rb ${user}, Permabanned scammer.`);
-				} else if (parseInt(scammerList.data[user].date)) {
-					let date = new Date(parseInt(scammerList.data[user].date));
+				} else if (parseInt(scammerList.data[scammer].date)) {
+					let date = new Date(parseInt(scammerList.data[scammer].date));
 
 					if (!(date.getUTCFullYear() < now.getUTCFullYear() - 1 || (date.getUTCFullYear() < now.getUTCFullYear() && (date.getUTCMonth() < now.getUTCMonth() || (date.getUTCMonth() === now.getUTCMonth() && date.getUTCDate() < now.getUTCDate()))))) {
 						Connection.send(`${WIFI_ROOM}|/rb ${user}, Scammer.`);
