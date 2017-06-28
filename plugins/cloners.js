@@ -203,7 +203,7 @@ class WifiList {
 
 		this.writeList();
 		Connection.send(`${WIFI_ROOM}|/modnote ${user} updated ${(toId(user) === identifier ? 'their' : `${identifier}'s`)} ${this.name.slice(0, -1)} info.`);
-		return "${identifier} successfully updated.";
+		return `${identifier} successfully updated.`;
 	}
 
 	purgeList() {
