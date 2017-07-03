@@ -86,6 +86,9 @@ tr:hover {
 .helptopic span {
     font-weight: bold;
 }
+.body {
+    margin:15px 60px;
+}
 .quote {
     padding: 5px 8px;
     line-height: 1.5;
