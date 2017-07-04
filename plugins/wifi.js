@@ -6,13 +6,14 @@ const server = require('../server.js');
 const redis = require('../redis.js');
 
 const WIFI_ROOM = 'wifi';
+const THE_PC = 'thepc';
 
 let tsvs = redis.useDatabase('tsv');
 
 server.addTemplate('editdoc', 'editdoc.html');
 
-function renderEditor(res, name) {
-	fs.readFile(`./public/wifi/${name}.html`, (err, data) => {
+function renderEditor(res, room, name) {
+	fs.readFile(`./public/${room}/${name}.html`, (err, data) => {
 		let content = '';
 		if (err) {
 			if (err.code !== 'ENOENT') {
@@ -26,23 +27,24 @@ function renderEditor(res, name) {
 }
 
 function docEditResolver(req, res) {
+	let room = req.originalUrl.split('/')[1];
 	let query = server.parseURL(req.url);
 	let token = query.token;
 	let name = query.name;
 	if (!name) return res.end("Invalid URL.");
 	if (token) {
 		let data = server.getAccessToken(token);
-		if (data.permission !== 'editdoc') return res.end('Invalid access token.');
+		if (data.permission !== 'editdoc' || data.room !== room) return res.end('Invalid access token.');
 		if (req.method === "POST") {
 			if (!(req.body && req.body.content)) return res.end("Malformed request.");
 
-			fs.writeFile(`./public/wifi/${name}.html`, req.body.content, err => {
+			fs.writeFile(`./public/${room}/${name}.html`, req.body.content, err => {
 				if (err) return res.end("Something went wrong saving the file.");
-				Connection.send(`${WIFI_ROOM}|/modnote ${data.user} updated ${name}.html`);
-				renderEditor(res, name);
+				Connection.send(`${room}|/modnote ${data.user} updated ${name}.html`);
+				renderEditor(res, room, name);
 			});
 		} else {
-			renderEditor(res, name);
+			renderEditor(res, room, name);
 		}
 	} else {
 		return res.end('Please attach an access token. (You should get one when you type the command)');
@@ -50,6 +52,7 @@ function docEditResolver(req, res) {
 }
 
 server.addRoute(`/${WIFI_ROOM}/editdoc`, docEditResolver);
+server.addRoute(`/${THE_PC}/editdoc`, docEditResolver);
 
 // Very ugly but meh
 let toTSV = val => (val < 1000 ? '0' : '') + (val < 100 ? '0' : '') + (val < 10 ? '0' : '') + val;
@@ -135,20 +138,23 @@ module.exports = {
 			},
 		},
 		editdoc: {
-			rooms: [WIFI_ROOM],
+			rooms: [WIFI_ROOM, THE_PC],
 			async action(message) {
-				if (!this.room) {
+				let room = this.room;
+
+				if (!room) {
 					if (!this.getRoomAuth(WIFI_ROOM)) return;
+					room = WIFI_ROOM;
 				}
 
 				if (!(this.canUse(5))) return this.pmreply("Permission denied.");
 
 				let fname = `editdoc?name=${toId(message)}`;
 
-				let token = server.createAccessToken({user: this.username, permission: 'editdoc'}, 15);
+				let token = server.createAccessToken({user: this.username, permission: 'editdoc', room: room}, 15);
 				fname += `&token=${token}`;
 
-				return this.pmreply(`Edit link: ${server.url}${WIFI_ROOM}/${fname}`);
+				return this.pmreply(`Edit link: ${server.url}${room}/${fname}`);
 			},
 		},
 	},
