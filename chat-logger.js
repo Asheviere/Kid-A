@@ -41,6 +41,8 @@ class ChatLogger {
 
 			this.syncing = false;
 		}, 5 * MINUTE);
+
+		pruneAll();
 	}
 
 	waitForSync() {
@@ -196,6 +198,30 @@ class ChatLogger {
 		await this.waitForSync();
 
 		return (await this.seen.get(userid));
+	}
+
+	async pruneAll() {
+		let keys = await this.logs.keys('*');
+
+		for (let user of keys) {
+			let linecount = await this.logs.hkeys(user);
+
+			let today = new Date();
+			let toPrune = [];
+
+			for (let key of linecount) {
+				let [day, month] = key.split(':');
+
+				if (parseInt(month) < today.getUTCMonth() + 1 && (parseInt(day) < today.getUTCDate() || parseInt(month) < today.getUTCMonth())) {
+					toPrune.push(key);
+				}
+			}
+
+			if (toPrune.length) {
+				toPrune.unshift(user);
+				this.logs.hdel.apply(this.logs, toPrune);
+			}
+		}
 	}
 }
 
