@@ -3,6 +3,7 @@
 const redis = require('./redis.js');
 
 const MINUTE = 1000 * 60;
+const DAY = 24 * 60 * MINUTE;
 
 let leftpad = val => (val < 10 ? `0${val}`: `${val}`);
 
@@ -41,6 +42,8 @@ class ChatLogger {
 
 			this.syncing = false;
 		}, 5 * MINUTE);
+
+		setInterval(this.pruneAll, DAY);
 
 		this.pruneAll();
 	}
