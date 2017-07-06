@@ -42,7 +42,7 @@ class ChatLogger {
 			this.syncing = false;
 		}, 5 * MINUTE);
 
-		pruneAll();
+		this.pruneAll();
 	}
 
 	waitForSync() {
