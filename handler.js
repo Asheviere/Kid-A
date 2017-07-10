@@ -95,12 +95,13 @@ module.exports = {
 		return this.ipQueue.splice(idx, 1)[0].resolve([userid, ips]);
 	},
 
-	async tryJoin(remove) {
+	async tryJoin(roomid, remove) {
 		if (!this.extraJoin) return;
-		if (remove) {
-			let idx = this.extraJoin.indexOf(remove);
+		if (roomid) {
+			let idx = this.extraJoin.indexOf(roomid);
 			if (idx < 0) return;
 			this.extraJoin.splice(idx, 1);
+			if (remove) settings.lrem('privaterooms', 0, roomid);
 		}
 		if (!this.extraJoin.length) return;
 
@@ -162,7 +163,8 @@ module.exports = {
 			this.removeUser(split[3], roomid);
 			break;
 		case 'noinit':
-			this.tryJoin(roomid);
+		case 'deinit':
+			this.tryJoin(roomid, true);
 			break;
 		case 'init':
 			this.tryJoin(roomid);
