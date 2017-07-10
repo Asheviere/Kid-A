@@ -12,17 +12,9 @@ class ChatLogger {
 		this.logs = redis.useDatabase('logs');
 		this.seen = redis.useDatabase('seen');
 
-		this.rooms = [];
 		this.queue = [];
 		this.queuedOperations = [];
 		this.syncing = false;
-
-		this.logs.keys('*').then(keys => {
-			for (let i = 0; i < keys.length; i++) {
-				let roomid = keys[i].split(':')[0];
-				if (!this.rooms.includes(roomid)) this.rooms.push(roomid);
-			}
-		});
 
 		setInterval(async () => {
 			this.syncing = true;
@@ -56,6 +48,19 @@ class ChatLogger {
 		});
 	}
 
+	async getRooms() {
+		let rooms = new Set();
+
+		let keys = await this.logs.keys('*');
+
+		for (let i = 0; i < keys.length; i++) {
+			let roomid = keys[i].split(':')[0];
+			rooms.add(roomid);
+		}
+
+		return Array.from(rooms);
+	}
+
 	async log(timestamp, room, userid, message) {
 		if (Config.disableLogging) return;
 
@@ -64,8 +69,6 @@ class ChatLogger {
 
 		timestamp = timestamp * 1000;
 		let date = new Date(timestamp);
-
-		if (!(this.rooms.includes(room))) this.rooms.push(room);
 
 		let key = `${room}:${userid}`;
 

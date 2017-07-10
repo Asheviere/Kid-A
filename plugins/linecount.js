@@ -32,11 +32,12 @@ async function linecountResolver(req, res) {
 	return res.end('Please attach an access token. (You should get one when you type .linecount <room>, <user>)');
 }
 
-let rooms = ChatLogger.rooms;
 let curRooms = new Set();
 
 module.exports = {
 	async init() {
+		let rooms = await ChatLogger.getRooms();
+
 		for (let i = 0; i < rooms.length; i++) {
 			curRooms.add(rooms[i]);
 			server.addRoute(`/${rooms[i]}/linecount`, linecountResolver);
@@ -51,6 +52,7 @@ module.exports = {
 					let split = message.split(',');
 					[room, user] = split.map(param => param.trim());
 					if (!(room && user)) return this.pmreply("Syntax: ``.linecount room, user``");
+					if (!this.userlists[room] && !curRooms.has(room)) return this.reply(`Invalid room: ${room}`);
 					if (!this.getRoomAuth(room)) return;
 				} else {
 					user = message;
@@ -66,7 +68,6 @@ module.exports = {
 				let token = server.createAccessToken(data, 15);
 				fname += `?token=${token}&user=${toId(user)}`;
 
-				if (!rooms.includes(room)) return this.reply("Room not found in chat logs");
 				if (!curRooms.has(room)) {
 					server.addRoute(`/${room}/linecount`, linecountResolver);
 					server.restart();
