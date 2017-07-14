@@ -44,7 +44,7 @@ function runRepeat(id) {
 		Connection.send(`${obj.room}|${obj.msg}`);
 		repeatTimers[id] = setTimeout(() => runRepeat(id), obj.interval * MINUTE);
 	} else {
-		cache.deleteProperty('motd', id);
+		cache.deleteProperty('repeats', id);
 		delete repeatTimers[id];
 	}
 
