@@ -465,24 +465,6 @@ module.exports = {
 				return this.reply(clonerList.update(this.username, params, self));
 			},
 		},
-		clonerga: {
-			rooms: [WIFI_ROOM],
-			async action(message) {
-				if (!this.room) {
-					if (!this.getRoomAuth(WIFI_ROOM)) return;
-				}
-				if (!(this.canUse(3) || await settings.hexists('whitelist:cloners', this.userid))) return this.pmreply("Permission denied.");
-
-				let targetId = toId(message);
-				if (!(targetId in clonerList.data)) return this.reply("User is not on the cloner list.");
-				clonerList.data[targetId].date = Date.now();
-				clonerList.writeList();
-
-				Connection.send(`${WIFI_ROOM}|/modnote ${this.username} has approved ${targetId}'s cloner giveaway.`);
-
-				return this.reply("Cloner list updated.");
-			},
-		},
 		purgecloners: {
 			rooms: [WIFI_ROOM],
 			async action() {
@@ -802,6 +784,19 @@ module.exports = {
 
 				return this.reply(hackmonList.update(this.username, params));
 			},
+		},
+	},
+	analyzer: {
+		rooms: [WIFI_ROOM],
+		async modnoteParser(message) {
+			let match = /^(.+?) started a (?:.+?) giveaway for (.+?)$/.exec(message);
+
+			if (match) {
+				if (clonerList.data[toId(match[2])]) {
+					clonerList.data[toId(match[2])].date = Date.now();
+					clonerList.writeList();
+				}
+			}
 		},
 	},
 };

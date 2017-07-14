@@ -111,7 +111,12 @@ module.exports = {
 	async parse(message) {
 		if (!message) return;
 		let split = message.split('|');
-		let roomid = toId(split[0].split('\n')[0]) || 'lobby';
+		let first = split[0].split('\n');
+		let roomid = toId(first[0]) || 'lobby';
+		if (split[0].startsWith('(') || (first.length > 1 && first[1].startsWith('('))) {
+			if (split[0].startsWith('(')) roomid = 'lobby';
+			this.chatHandler.parseModnote(roomid, first[first.length - 1].slice(1, -1));
+		}
 		switch (split[1]) {
 		case 'challstr':
 			statusMsg('Received challstr, logging in...');

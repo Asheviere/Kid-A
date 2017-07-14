@@ -102,12 +102,21 @@ class AnalyzerWrapper {
 
 	async run(analyzer, userstr, room, message) {
 		if (analyzer.rooms && !(analyzer.rooms.includes(room))) return;
-		this.auth = userstr[0];
-		this.username = userstr.substr(1);
-		this.userid = toId(userstr);
-		this.room = room;
 
-		analyzer.parser.apply(this, [message]);
+		if (userstr) {
+			if (!analyzer.parser) return;
+			this.auth = userstr[0];
+			this.username = userstr.substr(1);
+			this.userid = toId(userstr);
+			this.room = room;
+
+			analyzer.parser.apply(this, [message]);
+		} else {
+			if (!analyzer.modnoteParser) return;
+			this.room = room;
+
+			analyzer.modnoteParser.apply(this, [message]);		
+		}
 	}
 }
 
@@ -217,11 +226,14 @@ class ChatHandler {
 		}
 	}
 
+	async parseModnote(room, message) {
+		this.analyze(null, room, message);
+	}
+
 	async analyze(userstr, room, message) {
 		let restartNeeded = !(await analytics.keys(`*:${room}`)).length;
 		let wrapper = new AnalyzerWrapper(this.userlists, this.settings, this.options);
 		for (let i in this.analyzers) {
-			if (!this.analyzers[i].parser) continue;
 			wrapper.run(this.analyzers[i], userstr, room, message);
 		}
 		restartNeeded = restartNeeded && (await analytics.keys(`*:${room}`)).length;
