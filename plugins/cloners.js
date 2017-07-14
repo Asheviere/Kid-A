@@ -110,18 +110,20 @@ class WifiList {
 				data.editors = whitelist.join(', ');
 			}
 
+			let top3 = [];
+
+			if ('score' in this.columnKeys) {
+				top3 = Object.keys(this.data).sort((a, b) => {
+					return this.data[a].score >= this.data[b].score;
+				}).slice(0, 3);
+			}
+
 			data.entries = Object.keys(this.data).sort((a, b) => {
 				if ('date' in this.data[a] && !parseInt(this.data[a].date)) return -1;
 				if ('date' in this.data[b] && !parseInt(this.data[b].date)) return 1;
-				let i = 0;
-				while (a[i] === b[i]) {
-					i++;
-					if (i === a.length) return -1;
-					if (i === b.length) return 1;
-				}
-				if (a[i] < b[i]) return -1;
-				if (a[i] > b[i]) return 1;
-				return 0;
+				if (top3.indexOf(a) < top3.indexOf(b)) return -1;
+				if (top3.indexOf(b) < top3.indexOf(a)) return 1;
+				return a.localeCompare(b);
 			}).map(val => ({data: this.data[val], online: (!this.noOnlinePage && (Handler.userlists[WIFI_ROOM] && (val in Handler.userlists[WIFI_ROOM] || (this.data[val].alts && this.data[val].alts.split(',').map(val => toId(val)).filter(val => val in Handler.userlists[WIFI_ROOM]).length))))}));
 
 			return res.end(server.renderTemplate('cloners', data));
