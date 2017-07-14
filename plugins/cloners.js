@@ -8,6 +8,8 @@ const utils = require('../utils.js');
 const Cache = require('../cache.js');
 
 const HOUR = 60 * 60 * 1000;
+const DAY = 24 * HOUR;
+const MONTH = 30 * DAY;
 
 const FC_REGEX = /[0-9]{4}[- ]?[0-9]{4}[- ]?[0-9]{4}/;
 
@@ -18,6 +20,7 @@ const settings = redis.useDatabase('settings');
 const cache = new Cache('wifi');
 
 server.addTemplate('cloners', 'cloners.html');
+server.addTemplate('clonerlog', 'clonerlog.html');
 
 let leftpad = val => (val < 10 ? `0${val}`: `${val}`);
 
@@ -44,7 +47,7 @@ class WifiList {
 			for (let i in edits) {
 				if (!this.data[i]) return;
 				for (let key in edits[i]) {
-					if (key === 'username'|| (key === 'date' && !tokenData.permission)) continue;
+					if (key === 'score' || key === 'username' || (key === 'date' && !tokenData.permission)) continue;
 
 					let elem = edits[i][key];
 					if (key === 'fc') {
@@ -84,7 +87,6 @@ class WifiList {
 
 			if (token) {
 				let tokenData = server.getAccessToken(token);
-				console.log(tokenData);
 				if (!tokenData) return res.end('Invalid access token.');
 
 				data.tokenData = tokenData;
@@ -181,7 +183,7 @@ class WifiList {
 			key = toId(key);
 			let value = values.join(':').trim();
 
-			if (key === 'username' || key === 'date') return "This column can't be changed.";
+			if (key === 'username' || key === 'date' || key === 'score') return "This column can't be changed.";
 			if (!this.columnKeys.includes(key)) return `Invalid key: ${key}`;
 
 			if (key === 'fc') {
@@ -277,11 +279,88 @@ class WifiList {
 		}
 		fs.writeFile(this.file, toWrite, () => {});
 	}
+
+	updateScore(userid) {
+		if (!(this.data[userid] && ('score' in this.data[userid]))) return;
+
+		this.data[userid].score++;
+
+		this.writeList();
+	}
 }
 
-const clonerList = new WifiList('cloners', './data/cloners.tsv', ['PS Username', 'Friend code', 'IGN', 'Notes', 'Date of last giveaway'], ['username', 'fc', 'ign', 'notes']);
+const clonerList = new WifiList('cloners', './data/cloners.tsv', ['PS Username', 'Friend code', 'IGN', 'Notes', 'Score', 'Date of last giveaway'], ['username', 'fc', 'ign', 'notes', 'score']);
 const scammerList = new WifiList('scammers', './data/scammers.tsv', ['PS Username', 'Alts', 'IGN', 'Friend code', 'Evidence', 'Reason', 'Added by', 'Date added'], ['username', 'alts', 'ign', 'fc', 'evidence', 'reason', 'addedby']);
 const hackmonList = new WifiList('hackmons', './data/hackmons.tsv', ['Pokémon', 'OT', 'TID', 'Details', 'Reasoning', 'Notes', 'Added By', 'Date Added'], ['species', 'ot', 'tid', 'details', 'reasoning', 'notes', 'addedby'], true);
+
+class ClonerLog {
+	constructor() {
+		this.db = redis.useDatabase('clonerlog');
+
+		this.pendingRequests = {};
+
+		let generatePage = async (req, res) => {
+			let query = server.parseURL(req.url);
+			let token = query.token;
+
+			if (!token) return res.end("No access token provided.");
+
+			let tokenData = server.getAccessToken(token);
+			if (!tokenData || tokenData.permission !== 'clonerlog') return res.end('Invalid access token.');
+
+			let keys = (await this.db.keys('*')).reverse();
+
+			let data = [];
+
+			for (let key of keys) {
+				let entry = (await this.db.get(key)).split(':');
+				data.push({date: key, cloner: entry[0], client: entry[1]});
+			}
+
+			return res.end(server.renderTemplate('clonerlog', data));
+		};
+
+		server.addRoute(`/${WIFI_ROOM}/clonerlog`, generatePage);
+
+		setInterval(() => {
+			for (let key in this.pendingRequests) {
+				if (this.pendingRequests[key].timestamp < Date.now() - DAY) {
+					delete this.pendingRequests[key];
+				}
+			}
+		}, DAY);
+	}
+
+	process(user, target, role) {
+		let confirmkey = `${user}:${target}`;
+		if (confirmkey in this.pendingRequests) {
+			this.pendingRequests[confirmkey][role] = user;
+
+			// failsafe
+			if (!('cloner' in this.pendingRequests[confirmkey] && 'client' in this.pendingRequests[confirmkey])) return;
+
+			this.log(this.pendingRequests[confirmkey]);
+			Connection.send(`|/pm ${user}, Cloning confirmed successfully.`);
+			Connection.send(`|/pm ${target}, ${user} has confirmed the cloning.`);
+			clonerList.updateScore(this.pendingRequests[confirmkey].cloner);
+			delete this.pendingRequests[confirmkey];
+		} else {
+			if (role !== 'cloner') return Connection.send(`|/pm ${user}, Only cloners can initiate a confirmation.`);
+			let key = `${target}:${user}`;
+			let obj = {timestamp: Date.now(), cloner: user};
+			this.pendingRequests[key] = obj;
+			Connection.send(`|/pm ${user}, Confirmation request sent to ${target}.`);
+			Connection.send(`|/pm ${target}, ${user} wants you to confirm they cloned for you. If this is indeed the case, respond with \`\`.cloned ${user}\`\`. If you received this message randomly, please report this to a staff member.`);
+		}
+	}
+
+	async log(obj) {
+		await this.db.set(obj.timestamp, `${obj.cloner}:${obj.client}`);
+		this.db.pexpire(obj.timestamp, MONTH);
+	}
+}
+
+const clonerlog = new ClonerLog();
 
 function getScammerEntry(userid) {
 	for (let key in scammerList.data) {
@@ -346,6 +425,7 @@ module.exports = {
 				if (!(this.canUse(5) || await settings.hexists('whitelist:cloners', this.userid))) return this.pmreply("Permission denied.");
 
 				let params = message.split((message.includes('|') ? '|' : ',')).map(param => param.trim());
+				params.push(0);
 				return this.reply(clonerList.add(this.username, params));
 			},
 		},
@@ -518,6 +598,35 @@ module.exports = {
 				cache.write();
 
 				return this.reply("New cloner notification set.");
+			},
+		},
+		cloned: {
+			rooms: [WIFI_ROOM],
+			async action(message) {
+				if (!this.userlists[WIFI_ROOM][this.userid]) return this.pmreply("You need to be in the Wi-Fi room to use this command.");
+				if (this.auth === '‽') return this.pmreply("You cannot use this command while locked."); // Needed so we can lock for abuse.
+
+				message = toId(message);
+				if (!message) return this.pmreply("Syntax: ``.cloned username``");
+
+				let userIsCloner = !!clonerList.data[this.userid];
+				let targetIsCloner = !!clonerList.data[message];
+
+				if (!(userIsCloner ^ targetIsCloner)) return this.pmreply("This command can only be used by a cloner on a client and vice-versa.");
+
+				clonerlog.process(this.userid, message, (userIsCloner ? 'cloner' : 'client'));
+			},
+		},
+		clonerlog: {
+			rooms: [WIFI_ROOM],
+			async action() {
+				if (!this.room) {
+					if (!this.getRoomAuth(WIFI_ROOM)) return;
+				}
+				if (!this.canUse(3)) return this.pmreply("Permission denied.");
+
+				let token = server.createAccessToken({permission: 'clonerlog'}, 15);
+				this.pmreply(`Cloner log: ${server.url}${WIFI_ROOM}/clonerlog?token=${token}`);
 			},
 		},
 

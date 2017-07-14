@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>Cloner activity log - Kid A</title>
+	</head>
+	
+	<body>
+		<div class="container">
+			{{#if this}}
+				<h1>Cloner activity:</h1>
+				<ul>
+					{{#each this}}
+						<li><em>{{parse_date this.date}}</em>: <strong>{{this.cloner}}</strong> cloned for <strong>{{this.client}}</strong></li>
+					{{/each}}
+				</ul>
+			{{else}}
+				<h2>No cloner activity.</h2>
+			{{/if}}
+		</div>
+	</body>
+</html>
