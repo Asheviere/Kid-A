@@ -112,7 +112,7 @@ class WifiList {
 
 			let top3 = [];
 
-			if ('score' in this.columnKeys) {
+			if (this.columnKeys.includes('score')) {
 				top3 = Object.keys(this.data).sort((a, b) => {
 					return this.data[a].score >= this.data[b].score;
 				}).slice(0, 3);
