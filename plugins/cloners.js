@@ -792,6 +792,7 @@ module.exports = {
 			let match = /^(.+?) started a (?:.+?) giveaway for (.+?)$/.exec(message);
 
 			if (match) {
+				Connection.send(`${WIFI_ROOM}|It's Giveaway Time!`);
 				if (clonerList.data[toId(match[2])]) {
 					clonerList.data[toId(match[2])].date = Date.now();
 					clonerList.writeList();
