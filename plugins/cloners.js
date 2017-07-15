@@ -110,24 +110,12 @@ class WifiList {
 				data.editors = whitelist.join(', ');
 			}
 
-			let top3 = [];
-
-			if (this.columnKeys.includes('score')) {
-				top3 = Object.keys(this.data).sort((a, b) => {
-					return (parseInt(this.data[a].score) > parseInt(this.data[b].score) ? -1 : 1);
-				}).slice(0, 3);
-			}
-
 			data.entries = Object.keys(this.data).sort((a, b) => {
 				if ('date' in this.data[a] && !parseInt(this.data[a].date)) return -1;
 				if ('date' in this.data[b] && !parseInt(this.data[b].date)) return 1;
-				if (top3.indexOf(a) !== -1) {
-					if (top3.indexOf(b) !== -1) {
-						return (top3.indexOf(a) < top3.indexOf(b) ? -1 : 1);
-					}
-					return -1;
-				} else if (top3.indexOf(b) !== -1) {
-					return 1;
+				if (this.columnKeys.includes('score')) {
+					if (parseInt(this.data[a].score) > parseInt(this.data[b].score)) return -1;
+					if (parseInt(this.data[a].score) < parseInt(this.data[b].score)) return 1;
 				}
 				return a.localeCompare(b);
 			}).map(val => ({data: this.data[val], online: (!this.noOnlinePage && (Handler.userlists[WIFI_ROOM] && (val in Handler.userlists[WIFI_ROOM] || (this.data[val].alts && this.data[val].alts.split(',').map(val => toId(val)).filter(val => val in Handler.userlists[WIFI_ROOM]).length))))}));
