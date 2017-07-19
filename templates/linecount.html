@@ -26,7 +26,7 @@
 			var margins = {top: 20, right: 10, bottom: 70, left: 50};
 
 			var width = 1000 - margins.left - margins.right;
-			var height = 400 - margins.top - margins.bottom;
+			var height = 500 - margins.top - margins.bottom;
 			var barWidth = 20;
 
 			var data = {{{data}}};
@@ -37,7 +37,7 @@
 				var xscale = d3.scaleBand().domain(dates).range([0, width]);
 
 				var vscale = d3.scaleLinear().domain([0, d3.max(data)]).range([height, 0]);
-				var vaxis = d3.axisLeft().scale(vscale).ticks(Math.ceil(d3.max(data) / 10));
+				var vaxis = d3.axisLeft().scale(vscale).ticks(20);
 
 				var haxis = d3.axisBottom().scale(xscale).ticks(dates.length);
 
