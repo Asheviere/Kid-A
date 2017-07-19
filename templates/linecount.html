@@ -53,7 +53,7 @@
 						return yscale(data);
 					})
 					.attr('x', function(data, i) {
-							return xscale(dates[i]) + margins.left;
+							return xscale(dates[i]) + margins.left + 5;
 					})
 					.attr('y', function(data) {
 							return height - yscale(data) + margins.top;
