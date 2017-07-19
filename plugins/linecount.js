@@ -4,6 +4,8 @@ const server = require('../server.js');
 
 server.addTemplate('linecount', 'linecount.html');
 
+let leftpad = val => (val < 10 ? `0${val}`: `${val}`);
+
 async function linecountResolver(req, res) {
 	let room = req.originalUrl.split('/')[1];
 	let query = server.parseURL(req.url);
@@ -24,7 +26,7 @@ async function linecountResolver(req, res) {
 		while (dayCounter !== today.getUTCDate()) {
 			let newDay = new Date(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() - i);
 			dayCounter = newDay.getUTCDate();
-			let newKey = `${newDay.getUTCDate()}/${newDay.getUTCMonth() + 1}`;
+			let newKey = `${leftpad(newDay.getUTCDate())}/${leftpad(newDay.getUTCMonth() + 1)}`;
 			if (!keys.includes(newKey)) keys.push(newKey);
 			i++;
 		}
