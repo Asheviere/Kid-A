@@ -15,7 +15,21 @@ async function linecountResolver(req, res) {
 		if (!user) return res.end('No user specified.');
 
 		let linecount = await ChatLogger.getLineCount(room, toId(user));
-		let keys = Object.keys(linecount).sort((a, b) => {
+		let keys = Object.keys(linecount);
+
+		// Fill up gaps
+		let today = new Date();
+		let dayCounter;
+		let i = 1;
+		while (dayCounter !== today.getUTCDate()) {
+			let newDay = new Date(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() - i);
+			dayCounter = newDay.getUTCDate();
+			let newKey = `${newDay.getUTCDate()}/${newDay.getUTCMonth() + 1}`;
+			if (!keys.includes(newKey)) keys.push(newKey);
+			i++;
+		}
+
+		keys.sort((a, b) => {
 			let [day1, month1] = a.split('/').map(val => parseInt(val));
 			let [day2, month2] = b.split('/').map(val => parseInt(val));
 			if (month1 > month2) return 1;
@@ -23,11 +37,10 @@ async function linecountResolver(req, res) {
 			if (day1 > day2) return 1;
 			return -1;
 		});
-		let lcdata = [];
-		keys.forEach(val => lcdata.push({date: val, linecount: linecount[val]}));
-		let total = Object.values(linecount).reduce((a, b) => a + b, 0);
+		let lcdata = keys.map(val => linecount[val] || 0);
+		let total = lcdata.reduce((a, b) => a + b, 0);
 		let seen = await ChatLogger.getLastSeen(user);
-		return res.end(server.renderTemplate('linecount', {room: room, user: user, total: total, data: lcdata, seen: seen}));
+		return res.end(server.renderTemplate('linecount', {room: room, user: user, total: total, dates: JSON.stringify(keys), data: JSON.stringify(lcdata), seen: seen}));
 	}
 	return res.end('Please attach an access token. (You should get one when you type .linecount <room>, <user>)');
 }

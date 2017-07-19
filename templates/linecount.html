@@ -4,18 +4,15 @@
 	<head>
 		<meta charset="UTF-8">
 		<link rel="stylesheet" type="text/css" href="../style.css">
+		<script src="https://d3js.org/d3.v4.min.js"></script>
 		<title>{{room}} - Kid A</title>
 	</head>
 	
 	<body>
 		<div class="container">
-			{{#if data}}
+			{{#if total}}
 				<h1>Line count for {{user}} in {{room}} :</h1>
-				<ul style="list-style:none;margin:0px;">
-					{{#each data}}				
-							<li><strong>{{this.date}}</strong>: {{this.linecount}}</li>
-					{{/each}}
-				</ul>
+				<div id="linecount"></div>
 				<h3>Total line count: {{total}}</h3>
 			{{else}}
 				<h2>This user has no lines in the past month.</h2>
@@ -24,5 +21,64 @@
 				<h3>Last seen: {{parse_duration seen}} ago</h3>
 			{{/if}}
 		</div>
+
+		<script>
+			var margins = {top: 20, right: 10, bottom: 70, left: 50};
+
+			var width = 1000 - margins.left - margins.right;
+			var height = 400 - margins.top - margins.bottom;
+			var barWidth = 20;
+
+			var data = {{{data}}};
+			var dates = {{{dates}}};
+
+			if ({{total}}) {
+				var yscale = d3.scaleLinear().domain([0, d3.max(data)]).range([0, height]);
+				var xscale = d3.scaleBand().domain(dates).range([0, width]);
+
+				var vscale = d3.scaleLinear().domain([0, d3.max(data)]).range([height, 0]);
+				var vaxis = d3.axisLeft().scale(vscale).ticks(Math.ceil(d3.max(data) / 10));
+
+				var haxis = d3.axisBottom().scale(xscale).ticks(dates.length);
+
+				d3.select('#linecount')
+					.append('svg')
+					.attr('width', 1000)
+					.attr('height', 400)
+					.selectAll('rect').data(data)
+					.enter().append('rect')
+					.style('fill', '#5253D2')
+					.attr('width', barWidth)
+					.attr('height', function(data) {
+						return yscale(data);
+					})
+					.attr('x', function(data, i) {
+							return xscale(dates[i]) - 5;
+					})
+					.attr('y', function(data) {
+							return height - yscale(data) + margins.top;
+					});
+
+				var vguide = d3.select('svg').append('g');
+
+				vaxis(vguide);
+				vguide.attr('transform', 'translate(' + margins.left + ', ' + margins.top + ')');
+				vguide.selectAll('path')
+					.style('fill', 'none')
+					.style('stroke', "black");
+				vguide.selectAll('line')
+					.style('stroke', "black");
+
+				var hguide = d3.select('svg').append('g');
+				haxis(hguide);
+				hguide.attr('transform', 'translate(' + margins.left + ', ' + (height + margins.top) + ')');
+				hguide.selectAll('path')
+					.style('fill', 'none')
+					.style('stroke', "black");
+				hguide.selectAll('line')
+					.style('stroke', "black");
+					
+			}
+		</script>
 	</body>
 </html>
