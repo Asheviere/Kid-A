@@ -304,9 +304,7 @@ class ClonerLog {
 			let tokenData = server.getAccessToken(token);
 			if (!tokenData || tokenData.permission !== 'clonerlog') return res.end('Invalid access token.');
 
-			let keys = await this.db.keys('*').sort((a, b) => {
-				return parseInt(a) > parseInt(b) ? -1 : 1;
-			});
+			let keys = (await this.db.keys('*')).sort((a, b) => parseInt(a) > parseInt(b) ? -1 : 1);
 
 			let data = [];
 
