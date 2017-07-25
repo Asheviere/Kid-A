@@ -135,7 +135,7 @@ module.exports = {
 			let idx = 0;
 			for (let i = 0; i < 24; i++) {
 				if (idx < linecount.length && parseInt(linecount[idx][0]) === i) {
-					data.push(linecount[idx][1]);
+					data.push(linecount[idx][1] / 30);
 					idx++;
 				} else {
 					data.push(0);
