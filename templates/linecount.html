@@ -5,6 +5,7 @@
 		<meta charset="UTF-8">
 		<link rel="stylesheet" type="text/css" href="../style.css">
 		<script src="https://d3js.org/d3.v4.min.js"></script>
+		<script src="../scripts/graphs.js"></script>
 		<title>{{room}} - Kid A</title>
 	</head>
 	
@@ -23,62 +24,7 @@
 		</div>
 
 		<script>
-			var margins = {top: 20, right: 10, bottom: 70, left: 50};
-
-			var width = 1000 - margins.left - margins.right;
-			var height = 500 - margins.top - margins.bottom;
-			var barWidth = 20;
-
-			var data = {{{data}}};
-			var dates = {{{dates}}};
-
-			if ({{total}}) {
-				var yscale = d3.scaleLinear().domain([0, d3.max(data)]).range([0, height]);
-				var xscale = d3.scaleBand().domain(dates).range([0, width]);
-
-				var vscale = d3.scaleLinear().domain([0, d3.max(data)]).range([height, 0]);
-				var vaxis = d3.axisLeft().scale(vscale).ticks(20);
-
-				var haxis = d3.axisBottom().scale(xscale).ticks(dates.length);
-
-				d3.select('#linecount')
-					.append('svg')
-					.attr('width', 1000)
-					.attr('height', 500)
-					.selectAll('rect').data(data)
-					.enter().append('rect')
-					.style('fill', '#5253D2')
-					.attr('width', barWidth)
-					.attr('height', function(data) {
-						return yscale(data);
-					})
-					.attr('x', function(data, i) {
-							return xscale(dates[i]) + margins.left + 5;
-					})
-					.attr('y', function(data) {
-							return height - yscale(data) + margins.top;
-					});
-
-				var vguide = d3.select('svg').append('g');
-
-				vaxis(vguide);
-				vguide.attr('transform', 'translate(' + margins.left + ', ' + margins.top + ')');
-				vguide.selectAll('path')
-					.style('fill', 'none')
-					.style('stroke', "black");
-				vguide.selectAll('line')
-					.style('stroke', "black");
-
-				var hguide = d3.select('svg').append('g');
-				haxis(hguide);
-				hguide.attr('transform', 'translate(' + margins.left + ', ' + (height + margins.top) + ')');
-				hguide.selectAll('path')
-					.style('fill', 'none')
-					.style('stroke', "black");
-				hguide.selectAll('line')
-					.style('stroke', "black");
-					
-			}
+				createBarGraph({{{dates}}}, {{{data}}}, '#linecount', 5);
 		</script>
 	</body>
 </html>

@@ -148,7 +148,7 @@ class ChatHandler {
 		};
 
 		this.generateDataPage = async room => {
-			let content = `<!DOCTYPE html><html><head><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="../style.css"><title>${room} - Kid A</title></head><body><div class="container">`;
+			let content = `<!DOCTYPE html><html><head><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="../style.css"><title>${room} - Kid A</title><script src="https://d3js.org/d3.v4.min.js"></script><script src="../scripts/graphs.js"></script></head><body><div class="container">`;
 			content += `<h1>${room} data:</h1><div class="quotes">`;
 			let wrapper = new AnalyzerWrapper(this.userlists, this.settings, this.options);
 			for (let i in this.analyzers) {

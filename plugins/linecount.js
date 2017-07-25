@@ -130,9 +130,20 @@ module.exports = {
 	analyzer: {
 		async display(room) {
 			let linecount = await ChatLogger.getRoomActivity(room);
-			output = `<h3>Average lines of chat per hour of the day (Times are GMT):</h3><ul>`;
-			output += linecount.map(val => `<li><b>${val[0]}:00</b>: ${Math.ceil(val[1] / 30)}</li>`).join('');
-			output += `</ul>`;
+			let labels = [];
+			let data = [];
+			let idx = 0;
+			for (let i = 0; i < 24; i++) {
+				if (idx < linecount.length && parseInt(linecount[idx][0]) === i) {
+					data.push(linecount[idx][1]);
+					idx++;
+				} else {
+					data.push(0);
+				}
+				labels.push(i);
+			}
+			output = `<h3>Average lines of chat per hour of the day (Times are GMT):</h3><div id="activity"></div>`;
+			output += `<script>createBarGraph(${JSON.stringify(labels)}, ${JSON.stringify(data)}, '#activity', 10)</script>`;
 			output += `<h3>Total number of unique users in the past 30 days: <u>${await ChatLogger.getUniqueUsers(room)}</u></h3>`;
 
 			return output;
