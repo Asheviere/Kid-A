@@ -48,7 +48,7 @@ module.exports = {
 
 		async display(room) {
 			let profanities = await this.data.hgetall(`profanities:${room}`);
-			return '<p>Percentage of words said that are swear words: ' + (profanities.count ? (profanities.count / profanities.total * 100) : 0) + '</p>';
+			return '<p>Percentage of words said that are swear words: ' + (profanities.count ? (profanities.count / profanities.total * 100).toFixed(3) : 0) + '</p>';
 		},
 	},
 };
