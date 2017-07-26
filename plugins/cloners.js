@@ -786,6 +786,12 @@ module.exports = {
 					clonerList.writeList();
 				}
 			}
+
+			match = /^(.+?) was demoted to Room (?:Voice|regular user) by (.+?)\.$/.exec(message);
+
+			if (match && (await settings.hexists('whitelist:cloners', toId(match[1])))) {
+				await settings.hdel('whitelist:cloners', toId(match[1]));
+			}
 		},
 	},
 };
