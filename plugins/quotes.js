@@ -141,7 +141,7 @@ module.exports = {
 				if (await quotedata.exists(this.room)) {
 					let quotes = await redis.getList(quotedata, this.room);
 					let randquote = quotes[Math.floor(Math.random() * quotes.length)];
-					if (randquote[0] === '/' || randquote[0] === '!') randquote = randquote.substr(1);
+					if (randquote[0] === '/' || (randquote[0] === '!' && !randquote.startsWith('!showimage '))) randquote = randquote.substr(1);
 					return this.reply(randquote);
 				}
 
