@@ -777,12 +777,12 @@ module.exports = {
 	analyzer: {
 		rooms: [WIFI_ROOM],
 		async modnoteParser(message) {
-			let match = /^(.+?) started a (?:.+?) giveaway for (.+?)$/.exec(message);
+			let match = /^(.+?) started a (.+?) giveaway for (.+?)$/.exec(message);
 
 			if (match) {
-				Connection.send(`${WIFI_ROOM}|It's Giveaway Time!`);
-				if (clonerList.data[toId(match[2])]) {
-					clonerList.data[toId(match[2])].date = Date.now();
+				if (match[2] !== 'GTS') Connection.send(`${WIFI_ROOM}|It's Giveaway Time!`);
+				if (clonerList.data[toId(match[3])]) {
+					clonerList.data[toId(match[3])].date = Date.now();
 					clonerList.writeList();
 				}
 			}
