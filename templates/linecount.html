@@ -7,12 +7,22 @@
 		<script src="https://d3js.org/d3.v4.min.js"></script>
 		<script src="../scripts/graphs.js"></script>
 		<title>{{room}} - Kid A</title>
+		<script>
+			function keyPressHandler(e) {
+				if (e.keyCode === 13) {
+					let newname = document.getElementById('nameinput').value;
+
+					window.location.href = window.location.href.split('&').slice(0, -1).join('&') + '&user=' + newname;
+				}
+			}
+		</script>
 	</head>
 	
 	<body>
 		<div class="container">
+			<h1>Line count for {{user}} in {{room}} :</h1>
+			<div class="body"><input type="text" onkeypress="keyPressHandler(event)" id="nameinput" placeholder="{{user}}"></div>
 			{{#if total}}
-				<h1>Line count for {{user}} in {{room}} :</h1>
 				<div id="linecount"></div>
 				<h3>Total line count: {{total}}</h3>
 			{{else}}
