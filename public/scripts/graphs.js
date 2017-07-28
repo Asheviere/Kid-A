@@ -31,8 +31,7 @@ function createBarGraph(labels, data, elementName, bias) {
 				return height - yscale(data) + margins.top;
 		});
 
-	var vguide = d3.select('svg').append('g');
-
+	var vguide = d3.select(elementName + ' svg').append('g');
 	vaxis(vguide);
 	vguide.attr('transform', 'translate(' + margins.left + ', ' + margins.top + ')');
 	vguide.selectAll('path')
@@ -41,7 +40,7 @@ function createBarGraph(labels, data, elementName, bias) {
 	vguide.selectAll('line')
 		.style('stroke', "black");
 
-	var hguide = d3.select('svg').append('g');
+	var hguide = d3.select(elementName + ' svg').append('g');
 	haxis(hguide);
 	hguide.attr('transform', 'translate(' + margins.left + ', ' + (height + margins.top) + ')');
 	hguide.selectAll('path')

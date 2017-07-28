@@ -152,6 +152,7 @@ class ChatHandler {
 			content += `<h1>${room} data:</h1><div class="quotes">`;
 			let wrapper = new AnalyzerWrapper(this.userlists, this.settings, this.options);
 			for (let i in this.analyzers) {
+				if (this.analyzers[i].rooms && !this.analyzers[i].rooms.includes(room)) continue;
 				if (this.analyzers[i].display) {
 					content += '<div class="analyzer">';
 					content += await wrapper.display(this.analyzers[i], room);
