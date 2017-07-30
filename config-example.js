@@ -34,3 +34,6 @@ exports.lastfmKey = '';
 
 // Youtube API key, used for the lastfm feature.
 exports.youtubeKey = '';
+
+// Mashape API key, used for the hs feature.
+exports.mashapeKey = '';
