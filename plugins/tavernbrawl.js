@@ -2,7 +2,7 @@ const request = require('request');
 
 const TAVERN_BRAWL = 'tavernbrawl';
 const QUERYURL = 'https://omgvamp-hearthstone-v1.p.mashape.com/cards/';
-const STANDARD_SETS = ['Classic', 'Whispers of the Old Gods', 'One Night in Karazhan', 'Mean Streets of Gadgetzan', 'Journey to Un\'Goro'];
+const STANDARD_SETS = ['Basic', 'Classic', 'Whispers of the Old Gods', 'One Night in Karazhan', 'Mean Streets of Gadgetzan', 'Journey to Un\'Goro'];
 
 function generateCardDisplay(card, useGold) {
 	let output = `<div class="broadcast-blue" style="background-image:url(http://i.imgur.com/FTEEgEW.jpg);background-size:100% auto;background-repeat: no-repeat;"><table style="text-align:center;margin:-13px auto -13px auto;"><tr>`;
@@ -29,7 +29,6 @@ function generateCardDisplay(card, useGold) {
 
 	output += `</td></tr></table></div>`;
 
-	console.log(output);
 	return output;
 }
 
@@ -47,7 +46,7 @@ module.exports = {
 					message = message.slice(0, (message.endsWith(', gold') ? -6 : -5));
 				}
 
-				request(`${QUERYURL}${message}`, {
+				request(`${QUERYURL}${message}?collectible=1`, {
 					headers: {
 						'X-Mashape-Key': Config.mashapeKey,
 					},
@@ -59,8 +58,7 @@ module.exports = {
 							return this.reply("Malformed response.");
 						}
 						if (Array.isArray(body)) {
-							let idx = body.findIndex(val => val.rarity);
-							return this.reply(`/addhtmlbox ${generateCardDisplay(body[idx], gold)}`);
+							return this.reply(`/addhtmlbox ${generateCardDisplay(body[0], gold)}`);
 						} else if (body.error === 404) {
 							return this.reply("Card not found.");
 						}
