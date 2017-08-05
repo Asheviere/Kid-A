@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>In-game tournament - Kid A</title>
+	</head>
+	
+	<body>
+		<div class="container">
+			{{#if data}}
+				{{#if data.bracket}}
+					{{#if data.finished}}
+						<h1>{{format}} tournament:</h1>
+					{{else}}
+						<h1>{{format}} tournament (IN PROGRESS):</h1>
+					{{/if}}
+
+					<h3><b>Tour Helpers:</b> {{tourHelpers}}</h3>					
+
+					{{#each data.bracket}}
+						<h2 style="margin:unset;text-align:center;">{{name}}:</h2>
+						{{#if_eq name "Winner"}}
+							<h3 style="text-align:center;font-size:19pt;">{{winner}}</h3>
+						{{else}}
+							{{#each matchups}}
+								{{#if this.[2]}}
+									{{#if_eq this.[2] this.[0]}}
+										<p class="matchup"><span class="playerOne winner">{{this.[0]}}</span> vs <span class="playerTwo loser">{{this.[1]}}</span></p>
+									{{else}}
+										<p class="matchup"><span class="playerOne loser">{{this.[0]}}</span> vs <span class="playerTwo winner">{{this.[1]}}</span></p>
+									{{/if_eq}}
+								{{else}}
+									<p class="matchup"><span class="playerOne">{{this.[0]}}</span> vs <span class="playerTwo">{{this.[1]}}</span></p>
+								{{/if}}
+							{{/each}}
+						{{/if_eq}}
+					{{/each}}
+				{{else}}
+					<h1>{{data.format}} tournament:</h1>
+					<h3><b>Tour Helpers:</b> {{tourHelpers}}</h3>
+					<h2>Signups in progress! PM a Tour Helper to sign up! Current participants ({{num}}):</h2>
+					<ul>
+						{{#each data.participants}}
+							<li>{{this}}</li>
+						{{/each}}
+					</ul>
+				{{/if}}
+			{{else}}
+				<h2>There has not been a recent tournament.</h2>
+			{{/if}}
+		</div>
+	</body>
+</html>

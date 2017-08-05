@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="../style.css">
+        <title>In-game leaderboard - Kid A</title>
+    </head>
+    
+    <body>
+        <div class="container">
+			<table>
+                <tr class="header">
+                    <th>Username</th><th>Wins</th><th>Losses</th><th>W/L</th><th>Points</th>
+                </tr>
+                {{#each this}}
+                    <tr>
+                    {{#each this}}
+                        <td>
+                            {{this}}
+                        </td>
+                    {{/each}}
+
+                    </tr>
+                {{/each}}
+			</table>
+        </div>
+    </body>
+</html>

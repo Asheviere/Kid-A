@@ -135,3 +135,33 @@ tr:hover {
 button {
     margin: 20px;
 }
+.matchup {
+  margin: 20px 40px;
+  display: block;
+  font-size: 13pt;
+  color: black;
+  margin: auto;
+  padding: 10px 20%;
+}
+.matchup span {
+  font-weight: bold;
+  font-size: 15pt;
+}
+.playerOne {
+  display: block;
+  float: left;
+  width: 45%;
+  margin-left: 10px;
+}
+.playerTwo {
+  display: block;
+  float: right;
+  text-align: right;
+  width: 45%;
+}
+.winner {
+  text-decoration: underline green;
+}
+.loser {
+  opacity: 0.5;
+}
