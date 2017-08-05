@@ -10,7 +10,7 @@
 		<script>
 			function keyPressHandler(e) {
 				if (e.keyCode === 13) {
-					let newname = document.getElementById('nameinput').value;
+					let newname = document.getElementById('nameinput').value.toLowerCase().replace(/[^a-z0-9]/g, '');
 
 					window.location.href = window.location.href.split('&').slice(0, -1).join('&') + '&user=' + newname;
 				}
