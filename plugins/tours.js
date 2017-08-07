@@ -335,7 +335,7 @@ module.exports = {
 				if (!await this.settings.hexists('whitelist:tourhelpers', toId(message))) return this.reply("This user isn't whitelisted.");
 
 				await this.settings.hdel('whitelist:tourhelpers', toId(message));
-				Connection.send(`${WIFI_ROOM}|/modnote ${toId(message)} was unwhitelisted for as a tour helper by ${this.username}.`);
+				Connection.send(`${WIFI_ROOM}|/modnote ${toId(message)} was unwhitelisted as a tour helper by ${this.username}.`);
 				return this.reply("User successfully removed from the whitelist.");
 			},
 		},
