@@ -133,6 +133,8 @@ class Tour {
 		if (this.started) return false;
 		if (Math.floor(Math.log2(this.participants.length)) !== Math.log2(this.participants.length)) return false;
 
+		Connection.send(`${this.room}|/wall The ${this.format} tournament has started! See ${server.url}${WIFI_ROOM}/tournament for the bracket!`);
+
 		this.started = true;
 		this.shuffle();
 		this.createMatchups();
@@ -152,6 +154,8 @@ class Tour {
 			this.winner = nextRound[0];
 			return this.finish();
 		}
+
+		Connection.send(`${this.room}|/wall The next round of the ${this.format} tour has started. Check ${server.url}${WIFI_ROOM}/tournament for the bracket!`);
 
 		this.participants = nextRound;
 		this.createMatchups();
@@ -192,9 +196,9 @@ class Tour {
 		for (let i in userdata) {
 			for (let key in userdata[i]) {
 				if (key === 'name') {
-					this.db.hset(`${this.room}:${i}`, key, userdata[i][key]);
+					this.db.hset(`${WIFI_ROOM}:${i}`, key, userdata[i][key]);
 				} else {
-					this.db.hincrby(`${this.room}:${i}`, key, userdata[i][key]);
+					this.db.hincrby(`${WIFI_ROOM}:${i}`, key, userdata[i][key]);
 				}
 			}
 		}
@@ -250,14 +254,23 @@ module.exports = {
 					if (!(this.canUse(2) || await this.settings.hexists('whitelist:tourhelpers', this.userid))) return this.pmreply("Permission denied.");
 					if (curTournament && !curTournament.finished) return this.pmreply("There is still a tournament going on.");
 
-					let [format, ...points] = rest.split(',');
+					let [format, point1, point2, point3, room] = rest.split(',');
+					let points = [point1, point2, point3];
 					if (!format || points.length !== 3) return this.pmreply(`Invalid parameters. See ${HELP_URL} for a list of commands.`);
 					points = points.map(val => parseInt(val));
 					if (points.some(val => isNaN(val) || val < 0)) return this.pmreply("Points need to be valid numbers.");
+					room = room.toLowerCase();
 
-					curTournament = new Tour(WIFI_ROOM, format, points);
-					Connection.send(`${WIFI_ROOM}|/wall An in-game ${format} tournament was started! See ${server.url}${WIFI_ROOM}/tournament for the bracket!`);
-					Connection.send(`${WIFI_ROOM}|/modnote An in-game tournament was started by ${this.username}.`);
+					if (room && room !== WIFI_ROOM) {
+						Connection.send(`|/join ${room}`);
+					} else {
+						room = WIFI_ROOM;
+					}
+
+					curTournament = new Tour(room, format, points);
+					if (room !== WIFI_ROOM) Connection.send(`${WIFI_ROOM}|/wall An in-game ${format} tournament was started in <<${room}>>`);
+					Connection.send(`${room}|/wall An in-game ${format} tournament was started! See ${server.url}${WIFI_ROOM}/tournament for the bracket!`);
+					Connection.send(`${WIFI_ROOM}|/modnote An in-game tournament was started by ${this.username} in '${room}'.`);
 					return this.pmreply("A tournament has been created.");
 				case 'add':
 					if (!(this.canUse(2) || await this.settings.hexists('whitelist:tourhelpers', this.userid))) return this.pmreply("Permission denied.");
@@ -278,10 +291,7 @@ module.exports = {
 				case 'start':
 					if (!(this.canUse(2) || await this.settings.hexists('whitelist:tourhelpers', this.userid))) return this.pmreply("Permission denied.");
 					if (!curTournament) return this.pmreply("There is no tournament right now.");
-					console.log("hmm");
-					if (curTournament.start()) {
-						return Connection.send(`${WIFI_ROOM}|/wall The ${curTournament.format} tournament has started! See ${server.url}${WIFI_ROOM}/tournament for the bracket!`);
-					}
+					if (curTournament.start()) return this.pmreply("The tournament has been started");
 					return this.pmreply("Cannot start this tournament.");
 				case 'reportwin':
 					if (!(this.canUse(2) || await this.settings.hexists('whitelist:tourhelpers', this.userid))) return this.pmreply("Permission denied.");
@@ -300,7 +310,7 @@ module.exports = {
 
 					if (!matchup) return this.pmreply("You're not in this tournament.");
 					if (matchup[1]) {
-						return this.pmreply(`You ${matchup[0] === matchup[1] ? 'lost' : 'won'} your match against #{matchup[0]}.`);
+						return this.pmreply(`You ${matchup[0] === matchup[1] ? 'lost' : 'won'} your match against ${matchup[0]}.`);
 					}
 
 					return this.pmreply(`You're matched up against ${matchup[0]} this round.`);
