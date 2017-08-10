@@ -11,7 +11,7 @@ function sanitizeCardText(text) {
 function generateCardDisplay(card, useGold) {
 	let output = `<div class="broadcast-blue" style="background-image:url(http://i.imgur.com/FTEEgEW.jpg);background-size:100% auto;background-repeat: no-repeat;"><table style="text-align:center;margin:-13px auto -13px auto;"><tr>`;
 
-	output += `<td style="width:140px;height:200px;"><img src="${useGold ? card.imgGold : card.img}" width="132" height="200"></td>`;
+	output += `<td style="width:140px;height:200px;"><img src="${useGold ? card.imgGold : card.img}" width="132" height="200" ${card.type === 'Hero' ? 'style="margin: -6px 0px 12px 0px;"' : ''}></td>`;
 
 	output += `<td style="max-width:80%;text-align:center;text-shadow: 0px 0px 2px black">`;
 	output += `<p style="font-size:13pt;"><b>${card.name}:</b></p>`;
