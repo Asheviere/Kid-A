@@ -27,7 +27,7 @@ function generateCardDisplay(card, useGold) {
 		break;
 	}
 	output += `<p><b>${card.cost}</b> mana${stat} ${card.multiClassGroup ? `${card.multiClassGroup} <small><i>(${card.classes.join(', ')})</i></small>` : card.playerClass} <b>${typeStr}</b> from <b><i>${card.cardSet}${STANDARD_SETS.includes(card.cardSet) ? '' : ' <small>(Wild)</small>'}</i></b></p>`;
-	output += `<p>${card.text.replace('\n', '<br/>').replace('_', ' ').replace('$', '')}</p>`;
+	output += `<p>${card.text.replace('\\n', '<br/>').replace('_', ' ').replace('$', '')}</p>`;
 	output += `<p style="font-style:italic;">${card.flavor}</p>`;
 
 	output += `</td></tr></table></div>`;
