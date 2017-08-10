@@ -5,7 +5,7 @@ const QUERYURL = 'https://omgvamp-hearthstone-v1.p.mashape.com/cards/';
 const STANDARD_SETS = ['Basic', 'Classic', 'Whispers of the Old Gods', 'One Night in Karazhan', 'Mean Streets of Gadgetzan', 'Journey to Un\'Goro', 'Knights of the Frozen Throne'];
 
 function sanitizeCardText(text) {
-	return text.replace('[x]', '').replace('\\n', '<br/>').replace('\\\n', '<br/>').replace('_', ' ').replace('$', '')
+	return text.replace(/\[x\]/g, '').replace(/\\n/g, '<br/>').replace(/\n/g, '<br/>').replace(/_/g, ' ').replace(/\$/g, '');
 }
 
 function generateCardDisplay(card, useGold) {
