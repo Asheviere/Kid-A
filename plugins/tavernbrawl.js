@@ -4,6 +4,10 @@ const TAVERN_BRAWL = 'tavernbrawl';
 const QUERYURL = 'https://omgvamp-hearthstone-v1.p.mashape.com/cards/';
 const STANDARD_SETS = ['Basic', 'Classic', 'Whispers of the Old Gods', 'One Night in Karazhan', 'Mean Streets of Gadgetzan', 'Journey to Un\'Goro', 'Knights of the Frozen Throne'];
 
+function sanitizeCardText(text) {
+	return text.replace('[x]', '').replace('\\n', '<br/>').replace('\n', '<br/>').replace('_', ' ').replace('$', '')
+}
+
 function generateCardDisplay(card, useGold) {
 	let output = `<div class="broadcast-blue" style="background-image:url(http://i.imgur.com/FTEEgEW.jpg);background-size:100% auto;background-repeat: no-repeat;"><table style="text-align:center;margin:-13px auto -13px auto;"><tr>`;
 
@@ -27,7 +31,7 @@ function generateCardDisplay(card, useGold) {
 		break;
 	}
 	output += `<p><b>${card.cost}</b> mana${stat} ${card.multiClassGroup ? `${card.multiClassGroup} <small><i>(${card.classes.join(', ')})</i></small>` : card.playerClass} <b>${typeStr}</b> from <b><i>${card.cardSet}${STANDARD_SETS.includes(card.cardSet) ? '' : ' <small>(Wild)</small>'}</i></b></p>`;
-	output += `<p>${card.text.replace('\\n', '<br/>').replace('_', ' ').replace('$', '')}</p>`;
+	output += `<p>${sanitizeCardText(card.text)}</p>`;
 	output += `<p style="font-style:italic;">${card.flavor}</p>`;
 
 	output += `</td></tr></table></div>`;
