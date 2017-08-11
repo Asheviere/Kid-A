@@ -57,15 +57,22 @@ async function punish(username, room, val, msg) {
 	let points = punishments.has(`${room}:${userid}`) ? punishments.get(`${room}:${userid}`)[0] : 0;
 
 	points += val;
+	let extraMsg = '';
+
+	let notol = await redis.getList(settings, `${room}:notol`);
+	if (notol.includes(userid)) {
+		points++;
+		extraMsg = " (zero tolerance)";
+	}
 
 	if (points >= 3 && (await checkMuted(room, userid))) {
-		return Connection.send(`${room}|/rb ${userid}, Bot moderation: repeated offenses.`);
+		return Connection.send(`${room}|/rb ${userid}, Bot moderation: repeated offenses.${extraMsg}`);
 	}
 
 	if (points === 1) {
 		Connection.send(`${room}|${username}, ${msg}`);
 	} else {
-		Connection.send(`${room}|/${getPunishment(points)} ${userid}, Bot moderation: ${msg}`);
+		Connection.send(`${room}|/${getPunishment(points)} ${userid}, Bot moderation: ${msg}${extraMsg}`);
 	}
 
 	if (punishments.has(`${room}:${userid}`)) {
@@ -142,6 +149,37 @@ module.exports = {
 					return punish(this.username, this.room, 1, 'Do not stretch.');
 				}
 			}
+		},
+	},
+	commands: {
+		notol: {
+			permission: 4,
+			disallowPM: true,
+			async action(message) {
+				let userid = toId(message);
+				if (!userid) return this.pmreply("No username entered. Syntax: ``.notol <username>``");
+
+				let notol = await redis.getList(this.settings, `${this.room}:notol`);
+
+				if (notol.includes(userid)) return this.pmreply("This user is already marked as zero tolerance.");
+
+				this.settings.rpush(`${this.room}:notol`, userid);
+				Connection.send(`${this.room}|/modnote ${userid} was marked as zero tolerance by ${this.username}.`);
+			},
+		},
+		removenotol: {
+			permission: 4,
+			disallowPM: true,
+			async action(message) {
+				let userid = toId(message);
+				if (!userid) return this.pmreply("No username entered. Syntax: ``.removenotol <username>``");
+
+				if ((await this.settings.lrem(`${this.room}:notol`, 0, userid))) {
+					Connection.send(`${this.room}|/modnote ${userid} was unmarked as zero tolerance by ${this.username}.`);
+				} else {
+					this.pmreply("This user isn't marked as zero tolerance.");
+				}
+			},
 		},
 	},
 };
