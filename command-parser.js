@@ -53,7 +53,7 @@ class CommandWrapper {
 
 		if (command.permission && !this.canUse(command.permission)) return this.pmreply("Permission denied.");
 		if (command.disallowPM && !room) return this.pmreply("This command cannot be used in PMs.");
-		if (room.includes('groupchat') && !command.allowGroupchats) return this.pmreply("This command cannot be used in groupchats.");
+		if (room && room.includes('groupchat') && !command.allowGroupchats) return this.pmreply("This command cannot be used in groupchats.");
 		if (room && command.rooms && !command.rooms.includes(room)) return;
 
 		command.action.apply(this, [message]);
