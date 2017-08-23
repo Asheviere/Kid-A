@@ -93,6 +93,7 @@ module.exports = {
 		repeat: {
 			permission: 3,
 			disallowPM: true,
+			allowGroupchats: true,
 			async action(message) {
 				let [interval, times, ...repeatMsg] = message.split(',');
 				if (!(interval && times && repeatMsg.length)) return this.pmreply("Syntax: .repeat <interval>, <times>, <message to repeat>");
@@ -122,6 +123,7 @@ module.exports = {
 			permission: 3,
 			hidden: true,
 			disallowPM: true,
+			allowGroupchats: true,
 			async action(message) {
 				let id = `${this.room}|${toId(message)}`;
 				if (id in cache.get('repeats')) {
@@ -140,6 +142,7 @@ module.exports = {
 			permission: 3,
 			hidden: true,
 			disallowPM: true,
+			allowGroupchats: true,
 			async action() {
 				for (let id in cache.get('repeats')) {
 					if (id.startsWith(this.room)) {
