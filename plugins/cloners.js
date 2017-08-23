@@ -739,7 +739,7 @@ module.exports = {
 				if (!this.room) {
 					if (!this.getRoomAuth(WIFI_ROOM)) return;
 				}
-				if (!this.canUse(4)) return this.pmreply("Permission denied.");
+				if (!this.canUse(3)) return this.pmreply("Permission denied.");
 
 				let params = message.split((message.includes('|') ? '|' : ',')).map(param => param.trim());
 				params.push(this.username);
@@ -753,7 +753,7 @@ module.exports = {
 				if (!this.room) {
 					if (!this.getRoomAuth(WIFI_ROOM)) return;
 				}
-				if (!this.canUse(4)) return this.pmreply("Permission denied.");
+				if (!this.canUse(3)) return this.pmreply("Permission denied.");
 
 				return this.reply(hackmonList.remove(this.username, toId(message)));
 			},
@@ -764,7 +764,7 @@ module.exports = {
 				if (!this.room) {
 					if (!this.getRoomAuth(WIFI_ROOM)) return;
 				}
-				if (!this.canUse(4)) return this.pmreply("Permission denied.");
+				if (!this.canUse(3)) return this.pmreply("Permission denied.");
 
 				let params = message.split((message.includes('|') ? '|' : ',')).map(param => param.trim());
 
