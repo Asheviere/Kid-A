@@ -797,18 +797,5 @@ module.exports = {
 				await settings.hdel('whitelist:cloners', toId(match[1]));
 			}
 		},
-		async display() {
-			let counts = await this.data.hgetall('giveaways');
-			let labels = [];
-			let data = [];
-			for (let i = 0; i < 24; i++) {
-				data.push(counts[i] || 0);
-				labels.push(i);
-			}
-			output = `<h3>Amount of giveaways per hour of the day (Times are GMT):</h3><div id="giveaways"></div>`;
-			output += `<script>createBarGraph(${JSON.stringify(labels)}, ${JSON.stringify(data)}, '#giveaways', 10)</script>`;
-
-			return output;
-		},
 	},
 };
