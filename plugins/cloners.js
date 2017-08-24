@@ -179,7 +179,7 @@ class WifiList {
 			key = toId(key);
 			let value = values.join(':').trim();
 
-			if (key === 'username' || key === 'date' || key === 'score') return "This column can't be changed.";
+			if (key === 'username' || key === 'date' || key === 'score' || key === 'totalscore') return "This column can't be changed.";
 			if (!this.columnKeys.includes(key)) return `Invalid key: ${key}`;
 
 			if (key === 'fc') {
@@ -220,6 +220,7 @@ class WifiList {
 		let limit = new Date(year, month, 1, 0, 0, 0, 0).getTime();
 
 		for (let i in this.data) {
+			if ('score' in this.data[i]) this.data[i].score = 0;
 			let date = parseInt(this.data[i].date);
 			if (!isNaN(date) && date < limit) {
 				removed.push(i);
@@ -280,12 +281,13 @@ class WifiList {
 		if (!(this.data[userid] && ('score' in this.data[userid]))) return;
 
 		this.data[userid].score = parseInt(this.data[userid].score) + 1;
+		this.data[userid].totalscore = parseInt(this.data[userid].totalscore) + 1;
 
 		this.writeList();
 	}
 }
 
-const clonerList = new WifiList('cloners', './data/cloners.tsv', ['PS Username', 'Friend code', 'IGN', 'Notes', 'Score', 'Date of last giveaway'], ['username', 'fc', 'ign', 'notes', 'score']);
+const clonerList = new WifiList('cloners', './data/cloners.tsv', ['PS Username', 'Friend code', 'IGN', 'Notes', 'Monthly Score', 'Total Score', 'Date of last giveaway'], ['username', 'fc', 'ign', 'notes', 'score', 'totalscore']);
 const scammerList = new WifiList('scammers', './data/scammers.tsv', ['PS Username', 'Alts', 'IGN', 'Friend code', 'Evidence', 'Reason', 'Added by', 'Date added'], ['username', 'alts', 'ign', 'fc', 'evidence', 'reason', 'addedby']);
 const hackmonList = new WifiList('hackmons', './data/hackmons.tsv', ['Pokémon', 'OT', 'TID', 'Details', 'Reasoning', 'Notes', 'Added By', 'Date Added'], ['species', 'ot', 'tid', 'details', 'reasoning', 'notes', 'addedby'], true);
 
