@@ -10,6 +10,8 @@ const analytics = redis.useDatabase('analytics');
 const COMMAND_TOKEN = Config.commandSymbol || '.';
 const COMMAND_REGEX = new RegExp(`^${".^$*+?()[{\\|-]".includes(COMMAND_TOKEN) ? '\\' : ''}${COMMAND_TOKEN}[\\w]+\\b`, "ig");
 
+const dataCache = {};
+
 function sendPM(userid, message) {
 	Connection.send(`|/pm ${userid}, ${message}`);
 }
@@ -149,6 +151,7 @@ class ChatHandler {
 		};
 
 		this.generateDataPage = async room => {
+			if (dataCache[room]) return dataCache[room];
 			let content = `<!DOCTYPE html><html><head><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="../style.css"><title>${room} - Kid A</title><script src="https://d3js.org/d3.v4.min.js"></script><script src="../scripts/graphs.js"></script></head><body><div class="container">`;
 			content += `<h1>${room} data:</h1><div class="quotes">`;
 			let wrapper = new AnalyzerWrapper(this.userlists, this.settings, this.options);
@@ -160,7 +163,10 @@ class ChatHandler {
 					content += '</div>';
 				}
 			}
-			return content + '</div></body></html>';
+			content += '</div></body></html>';
+			dataCache[room] = content;
+			setTimeout(() => delete dataCache[room], 1000 * 60 * 5);
+			return content;
 		};
 
 		let inits = [];
