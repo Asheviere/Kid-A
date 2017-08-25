@@ -131,6 +131,8 @@ class ChatHandler {
 		this.options = new Set();
 		this.userlists = userlists;
 		this.settings = settings;
+		this.commandQueue = [];
+		this.parsing = false;
 
 		this.dataResolver = async (req, res) => {
 			let room = req.originalUrl.split('/')[1];
@@ -213,7 +215,11 @@ class ChatHandler {
 
 	async parse(userstr, room, message) {
 		if (COMMAND_REGEX.test(message)) {
-			this.parseCommand(userstr, room, message);
+			if (this.parsing) {
+				this.commandQueue.push([userstr, room, message]);
+			} else {
+				this.parseCommand(userstr, room, message);
+			}
 		} else if (room) {
 			if (!room.includes('groupchat')) this.analyze(userstr, room, message);
 		} else {
@@ -253,6 +259,7 @@ class ChatHandler {
 	}
 
 	async parseCommand(userstr, room, message) {
+		this.parsing = true;
 		const username = userstr.substr(1);
 
 		const words = message.split(' ');
@@ -268,7 +275,12 @@ class ChatHandler {
 		const wrapper = new CommandWrapper(this.userlists, this.settings, this.commands, this.options);
 
 		let user = (!room && userstr[0] === ' ' ? '+' : userstr[0]) + username;
-		wrapper.run(cmd, user, room, words.join(' '));
+		await wrapper.run(cmd, user, room, words.join(' '));
+		if (this.commandQueue.length) {
+			this.parseCommand.apply(this, this.commandQueue.splice(0, 1));
+		} else {
+			this.parsing = false;
+		}
 	}
 
 	async parseJoin(user, room) {
