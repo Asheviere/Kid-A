@@ -423,7 +423,7 @@ module.exports = {
 				if (!(this.canUse(5) || await settings.hexists('whitelist:cloners', this.userid))) return this.pmreply("Permission denied.");
 
 				let params = message.split((message.includes('|') ? '|' : ',')).map(param => param.trim());
-				params.push(0);
+				params.push(0, 0);
 				return this.reply(clonerList.add(this.username, params));
 			},
 		},
