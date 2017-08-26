@@ -221,7 +221,12 @@ class ChatHandler {
 			if (this.parsing) {
 				this.commandQueue.push([userstr, room, message]);
 			} else {
-				this.parseCommand(userstr, room, message);
+				await this.parseCommand(userstr, room, message);
+				if (this.commandQueue.length) {
+					this.parseCommand.apply(this, this.commandQueue.splice(0, 1));
+				} else {
+					this.parsing = false;
+				}
 			}
 		} else if (room) {
 			if (!room.includes('groupchat')) this.analyze(userstr, room, message);
@@ -279,11 +284,6 @@ class ChatHandler {
 
 		let user = (!room && userstr[0] === ' ' ? '+' : userstr[0]) + username;
 		await wrapper.run(cmd, user, room, words.join(' '));
-		if (this.commandQueue.length) {
-			this.parseCommand.apply(this, this.commandQueue.splice(0, 1));
-		} else {
-			this.parsing = false;
-		}
 	}
 
 	async parseJoin(user, room) {
