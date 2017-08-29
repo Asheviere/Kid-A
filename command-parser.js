@@ -244,6 +244,7 @@ class ChatHandler {
 					return;
 				}
 			}
+			if (message.startsWith('/') || message.startsWith('!')) return;
 			pmMsg('PM from ' + (userstr[0] === ' ' ? userstr.substr(1) : userstr) + ': ' + message);
 			sendPM(userstr, "Hi I'm a chatbot made by bumbadadabum. I moderate rooms, provide chat analytics, and have a few other neat features. For help with using the bot, use ``.help`` for a list of available topics.");
 		}
