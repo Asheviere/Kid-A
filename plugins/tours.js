@@ -259,7 +259,7 @@ module.exports = {
 					if (!format || points.length !== 3) return this.pmreply(`Invalid parameters. See ${HELP_URL} for a list of commands.`);
 					points = points.map(val => parseInt(val));
 					if (points.some(val => isNaN(val) || val < 0)) return this.pmreply("Points need to be valid numbers.");
-					room = room.toLowerCase();
+					if (room) room = room.toLowerCase();
 
 					if (room && room !== WIFI_ROOM) {
 						Connection.send(`|/join ${room}`);
