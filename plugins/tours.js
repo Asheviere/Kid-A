@@ -83,10 +83,19 @@ class Tour {
 	}
 
 	notifyUsers() {
+		let notifs = [];
+
 		for (let user of this.participants) {
 			let matchup = this.getMatchup(toId(user));
-			if (matchup) Connection.send(`|/pm ${user}, Your opponent for this round of the tournament is **${matchup[0]}**`);
+			if (matchup) notifs.push(`|/pm ${user}, Your opponent for this round of the tournament is **${matchup[0]}**`);
 		}
+
+		let sendNotif = async notifs => {
+			Connection.send(notifs[0]);
+			setTimeout(() => sendNotif(notifs.slice(1)), 500);
+		};
+
+		sendNotif(notifs);
 	}
 
 	addUser(username) {
