@@ -239,7 +239,7 @@ async function leaderboardResolver(req, res) {
 		let entry = await db.hgetall(key);
 		data.push([entry.name, entry.wins, entry.losses, (entry.wins / entry.losses).toFixed(2), entry.points]);
 	}
-	data = data.sort((a, b) => a[4] > b[4] ? -1 : 1);
+	data = data.sort((a, b) => parseInt(a[4]) > parseInt(b[4]) ? -1 : 1);
 	res.end(server.renderTemplate('leaderboard', data));
 }
 
