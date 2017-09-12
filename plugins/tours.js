@@ -21,6 +21,11 @@ class Tour {
 
 		this.started = false;
 		this.finished = false;
+
+		this.repeatMsg = `Signups for the **3DS** in-game **${this.format}** tournament are in progress! ${server.url}${WIFI_ROOM}/tournament PM a tour helper to sign up!`;
+		this.timer = setInterval(() => {
+			if (this.repeatMsg) Connection.send(`${this.room}|/wall ${this.repeatMsg}`);
+		}, 1000 * 60 * 5);
 	}
 
 	get displayInfo() {
@@ -144,6 +149,8 @@ class Tour {
 
 		Connection.send(`${this.room}|/wall The ${this.format} tournament has started! See ${server.url}${WIFI_ROOM}/tournament for the bracket!`);
 
+		this.repeatMsg = `There is an in-game ${this.format} tournament going on __(round 1)__! See ${server.url}${WIFI_ROOM}/tournament for the bracket!`;
+
 		this.started = true;
 		this.shuffle();
 		this.createMatchups();
@@ -165,6 +172,7 @@ class Tour {
 		}
 
 		Connection.send(`${this.room}|/wall The next round of the ${this.format} tour has started. Check ${server.url}${WIFI_ROOM}/tournament for the bracket!`);
+		this.repeatMsg = `There is an in-game ${this.format} tournament going on __(round ${this.data.length + 1})__! See ${server.url}${WIFI_ROOM}/tournament for the bracket!`;
 
 		this.participants = nextRound;
 		this.createMatchups();
@@ -214,6 +222,8 @@ class Tour {
 		}
 
 		this.finished = true;
+
+		clearTimeout(this.timer);
 	}
 }
 
