@@ -207,6 +207,7 @@ class Tour {
 				if (key === 'name') {
 					this.db.hset(`${WIFI_ROOM}:${i}`, key, userdata[i][key]);
 				} else {
+					if (key === 'points') this.db.hincrby(`${WIFI_ROOM}:${i}`, 'total', userdata[i][key]);
 					this.db.hincrby(`${WIFI_ROOM}:${i}`, key, userdata[i][key]);
 				}
 			}
@@ -237,7 +238,7 @@ async function leaderboardResolver(req, res) {
 	let data = [];
 	for (let key of keys) {
 		let entry = await db.hgetall(key);
-		data.push([entry.name, entry.wins, entry.losses, (entry.wins / entry.losses).toFixed(2), entry.points]);
+		data.push([entry.name, entry.wins, entry.losses, (entry.wins / entry.losses).toFixed(2), entry.points, entry.total]);
 	}
 	data = data.sort((a, b) => parseInt(a[4]) > parseInt(b[4]) ? -1 : 1);
 	res.end(server.renderTemplate('leaderboard', data));
