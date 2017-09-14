@@ -179,6 +179,13 @@ class Tour {
 		this.notifyUsers();
 	}
 
+	forceEnd() {
+		Connection.send(`${this.room}|/wall The in-game tournament was forcibly ended.`);
+
+		this.finished = true;
+		clearTimeout(this.timer);
+	}
+
 	finish() {
 		Connection.send(`${this.room}|/wall Congratulations to **${this.winner}** for winning the ${this.format} tournament and receiving ${this.points[0]} point${this.points[0] > 1 ? 's' : ''}!`);
 
@@ -292,6 +299,14 @@ module.exports = {
 					Connection.send(`${room}|/wall An in-game ${format} tournament was started! See ${server.url}${WIFI_ROOM}/tournament for the bracket!`);
 					Connection.send(`${WIFI_ROOM}|/modnote An in-game tournament was started by ${this.username} in '${room}'.`);
 					return this.pmreply("A tournament has been created.");
+				case 'end':
+					if (!(this.canUse(2) || await this.settings.hexists('whitelist:tourhelpers', this.userid))) return this.pmreply("Permission denied.");
+					if (!curTournament || curTournament.finished) return this.pmreply("There is no current tournament going on.");
+
+					curTournament.forceEnd();
+
+					Connection.send(`${WIFI_ROOM}|/modnote The in-game tournament was forcibly ended by ${this.username}.`);
+					return this.pmreply("The tournament was forcibly ended.");
 				case 'add':
 					if (!(this.canUse(2) || await this.settings.hexists('whitelist:tourhelpers', this.userid))) return this.pmreply("Permission denied.");
 					if (!rest.trim()) return this.pmreply("No username entered.");
