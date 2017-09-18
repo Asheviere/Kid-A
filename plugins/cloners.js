@@ -179,7 +179,7 @@ class WifiList {
 			key = toId(key);
 			let value = values.join(':').trim();
 
-			if (key === 'username' || key === 'date' || key === 'score' || key === 'totalscore') return "This column can't be changed.";
+			if (key === 'date' || key === 'score' || key === 'totalscore') return "This column can't be changed.";
 			if (!this.columnKeys.includes(key)) return `Invalid key: ${key}`;
 
 			if (key === 'fc') {
@@ -194,6 +194,14 @@ class WifiList {
 				}
 
 				value = split.join(', ');
+			} else if (key === 'username') {
+				if (identifier !== toId('username')) break;
+
+				if (self) return "You cannot edit your own name on the list.";
+				let entry = this.data[identifier];
+				delete this.data[identifier];
+				identifier = toId(value);
+				this.data[identifier] = entry;
 			}
 
 			this.data[identifier][key] = value;
