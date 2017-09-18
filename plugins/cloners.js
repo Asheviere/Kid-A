@@ -195,7 +195,7 @@ class WifiList {
 
 				value = split.join(', ');
 			} else if (key === 'username') {
-				if (identifier !== toId('username')) break;
+				if (identifier !== toId(this.data[identifier].username)) break;
 
 				if (self) return "You cannot edit your own name on the list.";
 				let entry = this.data[identifier];
