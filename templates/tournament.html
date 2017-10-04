@@ -19,6 +19,10 @@
 
 					<h3><b>Tour Helpers:</b> {{tourHelpers}}</h3>					
 
+					{{#if data.prize}}
+						<h3><a href="{{{data.prize}}}">Prize list for this tournament</a></h3>
+					{{/if}}
+
 					{{#each data.bracket}}
 						<h2 style="margin:unset;text-align:center;">{{name}}:</h2>
 						{{#if_eq name "Winner"}}

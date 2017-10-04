@@ -9,20 +9,21 @@ server.addTemplate('tournament', 'tournament.html');
 server.addTemplate('leaderboard', 'leaderboard.html');
 
 class Tour {
-	constructor(room, format, points) {
+	constructor(room, format, points, prize) {
 		this.format = format;
 		this.participants = [];
 		this.matchups = [];
 		this.data = [];
 		this.points = points;
 		this.room = room;
+		this.prize = prize;
 
 		this.db = redis.useDatabase('tours');
 
 		this.started = false;
 		this.finished = false;
 
-		this.repeatMsg = `Signups for the **3DS** in-game **${this.format}** tournament are in progress! ${server.url}${WIFI_ROOM}/tournament PM a tour helper to sign up!`;
+		this.repeatMsg = `Signups for the **3DS** in-game **${this.format}** tournament are in progress! ${server.url}${WIFI_ROOM}/tournament PM a tour helper to sign up!${this.prize ? ` Prize list: ${this.prize}` : ''}`;
 		this.timer = setInterval(() => {
 			if (this.repeatMsg) Connection.send(`${this.room}|/wall ${this.repeatMsg}`);
 		}, 1000 * 60 * 5);
@@ -222,7 +223,6 @@ class Tour {
 				if (key === 'name') {
 					this.db.hset(`${WIFI_ROOM}:${i}`, key, userdata[i][key]);
 				} else {
-					if (key === 'points') this.db.hincrby(`${WIFI_ROOM}:${i}`, 'total', userdata[i][key]);
 					this.db.hincrby(`${WIFI_ROOM}:${i}`, key, userdata[i][key]);
 				}
 			}
@@ -255,7 +255,7 @@ async function leaderboardResolver(req, res) {
 	let data = [];
 	for (let key of keys) {
 		let entry = await db.hgetall(key);
-		data.push([entry.name, entry.wins, entry.losses, (entry.wins / entry.losses).toFixed(2), entry.points, entry.total]);
+		data.push([entry.name, entry.wins, entry.losses, (entry.wins / entry.losses).toFixed(2), entry.points]);
 	}
 	data = data.sort((a, b) => parseInt(a[4]) > parseInt(b[4]) ? -1 : 1);
 	res.end(server.renderTemplate('leaderboard', data));
@@ -281,7 +281,7 @@ module.exports = {
 					if (!(this.canUse(2) || await this.settings.hexists('whitelist:tourhelpers', this.userid))) return this.pmreply("Permission denied.");
 					if (curTournament && !curTournament.finished) return this.pmreply("There is still a tournament going on.");
 
-					let [format, point1, point2, point3, room] = rest.split(',');
+					let [format, point1, point2, point3, room, prize] = rest.split(',').map(param => param.trim());
 					let points = [point1, point2, point3];
 					if (!format || points.length !== 3) return this.pmreply(`Invalid parameters. See ${HELP_URL} for a list of commands.`);
 					points = points.map(val => parseInt(val));
@@ -294,7 +294,7 @@ module.exports = {
 						room = WIFI_ROOM;
 					}
 
-					curTournament = new Tour(room, format, points);
+					curTournament = new Tour(room, format, points, prize);
 					if (room !== WIFI_ROOM) Connection.send(`${WIFI_ROOM}|/wall An in-game ${format} tournament was started in <<${room}>>`);
 					Connection.send(`${room}|/wall An in-game ${format} tournament was started! See ${server.url}${WIFI_ROOM}/tournament for the bracket!`);
 					Connection.send(`${WIFI_ROOM}|/modnote An in-game tournament was started by ${this.username} in '${room}'.`);
