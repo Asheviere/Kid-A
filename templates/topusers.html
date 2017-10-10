@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<script src="https://d3js.org/d3.v4.min.js"></script>
+		<script src="../scripts/graphs.js"></script>
+		<title>{{room}} - Kid A</title>
+	</head>
+	
+	<body>
+		<div class="container">
+			<h1>Top 50 most active chatters in {{room}}{{timeStr}}:</h1>
+			<div id="linecount"></div>
+		</div>
+
+		<script>
+				createHorizontalBars({{{keys}}}, {{{data}}}, '#linecount', 5);
+		</script>
+	</body>
+</html>

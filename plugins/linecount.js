@@ -3,6 +3,7 @@
 const server = require('../server.js');
 
 server.addTemplate('linecount', 'linecount.html');
+server.addTemplate('topusers', 'topusers.html');
 
 let leftpad = val => (val < 10 ? `0${val}`: `${val}`);
 
@@ -47,6 +48,41 @@ async function linecountResolver(req, res) {
 	return res.end('Please attach an access token. (You should get one when you type .linecount <room>, <user>)');
 }
 
+async function topUsersResolver(req, res) {
+	let room = req.originalUrl.split('/')[1];
+	let query = server.parseURL(req.url);
+	let token = query.token;
+	let option = toId(query.option || '');
+	if (token) {
+		let data = server.getAccessToken(token);
+		if (!data || data.room !== room) return res.end('Invalid access token.');
+
+		let options = {};
+		let timeStr = " the past month";
+
+		if (option === 'today') {
+			options.day = true;
+			timeStr = " today";
+		} else if (option) {
+			option = parseInt(option);
+			if (!isNaN(option) && option > -1 && option < 24) {
+				options.time = option;
+				timeStr += ` at ${leftpad(option)}:00-${leftpad(option + 1)}:00 UTC`;
+			}
+		}
+
+		let linecount = (await ChatLogger.getUserActivity(room, options)).slice(0, 50);
+
+		if (!linecount.length) return res.end("No activity in this room");
+
+		let keys = linecount.map(val => val[0]);
+		let vals = linecount.map(val => val[1]);
+
+		return res.end(server.renderTemplate('topusers', {room: room, keys: JSON.stringify(keys), data: JSON.stringify(vals), timeStr: timeStr}));
+	}
+	return res.end('Please attach an access token. (You should get one when you type .topusers <room>)');
+}
+
 let curRooms = new Set();
 
 module.exports = {
@@ -56,6 +92,7 @@ module.exports = {
 		for (let i = 0; i < rooms.length; i++) {
 			curRooms.add(rooms[i]);
 			server.addRoute(`/${rooms[i]}/linecount`, linecountResolver);
+			server.addRoute(`/${rooms[i]}/topusers`, topUsersResolver);
 		}
 	},
 	commands: {
@@ -80,11 +117,12 @@ module.exports = {
 
 				let data = {};
 				data.room = room;
-				let token = server.createAccessToken(data, 15);
+				let token = server.createAccessToken(data, 60);
 				fname += `?token=${token}&user=${toId(user)}`;
 
 				if (!curRooms.has(room)) {
 					server.addRoute(`/${room}/linecount`, linecountResolver);
+					server.addRoute(`/${room}/topusers`, topUsersResolver);
 					server.restart();
 					curRooms.add(room);
 				}
@@ -102,6 +140,7 @@ module.exports = {
 				if (!room) {
 					room = split.shift();
 					if (!room) return this.pmreply("Syntax: ``.topusers room``");
+					if (!this.userlists[room] && !curRooms.has(room)) return this.reply(`Invalid room: ${room}`);
 					if (!this.getRoomAuth(room)) return;
 				}
 
@@ -121,9 +160,25 @@ module.exports = {
 
 				let linecount = await ChatLogger.getUserActivity(room, options);
 
-				if (!linecount.length) return this.reply("This room has no activity.");
+				let fname = `${room}/topusers`;
 
-				return this.reply(`Top 5 most active chatters in ${room}${options.day ? ' today' : ''}${'time' in options ? ` from ${options.time}:00 to ${options.time + 1}:00` : ''}: ${linecount.slice(0, 5).map(val => `${val[0]} (${val[1]})`).join(', ')}`);
+				let data = {};
+				data.room = room;
+				let token = server.createAccessToken(data, 60);
+				fname += `?token=${token}`;
+				let option = (options.day ? 'today' : null) || options.time;
+				if (option) {
+					fname += `&option=${option}`;
+				}
+
+				if (!curRooms.has(room)) {
+					server.addRoute(`/${room}/linecount`, linecountResolver);
+					server.addRoute(`/${room}/topusers`, topUsersResolver);
+					server.restart();
+					curRooms.add(room);
+				}
+
+				return this.reply(`Most active chatters in ${room}: ${server.url}${fname}`);
 			},
 		},
 	},
