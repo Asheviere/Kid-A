@@ -80,10 +80,12 @@ function createHorizontalBars(labels, data, elementName, bias, onClick) {
 			return xscale(data);
 		})
 		.attr('y', function(data, i) {
-				return yscale(labels[i]) + margins.top + bias;
+			return yscale(labels[i]) + margins.top + bias;
 		})
 		.attr('x', function(data) {
-				return margins.left;
+			return margins.left;
+		}).append('title').text(function(data) {
+			return data;
 		});
 
 	var linecounturl = window.location.href.split('/').slice(0, -1).join('/') + '/linecount?' + window.location.href.split('?')[1].split('&')[0] + '&user=';
