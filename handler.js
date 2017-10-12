@@ -164,8 +164,8 @@ module.exports = {
 			this.removeUser(split[2], roomid);
 			break;
 		case 'N':
-			this.addUser(split[2], roomid);
 			this.removeUser(split[3], roomid);
+			this.addUser(split[2], roomid);
 			break;
 		case 'noinit':
 		case 'deinit':
