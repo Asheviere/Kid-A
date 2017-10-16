@@ -158,8 +158,6 @@ module.exports = {
 
 				if (!(this.canUse(3))) return this.pmreply("Permission denied.");
 
-				let linecount = await ChatLogger.getUserActivity(room, options);
-
 				let fname = `${room}/topusers`;
 
 				let data = {};
