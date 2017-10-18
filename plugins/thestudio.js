@@ -90,7 +90,7 @@ module.exports = {
 			async action(message) {
 				let rec;
 
-				if (message) { 
+				if (message) {
 					message = toId(message);
 
 					let possibilities = [];

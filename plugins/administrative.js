@@ -166,7 +166,7 @@ module.exports = {
 				await this.settings.rpush('privaterooms', room);
 				Handler.privateRooms.add(room);
 				return this.reply(`The room ${room} was successfully made private.`);
-			}
+			},
 		},
 	},
 };

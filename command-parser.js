@@ -118,7 +118,7 @@ class AnalyzerWrapper {
 			if (!analyzer.modnoteParser) return;
 			this.room = room;
 
-			analyzer.modnoteParser.apply(this, [message]);		
+			analyzer.modnoteParser.apply(this, [message]);
 		}
 	}
 }
