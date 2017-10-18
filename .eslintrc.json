@@ -1,18 +1,18 @@
 {
-    "env": {
-        "es6": true,
-        "node": true
-    },
-    "globals": {
-		"Config": false, "toId": false, "Tools": false, "errorMsg": false, "statusMsg": false,
-        "Handler": false, "consoleMsg": false, "output": false, "stdout": false, "Connection": false,
-        "pmMsg": false, "canUse": false, "forceQuit": false, "Commands": false, "sanitize": false, "Server": false, "ChatLogger": false
+	"env": {
+		"es6": true,
+		"node": true
 	},
-    "parserOptions": {
+	"globals": {
+		"Config": false, "toId": false, "Tools": false, "errorMsg": false, "statusMsg": false,
+		"Handler": false, "consoleMsg": false, "output": false, "stdout": false, "Connection": false,
+		"pmMsg": false, "canUse": false, "forceQuit": false, "Commands": false, "sanitize": false, "Server": false, "ChatLogger": false
+	},
+	"parserOptions": {
 		"ecmaVersion": 8,
-        "sourceType": "module"
-    },
-    "rules": {
+		"sourceType": "module"
+	},
+	"rules": {
 		"comma-dangle": [1, "always-multiline"],
 		"no-cond-assign": [2, "except-parens"],
 		"no-console": 0,
@@ -43,13 +43,12 @@
 		"use-isnan": 1,
 		"valid-jsdoc": 0,
 		"valid-typeof": 1,
-
 		"curly": [2, "multi-line", "consistent"],
 		"eqeqeq": [1, "smart"],
 		"no-case-declarations": 0,
 		"no-else-return": 1,
 		"no-fallthrough": 0,
-		"no-invalid-this": 0,
+		"no-invalid-this": 0
 		"no-multi-spaces": 2,
 		"no-octal": 1,
 		"no-redeclare": 2,
@@ -58,11 +57,8 @@
 		"radix": [2, "as-needed"],
 		"yoda": 1,
 		"no-unused-vars": [1, {"args": "after-used"}],
-		"no-undef": [2, {"typeof": true}],
-		"no-use-before-define": [2, {"functions": false, "classes": false}],
-		"callback-return": 2,
-		"no-mixed-requires": 2,
-
+		"no-undef": [2, {"typeof": true}],"no-use-before-define": [2, {"functions": false, "classes": false}],"callback-return": 2,
+    "no-mixed-requires": 2,
 		"array-bracket-spacing": 2,
 		"brace-style": [2, "1tbs", {"allowSingleLine": true}],
 		"camelcase": 1,
@@ -70,7 +66,7 @@
 		"comma-style": 1,
 		"eol-last": 1,
 		"indent": [2, "tab"],
-        "linebreak-style": [2, "unix"],
+    "linebreak-style": [2, "unix"],
 		"key-spacing": 1,
 		"no-lonely-if": 1,
 		"no-mixed-spaces-and-tabs": [2, "smart-tabs"],
@@ -78,12 +74,11 @@
 		"no-whitespace-before-property": 2,
 		"object-curly-spacing": [2, "never"],
 		"padded-blocks": [2, "never"],
-        "quotes": 0,
-        "semi": 2,
+		"quotes": 0,
+		"semi": 2,
 		"semi-spacing": 2,
-
 		"arrow-spacing": 2,
 		"no-const-assign": 2,
 		"no-var": 1
-    }
+	}
 }
