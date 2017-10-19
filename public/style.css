@@ -132,6 +132,10 @@ tr:hover {
     text-decoration: underline #5253D2;
     border-radius: 10px;
 }
+.important {
+    font-weight: bold;
+    text-decoration: underline #5253D2;
+}
 button {
     margin: 20px;
 }
