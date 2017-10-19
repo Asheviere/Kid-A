@@ -53,7 +53,7 @@ function createBarGraph(labels, data, elementName, bias) {
 var axis;
 
 function createHorizontalBars(labels, data, elementName, bias, onClick) {
-	var margins = {top: 30, right: 20, bottom: 0, left: 160};
+	var margins = {top: 30, right: 20, bottom: 0, left: 180};
 
 	var width = 1200 - margins.left - margins.right;
 	var height = 1500 - margins.top - margins.bottom;
