@@ -40,7 +40,7 @@ module.exports = {
 						fname += `?token=${token}`;
 					}
 					if (this.canUse(1)) {
-						return this.reply(`Chat data: ${server.url}${fname}`);
+						this.reply(`Chat data: ${server.url}${fname}`);
 					} else {
 						return this.pmreply(`Chat data: ${server.url}${fname}`);
 					}
