@@ -108,6 +108,8 @@ class Tour {
 		if (this.started) return false;
 		if (this.hasId(toId(username))) return false;
 
+		Connection.send(`${toId(username)}|You have been successfully signed up for the tournament.`);
+
 		return this.participants.push(username);
 	}
 
