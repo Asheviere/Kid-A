@@ -158,12 +158,15 @@ module.exports = {
 
 			break;
 		case 'J':
+		case 'j':
 			this.addUser(split[2], roomid);
 			break;
 		case 'L':
+		case 'l':
 			this.removeUser(split[2], roomid);
 			break;
 		case 'N':
+		case 'n':
 			this.removeUser(split[3], roomid);
 			this.addUser(split[2], roomid);
 			break;
