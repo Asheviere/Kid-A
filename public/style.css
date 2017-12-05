@@ -74,6 +74,17 @@ td {
 tr:hover {
     background-color: #fafafa
 }
+details {
+    margin: 0px 60px 0px;
+}
+summary {
+    font-size: 14pt;
+    font-weight: bold;
+    text-decoration: underline #586A8B;
+}
+details p {
+    margin: 2px 20px;
+}
 .note {
     font-size: 9pt;
     opacity: 0.7;

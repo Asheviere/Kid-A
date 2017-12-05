@@ -14,6 +14,7 @@ const MONTH = 30 * DAY;
 const FC_REGEX = /[0-9]{4}[- ]?[0-9]{4}[- ]?[0-9]{4}/;
 
 const WIFI_ROOM = 'wifi';
+const NOTES_FILE = 'clonernotes.json';
 
 const settings = redis.useDatabase('settings');
 
@@ -21,8 +22,17 @@ const cache = new Cache('wifi');
 
 server.addTemplate('cloners', 'cloners.html');
 server.addTemplate('clonerlog', 'clonerlog.html');
+server.addTemplate('clonernotes', 'clonernotes.html');
 
 let leftpad = val => (val < 10 ? `0${val}`: `${val}`);
+
+let notes = {};
+try {
+	notes = require(`../data/${NOTES_FILE}`);
+} catch (e) {
+	if (e.code !== 'MODULE_NOT_FOUND' && e.code !== 'ENOENT') throw e;
+}
+if (!notes || typeof notes !== 'object') notes = {};
 
 class WifiList {
 	constructor(name, file, columnNames, columnKeys, noOnlinePage, noTime) {
@@ -312,7 +322,7 @@ class ClonerLog {
 			if (!token) return res.end("No access token provided.");
 
 			let tokenData = server.getAccessToken(token);
-			if (!tokenData || tokenData.permission !== 'clonerlog') return res.end('Invalid access token.');
+			if (!tokenData || tokenData.permission !== 'cloners') return res.end('Invalid access token.');
 
 			let keys = (await this.db.keys('*')).sort((a, b) => parseInt(a) > parseInt(b) ? -1 : 1);
 
@@ -367,6 +377,20 @@ class ClonerLog {
 }
 
 const clonerlog = new ClonerLog();
+
+async function generateNotePage (req, res) {
+	let query = server.parseURL(req.url);
+	let token = query.token;
+
+	if (!token) return res.end("No access token provided.");
+
+	let tokenData = server.getAccessToken(token);
+	if (!tokenData || tokenData.permission !== 'cloners') return res.end('Invalid access token.');
+
+	return res.end(server.renderTemplate('clonernotes', notes));
+}
+
+server.addRoute(`/${WIFI_ROOM}/clonernotes`, generateNotePage);
 
 function getScammerEntry(userid) {
 	for (let key in scammerList.data) {
@@ -611,10 +635,41 @@ module.exports = {
 				if (!this.room) {
 					if (!this.getRoomAuth(WIFI_ROOM)) return;
 				}
-				if (!this.canUse(3)) return this.pmreply("Permission denied.");
+				if (!(this.canUse(3) || await settings.hexists('whitelist:cloners', this.userid))) return this.pmreply("Permission denied.");
 
-				let token = server.createAccessToken({permission: 'clonerlog'}, 15);
+				let token = server.createAccessToken({permission: 'cloners'}, 60);
 				this.pmreply(`Cloner log: ${server.url}${WIFI_ROOM}/clonerlog?token=${token}`);
+			},
+		},
+		clonernote: {
+			rooms: [WIFI_ROOM],
+			async action(message) {
+				if (!this.room) {
+					if (!this.getRoomAuth(WIFI_ROOM)) return;
+				}
+				if (!(this.canUse(3) || await settings.hexists('whitelist:cloners', this.userid))) return this.pmreply("Permission denied.");
+
+				let [username, ...note] = message.split(',');
+				username = toId(username);
+				note = note.join(',').trim();
+				if (!username || !note) return this.pmreply("Invalid syntax. ``.clonernote username, note``");
+
+				if (!notes[username]) notes[username] = {};
+				notes[username][Date.now()] = [this.username, note];
+				Connection.send(`${WIFI_ROOM}|/modnote ${note} -${this.username}`);
+				fs.writeFile(`./data/${NOTES_FILE}`, JSON.stringify(notes), () => this.reply("Note created."));
+			},
+		},
+		clonernotes: {
+			rooms: [WIFI_ROOM],
+			async action() {
+				if (!this.room) {
+					if (!this.getRoomAuth(WIFI_ROOM)) return;
+				}
+				if (!(this.canUse(3) || await settings.hexists('whitelist:cloners', this.userid))) return this.pmreply("Permission denied.");
+
+				let token = server.createAccessToken({permission: 'cloners'}, 60);
+				this.pmreply(`Cloner notes: ${server.url}${WIFI_ROOM}/clonernotes?token=${token}`);
 			},
 		},
 

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>Cloner Notes - Kid A</title>
+	</head>
+	
+	<body>
+		<div class="container">
+			{{#if this}}
+				<h1>Cloner editor notes:</h1>
+				{{#each this}}
+					<details>
+						<summary>{{@key}}</summary>
+						{{#each this}}
+							<p>[{{parse_date @key}}] {{this.[1]}} -{{this.[0]}}</p>
+						{{/each}}
+					</details>
+				{{/each}}
+			{{else}}
+				<h2>No cloner notes.</h2>
+			{{/if}}
+		</div>
+	</body>
+</html>
