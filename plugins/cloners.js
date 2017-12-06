@@ -656,7 +656,7 @@ module.exports = {
 
 				if (!notes[username]) notes[username] = {};
 				notes[username][Date.now()] = [this.username, note];
-				Connection.send(`${WIFI_ROOM}|/modnote ${note} -${this.username}`);
+				Connection.send(`${WIFI_ROOM}|/modnote ${username}: ${note} -${this.username}`);
 				fs.writeFile(`./data/${NOTES_FILE}`, JSON.stringify(notes), () => this.reply("Note created."));
 			},
 		},
