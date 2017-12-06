@@ -104,6 +104,7 @@ module.exports = {
 				if (!this.room) {
 					if (message) {
 						let room = toId(message);
+						if (!(room in this.userlists)) return this.pmreply("Room not found.");
 						if (!this.getRoomAuth(room)) return;
 						this.room = room;
 						pm = true;
