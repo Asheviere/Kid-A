@@ -12,10 +12,10 @@
 			{{#if this}}
 				<h1>Cloner editor notes:</h1>
 				{{#each this}}
-					<details>
-						<summary>{{@key}}</summary>
+					<details class="clonernote">
+						<summary class="clonernote">{{@key}}</summary>
 						{{#each this}}
-							<p>[{{parse_date @key}}] {{this.[1]}} -{{this.[0]}}</p>
+							<p class="clonernote">[{{parse_date @key}}] {{this.[1]}} -{{this.[0]}}</p>
 						{{/each}}
 					</details>
 				{{/each}}
