@@ -288,10 +288,21 @@ module.exports = {
 					if (!format || points.length !== 3) return this.pmreply(`Invalid parameters. See ${HELP_URL} for a list of commands.`);
 					points = points.map(val => parseInt(val));
 					if (points.some(val => isNaN(val) || val < 0)) return this.pmreply("Points need to be valid numbers.");
-					if (room) room = room.toLowerCase();
+					if (room) room = toId(room);
 
 					if (room && room !== WIFI_ROOM) {
-						Connection.send(`|/join ${room}`);
+						Connection.send(`|/makegroupchat ${room}`);
+						room = `groupchat-kida-${room}`;
+						let promoTourHelpers = async helpers => {
+							if (this.userlists[WIFI_ROOM][helpers[0]] && (this.userlists[WIFI_ROOM][helpers[0]][0] === '%' || this.userlists[WIFI_ROOM][helpers[0]][0] === '@')) {
+								Connection.send(`${room}|/roommod ${helpers[0]}`);
+							} else {
+								Connection.send(`${room}|/roomdriver ${helpers[0]}`);
+							}
+							setTimeout(() => promoTourHelpers(helpers.slice(1)), 300);
+						};
+
+						promoTourHelpers((await this.settings.hkeys('whitelist:tourhelpers')));
 					} else {
 						room = WIFI_ROOM;
 					}
