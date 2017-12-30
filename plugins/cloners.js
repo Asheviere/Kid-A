@@ -151,10 +151,10 @@ class WifiList {
 			if (this.columnKeys[i] === 'fc') {
 				let split = params[i].split(',').map(param => param.trim());
 
-				for (let fc of split) {
+				for (let [i, fc] of split.entries()) {
 					if (!FC_REGEX.test(fc)) return "Invalid formatting for Friend Code. format: ``1111-2222-3333``";
 					fc = toId(fc);
-					fc = `${fc.substr(0, 4)}-${fc.substr(4, 4)}-${fc.substr(8, 4)}`;
+					split[i] = `${fc.substr(0, 4)}-${fc.substr(4, 4)}-${fc.substr(8, 4)}`;
 					if (!utils.validateFc(fc)) return "The Friend code you entered is invalid";
 				}
 
