@@ -15,7 +15,11 @@
 					<details class="clonernote">
 						<summary class="clonernote">{{@key}}</summary>
 						{{#each this}}
-							<p class="clonernote">[{{parse_date @key}}] {{this.[1]}} -{{this.[0]}}</p>
+							{{if this.[0]}}
+								<p class="clonernote">[{{parse_date @key}}] {{this.[1]}} -{{this.[0]}}</p>
+							{{else}}
+								<p class="clonernote">[{{parse_date @key}}] {{this.[1]}}</p>							
+							{{/if}}
 						{{/each}}
 					</details>
 				{{/each}}

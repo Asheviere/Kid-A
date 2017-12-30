@@ -166,6 +166,7 @@ class WifiList {
 		fs.appendFile(this.file, this.renderEntry(key), () => {});
 
 		Connection.send(`${WIFI_ROOM}|/modnote ${user} added ${key} to the ${this.name.slice(0, -1)} list.`);
+		if (this.name === 'cloners') notes[key][Date.now()] = ['', "Added to the list."];
 
 		return `'${(identifier || params[0])}' was successfully added to the ${this.name.slice(0, -1)} list.`;
 	}
@@ -175,6 +176,8 @@ class WifiList {
 		delete this.data[target];
 		this.writeList();
 		Connection.send(`${WIFI_ROOM}|/modnote ${user} deleted ${target} from the ${this.name.slice(0, -1)} list.`);
+		if (this.name === 'cloners') notes[target][Date.now()] = ['', `Removed from the list by ${user}.`];
+
 		return `${target} successfully removed.`;
 	}
 
@@ -242,6 +245,7 @@ class WifiList {
 			let date = parseInt(this.data[i].date);
 			if (!isNaN(date) && date < limit) {
 				removed.push(i);
+				if (this.name === 'cloners') notes[i][Date.now()] = ['', "Purged from the list."];
 			}
 		}
 		removed.forEach(userid => delete this.data[userid]);
