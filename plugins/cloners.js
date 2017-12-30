@@ -205,10 +205,10 @@ class WifiList {
 				if (self) return "Users are not allowed to change their own Friend Code";
 				let split = value.split(',').map(param => param.trim());
 
-				for (let fc of split) {
+				for (let [i, fc] of split) {
 					if (!FC_REGEX.test(fc)) return "Invalid formatting for Friend Code. format: ``1111-2222-3333``";
 					fc = toId(fc);
-					fc = fc.substr(0, 4) + '-' + fc.substr(4, 4) + '-' + fc.substr(8, 4);
+					split[i] = fc.substr(0, 4) + '-' + fc.substr(4, 4) + '-' + fc.substr(8, 4);
 					if (!utils.validateFc(fc)) return "The Friend code you entered is invalid";
 				}
 
