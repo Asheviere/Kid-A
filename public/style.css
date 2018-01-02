@@ -99,7 +99,7 @@ details[open] > summary::after {
     text-decoration: none;
 }
 .clonernote {
-    margin: 0px 40px 0px;
+    margin: 10px 40px;
 }
 .clonernote summary {
     font-size: 14pt;
