@@ -167,6 +167,7 @@ class WifiList {
 
 		Connection.send(`${WIFI_ROOM}|/modnote ${user} added ${key} to the ${this.name.slice(0, -1)} list.`);
 		if (this.name === 'cloners') {
+			if (!notes[key]) notes[key] = {};
 			notes[key][Date.now()] = ['', "Added to the list."];
 			fs.writeFile(`./data/${NOTES_FILE}`, JSON.stringify(notes), () => {});
 		}
@@ -180,6 +181,7 @@ class WifiList {
 		this.writeList();
 		Connection.send(`${WIFI_ROOM}|/modnote ${user} deleted ${target} from the ${this.name.slice(0, -1)} list.`);
 		if (this.name === 'cloners') {
+			if (!notes[target]) notes[target] = {};
 			notes[target][Date.now()] = ['', `Removed from the list by ${user}.`];
 			fs.writeFile(`./data/${NOTES_FILE}`, JSON.stringify(notes), () => {});
 		}
@@ -205,7 +207,7 @@ class WifiList {
 				if (self) return "Users are not allowed to change their own Friend Code";
 				let split = value.split(',').map(param => param.trim());
 
-				for (let [i, fc] of split) {
+				for (let [i, fc] of split.entries()) {
 					if (!FC_REGEX.test(fc)) return "Invalid formatting for Friend Code. format: ``1111-2222-3333``";
 					fc = toId(fc);
 					split[i] = fc.substr(0, 4) + '-' + fc.substr(4, 4) + '-' + fc.substr(8, 4);
@@ -251,7 +253,10 @@ class WifiList {
 			let date = parseInt(this.data[i].date);
 			if (!isNaN(date) && date < limit) {
 				removed.push(i);
-				if (this.name === 'cloners') notes[i][Date.now()] = ['', "Purged from the list."];
+				if (this.name === 'cloners') {
+					if (!notes[i]) notes[i] = {};
+					notes[i][Date.now()] = ['', "Purged from the list."];
+				}
 			}
 		}
 		fs.writeFile(`./data/${NOTES_FILE}`, JSON.stringify(notes), () => {});
