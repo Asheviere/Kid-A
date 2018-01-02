@@ -98,7 +98,7 @@ details[open] > summary::after {
     font-size:90%;
     text-decoration: none;
 }
-.clonernote details {
+.clonernote {
     margin: 0px 60px 0px;
 }
 .clonernote summary {
@@ -106,7 +106,7 @@ details[open] > summary::after {
     font-weight: bold;
     text-decoration: underline #586A8B;
 }
-.clonernote details p {
+.clonernote p {
     margin: 2px 20px;
 }
 .note {
