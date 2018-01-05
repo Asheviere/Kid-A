@@ -1,9 +1,14 @@
 const redis = require('../redis.js');
 const server = require('../server.js');
+const utils = require('../utils.js');
 
 const WIFI_ROOM = 'wifi';
+const BAN_DURATION = 3 * 30 * 24 * 60 * 60 * 1000;
+const FC_REGEX = /[0-9]{4}[- ]?[0-9]{4}[- ]?[0-9]{4}/;
 
 let curTournament;
+
+const settings = redis.useDatabase('settings');
 
 server.addTemplate('tournament', 'tournament.html');
 server.addTemplate('leaderboard', 'leaderboard.html');
@@ -17,6 +22,7 @@ class Tour {
 		this.points = points;
 		this.room = room;
 		this.prize = prize;
+		this.fcs = {};
 
 		this.db = redis.useDatabase('tours');
 
@@ -93,7 +99,7 @@ class Tour {
 
 		for (let user of this.participants) {
 			let matchup = this.getMatchup(toId(user));
-			if (matchup) notifs.push(`|/pm ${user}, Your opponent for this round of the tournament is **${matchup[0]}**`);
+			if (matchup) notifs.push(`|/pm ${user}, Your opponent for this round of the tournament is **${matchup[0]} (FC: ${this.fcs[matchup[0]]})**`);
 		}
 
 		let sendNotif = async notifs => {
@@ -104,12 +110,14 @@ class Tour {
 		sendNotif(notifs);
 	}
 
-	addUser(username) {
+	addUser(username, fc) {
 		if (this.started) return false;
 		if (this.hasId(toId(username))) return false;
+		if (this.fcs.values().includes(fc)) return false;
 
 		Connection.send(`${toId(username)}|You have been successfully signed up for the tournament.`);
 
+		this.fcs[toId(username)] = fc;
 		return this.participants.push(username);
 	}
 
@@ -267,6 +275,27 @@ server.addRoute(`/${WIFI_ROOM}/leaderboard`, leaderboardResolver);
 
 const HELP_URL = `${server.url}${WIFI_ROOM}/tours.html`;
 
+async function getBan(userid, fc) {
+	let useridBan = (await settings.hget(`tourbans:userids`, userid));
+	let fcBan = (await settings.hget(`tourbans:fcs`, fc));
+	const output = {};
+	if (useridBan) {
+		if (useridBan < Date.now()) {
+			settings.hdel(`tourbans:userids`, userid);
+		} else {
+			output.userid = useridBan;
+		}
+	}
+	if (fcBan) {
+		if (fcBan < Date.now()) {
+			settings.hdel(`tourbans:fcs`, fc);
+		} else {
+			output.fc = fcBan;
+		}
+	}
+	return output;
+}
+
 module.exports = {
 	commands: {
 		tour: {
@@ -322,9 +351,14 @@ module.exports = {
 					return this.pmreply("The tournament was forcibly ended.");
 				case 'add':
 					if (!(this.canUse(2) || await this.settings.hexists('whitelist:tourhelpers', this.userid))) return this.pmreply("Permission denied.");
-					if (!rest.trim()) return this.pmreply("No username entered.");
+					let [username, fc] = message.split(',').map(param => param.trim());
+					if (!username || !fc || !FC_REGEX.test(fc)) return this.pmreply("Syntax error. ``.tour add username, fc``");
+					username = username.trim();
+					fc = `${fc.substr(0, 4)}-${fc.substr(4, 4)}-${fc.substr(8, 4)}`;
+					if (Object.keys(getBan(toId(username), fc)).length) return this.reply("This user is banned from entering tournaments.");
+					if (!utils.validateFc(fc)) return this.reply("Invalid Friend Code.");
 					if (!curTournament) return this.pmreply("There is no tournament right now.");
-					if (curTournament.addUser(rest.trim())) {
+					if (curTournament.addUser(username, fc)) {
 						return this.pmreply(`User successfully added. The tournament now has ${curTournament.participants.length} participants.`);
 					}
 					return this.pmreply("You cannot add new people to the tournament.");
@@ -395,6 +429,35 @@ module.exports = {
 				await this.settings.hdel('whitelist:tourhelpers', toId(message));
 				Connection.send(`${WIFI_ROOM}|/modnote ${toId(message)} was unwhitelisted as a tour helper by ${this.username}.`);
 				return this.reply("User successfully removed from the whitelist.");
+			},
+		},
+		tourban: {
+			rooms: [WIFI_ROOM],
+			async action(message) {
+				if (!this.room) {
+					if (!this.getRoomAuth(WIFI_ROOM)) return;
+				}
+				if (!(this.canUse(2) || await this.settings.hexists('whitelist:tourhelpers', this.userid))) return this.pmreply("Permission denied.");
+
+				let [userid, fc] = message.split(',').map(param => param.trim());
+				if (!userid || !fc || !FC_REGEX.test(fc)) return this.pmreply("Syntax error. ``.tourban username, fc``");
+				userid = toId(userid);
+				fc = `${fc.substr(0, 4)}-${fc.substr(4, 4)}-${fc.substr(8, 4)}`;
+
+				const bans = await getBan(userid, fc);
+				if ('userid' in bans) {
+					this.reply("Username is already banned. Extending.");
+					this.settings.hincrby(`tourbans:userids`, userid, BAN_DURATION);
+				} else {
+					this.settings.hset(`tourbans:userids`, userid, Date.now() + BAN_DURATION);
+				}
+				if ('fc' in bans) {
+					this.reply("FC is already banned. Extending.");
+					this.settings.hincrby(`tourbans:fcs`, fc, BAN_DURATION);
+				} else {
+					this.settings.hset(`tourbans:fcs`, fc, Date.now() + BAN_DURATION);
+				}
+				return this.reply("User successfully tourbanned.");
 			},
 		},
 	},
