@@ -95,7 +95,7 @@ class ChatLogger {
 		for (let key of linecount) {
 			let [day, month] = key.split(':');
 
-			if (parseInt(month) < today.getUTCMonth() + 1 && (parseInt(day) < today.getUTCDate() || parseInt(month) < today.getUTCMonth())) {
+			if ((parseInt(month) < today.getUTCMonth() + 1 || (parseInt(month) === 12 && !today.getUTCMonth())) && (parseInt(day) < today.getUTCDate() || parseInt(month) < today.getUTCMonth())) {
 				toPrune.push(key);
 				continue;
 			}
@@ -131,7 +131,7 @@ class ChatLogger {
 
 			let keys = await this.logs.hkeys(users[i]);
 
-			let toPrune = keys.filter(key => parseInt(key.split(':')[1]) < today.getUTCMonth() + 1 && (parseInt(key.split(':')[0]) < today.getUTCDate() || parseInt(key.split(':')[1]) < today.getUTCMonth()));
+			let toPrune = keys.filter(key => (parseInt(key.split(':')[1]) < today.getUTCMonth() + 1 || (parseInt(key.split(':')[1]) === 12 && !today.getUTCMonth())) && (parseInt(key.split(':')[0]) < today.getUTCDate() || parseInt(key.split(':')[1]) < today.getUTCMonth()));
 			keys = keys.filter(key => !toPrune.includes(key));
 
 			if (options.day) {
@@ -173,7 +173,7 @@ class ChatLogger {
 			for (let time of userlogs) {
 				let [day, month, hour] = time.split(':');
 
-				if (parseInt(month) < today.getUTCMonth() + 1 && (parseInt(day) < today.getUTCDate() || parseInt(month) < today.getUTCMonth())) {
+				if ((parseInt(month) < today.getUTCMonth() + 1 || (parseInt(month) === 12 && !today.getUTCMonth())) && (parseInt(day) < today.getUTCDate() || parseInt(month) < today.getUTCMonth())) {
 					toPrune.push(time);
 					continue;
 				}
@@ -218,7 +218,7 @@ class ChatLogger {
 			for (let key of linecount) {
 				let [day, month] = key.split(':');
 
-				if (parseInt(month) < today.getUTCMonth() + 1 && (parseInt(day) < today.getUTCDate() || parseInt(month) < today.getUTCMonth())) {
+				if ((parseInt(month) < today.getUTCMonth() + 1 || (parseInt(month) === 12 && !today.getUTCMonth())) && (parseInt(day) < today.getUTCDate() || parseInt(month) < today.getUTCMonth())) {
 					toPrune.push(key);
 				}
 			}

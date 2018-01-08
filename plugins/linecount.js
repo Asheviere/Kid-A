@@ -36,6 +36,8 @@ async function linecountResolver(req, res) {
 		keys.sort((a, b) => {
 			let [day1, month1] = a.split('/').map(val => parseInt(val));
 			let [day2, month2] = b.split('/').map(val => parseInt(val));
+			if (month1 === 12 && month2 === 1) return -1;
+			if (month1 === 1 && month2 === 12) return 1;
 			if (month1 > month2) return 1;
 			if (month2 > month1) return -1;
 			if (day1 > day2) return 1;
