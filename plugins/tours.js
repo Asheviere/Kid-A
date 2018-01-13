@@ -1,3 +1,6 @@
+'use strict';
+
+const Page = require('../page.js');
 const redis = require('../redis.js');
 const server = require('../server.js');
 const utils = require('../utils.js');
@@ -9,9 +12,6 @@ const FC_REGEX = /[0-9]{4}[- ]?[0-9]{4}[- ]?[0-9]{4}/;
 let curTournament;
 
 const settings = redis.useDatabase('settings');
-
-server.addTemplate('tournament', 'tournament.html');
-server.addTemplate('leaderboard', 'leaderboard.html');
 
 class Tour {
 	constructor(room, format, points, prize) {
@@ -244,7 +244,7 @@ class Tour {
 	}
 }
 
-async function tournamentResolver(req, res) {
+async function tournamentGenerator() {
 	let settings = redis.useDatabase('settings');
 	let data;
 	if (curTournament) {
@@ -254,12 +254,10 @@ async function tournamentResolver(req, res) {
 			data = {format: curTournament.format, num: curTournament.participants.length, participants: curTournament.participants};
 		}
 	}
-	res.end(server.renderTemplate('tournament', {tourHelpers: (await settings.hvals('whitelist:tourhelpers')).join(', '), data: data}));
+	return {tourHelpers: (await settings.hvals('whitelist:tourhelpers')).join(', '), data: data};
 }
 
-server.addRoute(`/${WIFI_ROOM}/tournament`, tournamentResolver);
-
-async function leaderboardResolver(req, res) {
+async function leaderboardGenerator() {
 	let db = redis.useDatabase('tours');
 	let keys = await db.keys(`${WIFI_ROOM}:*`);
 	let data = [];
@@ -268,10 +266,11 @@ async function leaderboardResolver(req, res) {
 		data.push([entry.name, entry.wins, entry.losses, (entry.wins / entry.losses).toFixed(2), entry.points]);
 	}
 	data = data.sort((a, b) => parseInt(a[4]) > parseInt(b[4]) ? -1 : 1);
-	res.end(server.renderTemplate('leaderboard', data));
+	return data;
 }
 
-server.addRoute(`/${WIFI_ROOM}/leaderboard`, leaderboardResolver);
+new Page('tournament', tournamentGenerator, 'tournament.html', {rooms: WIFI_ROOM});
+new Page('leaderboard', leaderboardGenerator, 'leaderboard.html', {rooms: WIFI_ROOM});
 
 const HELP_URL = `${server.url}${WIFI_ROOM}/tours.html`;
 

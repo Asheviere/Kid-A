@@ -1,11 +1,12 @@
 'use strict';
 
 const server = require('../server.js');
+const Page = require('../page.js');
 const redis = require('../redis.js');
 
 const quotedata = redis.useDatabase('quotes');
 
-server.addTemplate('quotes', 'quotes.html');
+const quotePage = new Page('quotes', quoteGenerator, 'quotes.html', {token: 'quotes', postHandler: editQuotes, optionalToken: true});
 
 async function editQuotes(data, room) {
 	let {delete: toDelete, edits: toEdit} = data;
@@ -23,37 +24,18 @@ async function editQuotes(data, room) {
 	}
 }
 
-async function quoteResolver(req, res) {
-	let room = req.originalUrl.split('/')[1];
-	let query = server.parseURL(req.url);
-	let token = query.token;
+async function quoteGenerator(room, query, tokenData) {
 	let quotes = await redis.getList(quotedata, room);
-	if (!token && Handler.privateRooms.has(room)) return res.end('Private Room quotes require an access token to be viewed.');
-	if (token) {
-		let data = server.getAccessToken(token);
-		if (!data) return res.end('Invalid access token.');
-		if (data.room === room && data.permission === 'quotes') {
-			if (req.method === "POST") {
-				if (!(req.body && req.body.data)) return res.end("Malformed request.");
-				let data;
-				try {
-					data = JSON.parse(decodeURIComponent(req.body.data));
-				} catch (e) {
-					return res.end("Malformed JSON.");
-				}
-				await editQuotes(data, room);
-			}
-			return res.end(server.renderTemplate('quotes', {room: room, data: quotes, permission: true}));
-		}
-	}
-	res.end(server.renderTemplate('quotes', {room: room, data: quotes}));
+	if (!tokenData && Handler.privateRooms.has(room)) return 'Private Room quotes require an access token to be viewed.';
+
+	return {room: room, data: quotes, permission: tokenData.quotes};
 }
 
 module.exports = {
 	async init() {
 		let rooms = await quotedata.keys('*');
 		for (let i = 0; i < rooms.length; i++) {
-			server.addRoute(`/${rooms[i]}/quotes`, quoteResolver);
+			quotePage.addRoom(rooms[i]);
 		}
 	},
 	commands: {
@@ -64,11 +46,8 @@ module.exports = {
 				if (!message.length) return this.pmreply("Please enter a valid quote.");
 
 				if (!(await quotedata.exists(this.room))) {
-					if (!Handler.privateRooms.has(this.room)) {
-						server.addRoute('/' + this.room + '/quotes', quoteResolver);
-						// Wait 500ms to make sure everything's ready.
-						setTimeout(() => server.restart(), 500);
-					}
+					quotePage.addRoom(this.room);
+					setTimeout(() => server.restart(), 500);
 				}
 
 				let quotes = await redis.getList(quotedata, this.room);
@@ -113,19 +92,12 @@ module.exports = {
 					}
 				}
 				if (await quotedata.exists(this.room)) {
-					let fname = this.room + "/quotes";
-					let permission = (pm && this.canUse(5));
-					if (Handler.privateRooms.has(this.room) || permission) {
-						let data = {};
-						data.room = this.room;
-						data.permission = (permission ? 'quotes' : false);
-						let token = server.createAccessToken(data, 15);
-						fname += '?token=' + token;
-					}
+					const permission = (pm && this.canUse(5));
+					const url = quotePage.getUrl(this.room, this.userid, permission, {}, !(Handler.privateRooms.has(this.room) || permission));
 					if (pm) {
-						return this.pmreply("Quote page: " + server.url + fname);
+						return this.pmreply(`Quote page for ${this.room}: ${url}`);
 					}
-					return this.reply("Quote page: " + server.url + fname);
+					return this.reply(`Quote page for ${this.room}: ${url}`);
 				}
 
 				if (pm) {

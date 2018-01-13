@@ -1,57 +1,12 @@
 'use strict';
 
-const fs = require('fs');
 const path = require('path');
 const url = require('url');
 const crypto = require('crypto');
 
 const connect = require('connect');
 const serveStatic = require('serve-static');
-const handlebars = require('handlebars');
 const bodyParser = require('body-parser');
-
-// Add extra helpers to handlebars.
-handlebars.registerHelper('if_eq', function(val1, val2, options) {
-	if (val1 === val2) {
-		return options.fn(this);
-	}
-	return options.inverse(this);
-});
-
-handlebars.registerHelper('if_id', function(val1, val2, options) {
-	if (toId(val1) === toId(val2)) {
-		return options.fn(this);
-	}
-	return options.inverse(this);
-});
-
-handlebars.registerHelper('mod', function(variable, num, eq, options) {
-	if (variable % num === eq) {
-		return options.fn(this);
-	}
-	return options.inverse(this);
-});
-
-handlebars.registerHelper('parse_date', function(date) {
-	if (parseInt(date)) {
-		date = new Date(parseInt(date));
-		return date.toDateString();
-	}
-	return date;
-});
-
-handlebars.registerHelper('toId', function(str) {
-	return toId(str);
-});
-
-handlebars.registerHelper('parse_duration', function(time) {
-	let number = Date.now() - time;
-	const date = new Date(+number);
-	const parts = [date.getUTCFullYear() - 1970, date.getUTCMonth(), date.getUTCDate() - 1, date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds()];
-	const unitNames = ["second", "minute", "hour", "day", "month", "year"];
-	const positiveIndex = parts.findIndex(elem => elem > 0);
-	return parts.slice(positiveIndex).reverse().map((value, index) => value ? value + " " + unitNames[index] + (value > 1 ? "s" : "") : "").reverse().join(" ").trim();
-});
 
 class Server {
 	constructor(host, port) {
@@ -69,8 +24,6 @@ class Server {
 		this.restartPending = false;
 
 		this.accessTokens = new Map();
-
-		this.templates = {};
 
 		this.pages = new Map();
 
@@ -177,35 +130,6 @@ class Server {
 			return this.accessTokens.delete(token);
 		}
 		return false;
-	}
-
-	parseURL(url) {
-		let split = url.split('?');
-		if (split.length === 1) return {};
-		let query = split[1];
-		let parts = query.split('&');
-		let output = {};
-		for (let i = 0; i < parts.length; i++) {
-			let elem = parts[i].split('=');
-			if (elem.length === 2) {
-				output[elem[0]] = elem[1];
-			}
-		}
-		return output;
-	}
-
-	addTemplate(id, file) {
-		let data = '';
-		try {
-			data = fs.readFileSync('./templates/' + file, "utf8");
-		} catch (e) {
-			errorMsg(`Could not load template file ${file}.`);
-		}
-		this.templates[id] = handlebars.compile(data);
-	}
-
-	renderTemplate(id, data) {
-		return this.templates[id](data);
 	}
 }
 

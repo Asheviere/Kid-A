@@ -2,57 +2,38 @@
 
 const fs = require('fs');
 
-const server = require('../server.js');
+const Page = require('../page.js');
 const redis = require('../redis.js');
 
 const WIFI_ROOM = 'wifi';
-const THE_PC = 'thepc';
 
 let tsvs = redis.useDatabase('tsv');
 
-server.addTemplate('editdoc', 'editdoc.html');
-
-function renderEditor(res, room, name) {
-	fs.readFile(`./public/${room}/${name}.html`, (err, data) => {
-		let content = '';
-		if (err) {
-			if (err.code !== 'ENOENT') {
-				res.end("Something went wrong loading the file.");
+function renderEditor(room, query) {
+	return new Promise(resolve => {
+		if (!query.name) return resolve("Invalid URL.");
+		fs.readFile(`./public/${room}/${query.name}.html`, (err, data) => {
+			let content = '';
+			if (err) {
+				if (err.code !== 'ENOENT') {
+					resolve("Something went wrong loading the file.");
+				}
+			} else {
+				content = String(data);
 			}
-		} else {
-			content = String(data);
-		}
-		return res.end(server.renderTemplate('editdoc', {name: name, content: content}));
+			resolve({name: query.name, content: content});
+		});
 	});
 }
 
-function docEditResolver(req, res) {
-	let room = req.originalUrl.split('/')[1];
-	let query = server.parseURL(req.url);
-	let token = query.token;
-	let name = query.name;
-	if (!name) return res.end("Invalid URL.");
-	if (token) {
-		let data = server.getAccessToken(token);
-		if (data.permission !== 'editdoc' || data.room !== room) return res.end('Invalid access token.');
-		if (req.method === "POST") {
-			if (!(req.body && req.body.content)) return res.end("Malformed request.");
-
-			fs.writeFile(`./public/${room}/${name}.html`, req.body.content, err => {
-				if (err) return res.end("Something went wrong saving the file.");
-				Connection.send(`${room}|/modnote ${data.user} updated ${name}.html`);
-				renderEditor(res, room, name);
-			});
-		} else {
-			renderEditor(res, room, name);
-		}
-	} else {
-		return res.end('Please attach an access token. (You should get one when you type the command)');
-	}
+function saveEdits(data, room, tokenData, query) {
+	fs.writeFile(`./public/${room}/${query.name}.html`, data, err => {
+		if (err) return Connection.send(`|/pm ${tokenData.user}, Something went wrong saving the file.`);
+		Connection.send(`${room}|/modnote ${data.user} updated ${query.name}.html`);
+	});
 }
 
-server.addRoute(`/${WIFI_ROOM}/editdoc`, docEditResolver);
-server.addRoute(`/${THE_PC}/editdoc`, docEditResolver);
+const docEditor = new Page('editdoc', renderEditor, 'editdoc.html', {token: 'editdoc', postHandler: saveEdits, postDataType: 'txt', rooms: [WIFI_ROOM]});
 
 // Very ugly but meh
 let toTSV = val => (val < 1000 ? '0' : '') + (val < 100 ? '0' : '') + (val < 10 ? '0' : '') + val;
@@ -138,7 +119,7 @@ module.exports = {
 			},
 		},
 		editdoc: {
-			rooms: [WIFI_ROOM, THE_PC],
+			rooms: [WIFI_ROOM],
 			async action(message) {
 				let room = this.room;
 
@@ -149,12 +130,8 @@ module.exports = {
 
 				if (!(this.canUse(5))) return this.pmreply("Permission denied.");
 
-				let fname = `editdoc?name=${toId(message)}`;
-
-				let token = server.createAccessToken({user: this.username, permission: 'editdoc', room: room}, 15);
-				fname += `&token=${token}`;
-
-				return this.pmreply(`Edit link: ${server.url}${room}/${fname}`);
+				const url = docEditor.getUrl(WIFI_ROOM, this.userid, true, {name: toId(message)});
+				return this.pmreply(`Edit link: ${url}`);
 			},
 		},
 	},

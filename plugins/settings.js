@@ -1,13 +1,14 @@
 'use strict';
 
 const server = require('../server.js');
+const Page = require('../page.js');
 const redis = require('../redis.js');
 
 const db = redis.useDatabase('settings');
 
-server.addTemplate('settings', 'settings.html');
+const settingsPage = new Page('settings', settingsGenerator, 'settings.html', {token: 'settings', postHandler: changeSettings});
 
-async function changeSettings(room, settings) {
+async function changeSettings(settings, room) {
 	let output = '';
 	let changed = false;
 	let options = await redis.getList(db, `${room}:options`);
@@ -56,7 +57,9 @@ async function changeSettings(room, settings) {
 	return output;
 }
 
-async function generateSettingsPage(room) {
+async function settingsGenerator(room) {
+	if (!(room && room in Handler.chatHandler.settings)) return `Room '${room}' has no available settings.`;
+
 	let enabledOptions = await redis.getList(db, `${room}:options`);
 	let disabled = await redis.getList(db, `${room}:disabledCommands`);
 
@@ -67,58 +70,38 @@ async function generateSettingsPage(room) {
 
 	let commands = Object.keys(Handler.chatHandler.commands).filter(cmd => !(Handler.chatHandler.commands[cmd].hidden || (Handler.chatHandler.commands[cmd].rooms && !Handler.chatHandler.commands[cmd].rooms.includes(room)))).map(val => ({name: val, checked: disabled.includes(val)}));
 
-	return server.renderTemplate('settings', {room: room, options: options, commands: commands});
+	return {room: room, options: options, commands: commands};
 }
 
-async function settingsResolver(req, res) {
-	let split = req.url.split('/');
-	let [room, query] = split[split.length - 1].split('?');
-	if (!(room && room in Handler.chatHandler.settings)) return res.end(`Room '${room}' has no available settings.`);
-	query = server.parseURL(req.url);
-	let token = query.token;
-	if (token) {
-		let data = server.getAccessToken(token);
-		if (!(data.room === room && data.permission === 'settings')) return res.end('Invalid access token.');
-		if (req.method === "POST") {
-			if (!(req.body && req.body.data)) return res.end("Malformed request.");
-			let settings;
-			try {
-				settings = JSON.parse(decodeURIComponent(req.body.data));
-			} catch (e) {
-				return res.end("Malformed JSON.");
-			}
-			await changeSettings(room, settings);
-		}
-		return res.end(await generateSettingsPage(room));
-	}
-	return res.end('Please attach an access token. (You should get one when you type .settings)');
-}
-
-server.addRoute('/settings', settingsResolver);
+const curRooms = new Set();
 
 module.exports = {
+	async init() {
+		let rooms = await ChatLogger.getRooms();
+
+		for (let i = 0; i < rooms.length; i++) {
+			settingsPage.addRoom(rooms[i]);
+			curRooms.add(rooms[i]);
+		}
+	},
 	commands: {
 		settings: {
 			hidden: true,
 			async action(message) {
 				let room = this.room || toId(message);
 				if (!room) return;
-				if (!(room in this.userlists)) return this.pmreply(`The bot isn't in the room '${room}'.`);
 				if (!this.getRoomAuth(room)) return;
 				if (!this.canUse(5)) return this.pmreply("Permission denied.");
 
 				if (!this.settings[room]) this.settings[room] = {options: [], disabledCommands: []};
 
-				if (Config.checkIps) {
-					let [, ips] = await Handler.checkIp(this.userid);
-					let data = {room: room, permission: 'settings'};
-					if (ips) data.ip = ips[0];
-					let token = server.createAccessToken(data, 15);
-					this.pmreply(`Settings for room ${room}: ${server.url}settings/${room}?token=${token}`);
-				} else {
-					let token = server.createAccessToken({room: room, permission: 'settings'}, 15);
-					this.pmreply(`Settings for room ${room}: ${server.url}settings/${room}?token=${token}`);
+				if (!curRooms.has(room)) {
+					settingsPage.addRoom(room);
+					server.restart();
+					curRooms.add(room);
 				}
+
+				this.pmreply(`Settings for room ${room}: ${settingsPage.getUrl(room, this.userid)}`);
 			},
 		},
 	},

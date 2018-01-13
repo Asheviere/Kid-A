@@ -2,6 +2,7 @@
 
 const fs = require('fs');
 
+const Page = require('../page.js');
 const server = require('../server.js');
 const redis = require('../redis.js');
 const utils = require('../utils.js');
@@ -19,10 +20,6 @@ const NOTES_FILE = 'clonernotes.json';
 const settings = redis.useDatabase('settings');
 
 const cache = new Cache('wifi');
-
-server.addTemplate('cloners', 'cloners.html');
-server.addTemplate('clonerlog', 'clonerlog.html');
-server.addTemplate('clonernotes', 'clonernotes.html');
 
 let leftpad = val => (val < 10 ? `0${val}`: `${val}`);
 
@@ -49,8 +46,8 @@ class WifiList {
 
 		this.data = this.loadList();
 
-		let changeList = (tokenData, edits) => {
-			if (tokenData.list !== this.name || !(tokenData.permission || tokenData.user)) return;
+		let changeList = async (edits, room, tokenData) => {
+			if (!(this.name in tokenData) || !(tokenData.permission || tokenData.user)) return;
 
 			if (!tokenData.permission && (Object.keys(edits).length && !(tokenData.user in edits))) return;
 
@@ -76,43 +73,23 @@ class WifiList {
 			this.writeList();
 		};
 
-		let parseQuery = (tokenData, queryData) => {
-			if (!queryData.edits) return;
+		let parseQuery = async (data, room, tokenData) => {
+			if (!data.edits) return;
 
 			let edits = {};
 
-			for (let i in queryData.edits) {
-				if (Object.keys(queryData.edits[i]).some(val => !this.columnKeys.includes(val))) return;
-				edits[i] = queryData.edits[i];
+			for (let i in data.edits) {
+				if (Object.keys(data.edits[i]).some(val => !this.columnKeys.includes(val))) return;
+				edits[i] = data.edits[i];
 			}
 
-			changeList(tokenData, edits);
+			changeList(edits, room, tokenData);
 		};
 
-		let generatePage = async (req, res) => {
-			let query = server.parseURL(req.url);
-			let token = query.token;
-
+		let generatePage = async (room, query, tokenData) => {
 			let data = {name: this.name, columnNames: this.columnNames, noOnline: this.noOnlinePage};
 
-			if (token) {
-				let tokenData = server.getAccessToken(token);
-				if (!tokenData) return res.end('Invalid access token.');
-
-				data.tokenData = tokenData;
-
-				if (req.method === "POST") {
-					if (!(req.body && req.body.data)) return res.end("Malformed request.");
-					let queryData;
-					try {
-						queryData = JSON.parse(decodeURIComponent(req.body.data));
-						console.log(queryData);
-					} catch (e) {
-						return res.end("Malformed JSON.");
-					}
-					parseQuery(tokenData, queryData);
-				}
-			}
+			data.tokenData = tokenData;
 
 			let whitelist = await settings.hvals(`whitelist:${this.name}`);
 
@@ -130,10 +107,10 @@ class WifiList {
 				return a.localeCompare(b);
 			}).map(val => ({data: this.data[val], online: (!this.noOnlinePage && (Handler.userlists[WIFI_ROOM] && (val in Handler.userlists[WIFI_ROOM] || (this.data[val].alts && this.data[val].alts.split(',').map(val => toId(val)).filter(val => val in Handler.userlists[WIFI_ROOM]).length))))}));
 
-			return res.end(server.renderTemplate('cloners', data));
+			return data;
 		};
 
-		server.addRoute(`/${WIFI_ROOM}/${this.name}`, generatePage);
+		this.page = new Page(this.name, generatePage, 'cloners.html', {token: this.name, optionalToken: true, postHandler: parseQuery, rooms: [WIFI_ROOM]});
 	}
 
 	add(user, params, identifier) {
@@ -331,15 +308,7 @@ class ClonerLog {
 
 		this.pendingRequests = {};
 
-		let generatePage = async (req, res) => {
-			let query = server.parseURL(req.url);
-			let token = query.token;
-
-			if (!token) return res.end("No access token provided.");
-
-			let tokenData = server.getAccessToken(token);
-			if (!tokenData || tokenData.permission !== 'cloners') return res.end('Invalid access token.');
-
+		let generatePage = async () => {
 			let keys = (await this.db.keys('*')).sort((a, b) => parseInt(a) > parseInt(b) ? -1 : 1);
 
 			let data = [];
@@ -349,10 +318,10 @@ class ClonerLog {
 				data.push({date: key, cloner: entry[0], client: entry[1]});
 			}
 
-			return res.end(server.renderTemplate('clonerlog', data));
+			return data;
 		};
 
-		server.addRoute(`/${WIFI_ROOM}/clonerlog`, generatePage);
+		this.page = new Page('clonerlog', generatePage, 'clonerlog.html', {token: 'cloners', rooms: [WIFI_ROOM]});
 
 		setInterval(() => {
 			for (let key in this.pendingRequests) {
@@ -393,20 +362,7 @@ class ClonerLog {
 }
 
 const clonerlog = new ClonerLog();
-
-async function generateNotePage (req, res) {
-	let query = server.parseURL(req.url);
-	let token = query.token;
-
-	if (!token) return res.end("No access token provided.");
-
-	let tokenData = server.getAccessToken(token);
-	if (!tokenData || tokenData.permission !== 'cloners') return res.end('Invalid access token.');
-
-	return res.end(server.renderTemplate('clonernotes', notes));
-}
-
-server.addRoute(`/${WIFI_ROOM}/clonernotes`, generateNotePage);
+const clonernotes = new Page('clonernotes', async () => notes, 'clonernotes.html', {token: 'cloners', rooms: [WIFI_ROOM]});
 
 function getScammerEntry(userid) {
 	for (let key in scammerList.data) {
@@ -590,25 +546,8 @@ module.exports = {
 				let editSelf = (this.userid in clonerList.data);
 				if (!(permission || editSelf)) return this.pmreply("Permission denied.");
 
-				if (Config.checkIps) {
-					let [, ips] = await Handler.checkIp(this.userid);
-					let data = {list: 'cloners'};
-					if (permission) {
-						data.permission = true;
-					}
-					data.user = this.userid;
-					if (ips) data.ip = ips[0];
-					let token = server.createAccessToken(data, 15);
-					this.pmreply(`Edit link for the cloner list **DON'T SHARE THIS LINK**: ${server.url}${WIFI_ROOM}/cloners?token=${token}`);
-				} else {
-					let data = {list: 'cloners'};
-					if (permission) {
-						data.permission = true;
-					}
-					data.user = this.userid;
-					let token = server.createAccessToken(data, 15);
-					this.pmreply(`Edit link for the cloner list **DON'T SHARE THIS LINK**: ${server.url}${WIFI_ROOM}/cloners?token=${token}`);
-				}
+				const url = clonerList.page.getUrl(WIFI_ROOM, this.userid, true, {}, false, {permission: permission});
+				this.pmreply(`Edit link for the cloner list **DON'T SHARE THIS LINK**: ${url}`);
 			},
 		},
 		notifycloners: {
@@ -653,8 +592,8 @@ module.exports = {
 				}
 				if (!(this.canUse(3) || await settings.hexists('whitelist:cloners', this.userid))) return this.pmreply("Permission denied.");
 
-				let token = server.createAccessToken({permission: 'cloners'}, 60);
-				this.pmreply(`Cloner log: ${server.url}${WIFI_ROOM}/clonerlog?token=${token}`);
+				const url = clonerlog.page.getUrl(WIFI_ROOM, this.userid);
+				this.pmreply(`Cloner log: ${url}`);
 			},
 		},
 		clonernote: {
@@ -684,8 +623,8 @@ module.exports = {
 				}
 				if (!(this.canUse(3) || await settings.hexists('whitelist:cloners', this.userid))) return this.pmreply("Permission denied.");
 
-				let token = server.createAccessToken({permission: 'cloners'}, 60);
-				this.pmreply(`Cloner notes: ${server.url}${WIFI_ROOM}/clonernotes?token=${token}`);
+				const url = clonernotes.getUrl(WIFI_ROOM, this.userid);
+				this.pmreply(`Cloner notes: ${url}`);
 			},
 		},
 

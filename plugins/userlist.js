@@ -1,15 +1,12 @@
 'use strict';
 
+const Page = require('../page.js');
 const server = require('../server.js');
 const redis = require('../redis.js');
 
 let userlists = redis.useDatabase('userlist');
 
-server.addTemplate('userlist', 'userlist.html');
-
-async function userlistResolver(req, res) {
-	let room = req.originalUrl.split('/')[1];
-
+async function userlistGenerator(room) {
 	let users = await userlists.keys(`${room}:*`);
 
 	let keys = ['username'];
@@ -45,8 +42,10 @@ async function userlistResolver(req, res) {
 		return output;
 	});
 
-	res.end(server.renderTemplate('userlist', {room: room, columnNames: keys, entries: data}));
+	return {room: room, columnNames: keys, entries: data};
 }
+
+const userlistPage = new Page('userlist', userlistGenerator, 'userlist.html');
 
 let rooms = new Set();
 
@@ -57,7 +56,7 @@ module.exports = {
 			let room = keys[i].split(":")[0];
 			if (!rooms.has(room)) {
 				rooms.add(room);
-				server.addRoute(`/${room}/userlist`, userlistResolver);
+				userlistPage.addRoom(room);
 			}
 		}
 	},
@@ -90,7 +89,7 @@ module.exports = {
 
 				if (!rooms.has(this.room)) {
 					rooms.add(this.room);
-					server.addRoute(`/${this.room}/userlist`, userlistResolver);
+					userlistPage.addRoom(this.room);
 					// Wait 500ms to make sure everything's ready.
 					setTimeout(() => server.restart(), 500);
 				}
@@ -177,9 +176,7 @@ module.exports = {
 					}
 				}
 				if (rooms.has(room)) {
-					let fname = `${room}/userlist`;
-
-					return this.reply(`Userlist: ${server.url}${fname}`);
+					return this.reply(`Userlist: ${userlistPage.getUrl(room, this.userid)}`);
 				}
 
 				return this.reply("This room has no userlist.");

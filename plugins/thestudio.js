@@ -1,15 +1,13 @@
 'use strict';
 
-const server = require('../server.js');
+const Page = require('../page.js');
 const redis = require('../redis.js');
 
 const THE_STUDIO = 'thestudio';
 
 let db = redis.useDatabase('thestudio');
 
-server.addTemplate('songrecs', 'songrecs.html');
-
-async function recsResolver(req, res) {
+async function recsGenerator() {
 	let keys = ['Song', 'Tags', 'Recommended by'];
 	let data = [];
 
@@ -21,10 +19,10 @@ async function recsResolver(req, res) {
 		data.push([`<a href="${entry.link}">${entry.artist} - ${entry.title}</a>`, entry.tags.split('|').join(', '), entry.user]);
 	}
 
-	res.end(server.renderTemplate('songrecs', {room: THE_STUDIO, columnNames: keys, entries: data}));
+	return {room: THE_STUDIO, columnNames: keys, entries: data};
 }
 
-server.addRoute(`/${THE_STUDIO}/recs`, recsResolver);
+new Page('recs', recsGenerator, 'songrecs.html', {rooms: THE_STUDIO});
 
 module.exports = {
 	commands: {
