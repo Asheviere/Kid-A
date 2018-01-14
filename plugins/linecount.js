@@ -110,7 +110,7 @@ module.exports = {
 
 				let url = linecountPage.getUrl(room, this.userid, true, {user: user});
 
-				return this.reply(`Linecounts for ${user} in ${room}: ${url}`);
+				return this.pmreply(`Linecounts for ${user} in ${room}: ${url}`);
 			},
 		},
 		topusers: {
@@ -154,7 +154,7 @@ module.exports = {
 				if (option) query.option = option;
 				const url = topuserPage.getUrl(room, this.userid, true, query);
 
-				return this.reply(`Most active chatters in ${room}: ${url}`);
+				return this.pmreply(`Most active chatters in ${room}: ${url}`);
 			},
 		},
 	},
