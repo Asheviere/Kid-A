@@ -14,7 +14,7 @@ module.exports = {
 	commands: {
 		help: {
 			permission: 1,
-			action(message) {
+			async action(message) {
 				if (!message) return this.reply("Usage: ``.help <topic>``. Available help topics: " + Object.keys(helpTopics).join(', '));
 				message = toId(message);
 				if (!(message in helpTopics)) return this.pmreply("Invalid option for topic.");
@@ -24,7 +24,7 @@ module.exports = {
 		},
 		git: {
 			permission: 1,
-			action() {
+			async action() {
 				return this.reply("Source code for Kid A: " + REPO_URL);
 			},
 		},

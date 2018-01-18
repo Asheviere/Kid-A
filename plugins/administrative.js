@@ -35,7 +35,7 @@ if (cache.get('declare').end) {
 
 module.exports = {
 	onUserJoin: {
-		action(user, room) {
+		async action(user, room) {
 			user = toId(user);
 
 			if (cache.get('declare').msg && !cache.get('notified').hasOwnProperty(user) && this.userlists[room] && this.userlists[room][user][0] === '#') {
@@ -48,7 +48,7 @@ module.exports = {
 	commands: {
 		eval: {
 			hidden: true,
-			action(message) {
+			async action(message) {
 				if (!Config.admins.has(this.userid)) return;
 				if(/require\(.+?\)/.test(message)) return;
 
@@ -66,7 +66,7 @@ module.exports = {
 		reload: {
 			hidden: true,
 			permission: 6,
-			action(message) {
+			async action(message) {
 				switch (message) {
 				case 'config':
 					delete require.cache[require.resolve('../config.js')];
@@ -116,7 +116,7 @@ module.exports = {
 		declare: {
 			permission: 6,
 			hidden: true,
-			action(message) {
+			async action(message) {
 				let [time, ...msg] = message.split(',');
 				if (!msg) return this.pmreply("Invalid syntax. ``.declare days, message``.");
 				msg = msg.join(',').trim();

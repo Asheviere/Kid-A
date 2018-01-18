@@ -58,7 +58,7 @@ class CommandWrapper {
 		if (room && room.includes('groupchat') && !command.allowGroupchats) return this.pmreply("This command cannot be used in groupchats.");
 		if (room && command.rooms && !command.rooms.includes(room)) return;
 
-		command.action.apply(this, [message]);
+		command.action.apply(this, [message]).catch(err => errorMsg(err.stack));
 	}
 
 	reply(message) {
@@ -118,7 +118,7 @@ class AnalyzerWrapper {
 			this.userid = toId(userstr);
 			this.room = room;
 
-			analyzer.parser.apply(this, [message]);
+			analyzer.parser.apply(this, [message]).catch(err => errorMsg(err.stack));
 		}
 	}
 }
@@ -290,7 +290,7 @@ class ChatHandler {
 	async parseJoin(user, room) {
 		for (let i in this.plugins) {
 			if (this.plugins[i].onUserJoin && (!this.plugins[i].onUserJoin.rooms || this.plugins[i].onUserJoin.rooms.includes(room))) {
-				this.plugins[i].onUserJoin.action.apply(this, [user, room]);
+				this.plugins[i].onUserJoin.action.apply(this, [user, room]).catch(err => errorMsg(err.stack));
 			}
 		}
 	}

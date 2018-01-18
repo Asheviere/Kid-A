@@ -378,7 +378,7 @@ function getScammerEntry(userid) {
 module.exports = {
 	onUserJoin: {
 		rooms: [WIFI_ROOM],
-		action(user) {
+		async action(user) {
 			user = toId(user);
 
 			let now = new Date();
@@ -630,7 +630,7 @@ module.exports = {
 
 		addscammer: {
 			rooms: [WIFI_ROOM],
-			action(message) {
+			async action(message) {
 				if (!this.room) {
 					if (!this.getRoomAuth(WIFI_ROOM)) return;
 				}
@@ -654,7 +654,7 @@ module.exports = {
 		},
 		updatescammer: {
 			rooms: [WIFI_ROOM],
-			action(message) {
+			async action(message) {
 				if (!this.room) {
 					if (!this.getRoomAuth(WIFI_ROOM)) return;
 				}
@@ -669,7 +669,7 @@ module.exports = {
 		},
 		addscammeralt: {
 			rooms: [WIFI_ROOM],
-			action(message) {
+			async action(message) {
 				if (!this.room) {
 					if (!this.getRoomAuth(WIFI_ROOM)) return;
 				}
@@ -725,7 +725,7 @@ module.exports = {
 		},
 		setscammerflag: {
 			rooms: [WIFI_ROOM],
-			action(message) {
+			async action(message) {
 				if (!this.room) {
 					if (!this.getRoomAuth(WIFI_ROOM)) return;
 				}
@@ -755,7 +755,7 @@ module.exports = {
 		},
 		addhackmon: {
 			rooms: [WIFI_ROOM],
-			action(message) {
+			async action(message) {
 				if (!this.room) {
 					if (!this.getRoomAuth(WIFI_ROOM)) return;
 				}
@@ -780,7 +780,7 @@ module.exports = {
 		},
 		updatehackmon: {
 			rooms: [WIFI_ROOM],
-			action(message) {
+			async action(message) {
 				if (!this.room) {
 					if (!this.getRoomAuth(WIFI_ROOM)) return;
 				}

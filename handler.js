@@ -181,18 +181,18 @@ module.exports = {
 		case 'pm':
 			if (toId(split[2]) === this.userid) return false;
 
-			this.chatHandler.parse(split[2], null, split.splice(4).join('|').trim());
+			this.chatHandler.parse(split[2], null, split.splice(4).join('|').trim()).catch(err => errorMsg(err));
 			break;
 		case 'c':
 			if (toId(split[2]) === this.userid) return;
 
-			this.chatHandler.parse(split[2], roomid, split.splice(3).join('|').trim());
+			this.chatHandler.parse(split[2], roomid, split.splice(3).join('|').trim()).catch(err => errorMsg(err));
 			break;
 		case 'c:':
 			if (toId(split[3]) === this.userid) return;
 			let msg = split.splice(4).join('|').trim();
-			ChatLogger.log(split[2], roomid, toId(split[3]), msg);
-			this.chatHandler.parse(split[3], roomid, msg);
+			ChatLogger.log(split[2], roomid, toId(split[3]), msg).catch(err => errorMsg(err));
+			this.chatHandler.parse(split[3], roomid, msg).catch(err => errorMsg(err));
 			break;
 		case 'html':
 			let html = cheerio.load(split.slice(2).join('|'));
