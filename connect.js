@@ -24,7 +24,7 @@ function connect() {
 			setTimeout(connect, RETRY_TIME * 1000);
 		});
 		connection.on('message', message => {
-			Handler.parse(message.utf8Data);
+			Handler.parse(message.utf8Data).catch(err => errorMsg(err.stack));
 		});
 	});
 
