@@ -8,7 +8,7 @@ const redis = require('./redis.js');
 const analytics = redis.useDatabase('analytics');
 
 const COMMAND_TOKEN = Config.commandSymbol || '.';
-const COMMAND_REGEX = new RegExp(`^${".^$*+?()[{\\|-]".includes(COMMAND_TOKEN) ? '\\' : ''}${COMMAND_TOKEN}[\\w]+\\b`, "ig");
+const COMMAND_REGEX = new RegExp(`^${".^$*+?()[{\\|-]".includes(COMMAND_TOKEN) ? '\\' : ''}${COMMAND_TOKEN}[\\w]+\\b`, "i");
 
 const dataCache = {};
 
