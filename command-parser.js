@@ -106,11 +106,11 @@ class AnalyzerWrapper {
 	async run(analyzer, userstr, room, message) {
 		if (analyzer.rooms && !(analyzer.rooms.includes(room))) return;
 
-		if (message.startsWith('/log')) {
+		if (!userstr) {
 			if (!analyzer.modnoteParser) return;
 			this.room = room;
 
-			analyzer.modnoteParser.apply(this, [message.slice(5)]);
+			analyzer.modnoteParser.apply(this, [message]);
 		} else {
 			if (!analyzer.parser) return;
 			this.auth = userstr[0];
