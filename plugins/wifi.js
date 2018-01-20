@@ -35,6 +35,22 @@ function saveEdits(data, room, tokenData, query) {
 
 const docEditor = new Page('editdoc', renderEditor, 'editdoc.html', {token: 'editdoc', postHandler: saveEdits, postDataType: 'txt', rooms: [WIFI_ROOM]});
 
+async function tsvPageGenerator() {
+	let keys = await tsvs.keys('*');
+	let entries = [];
+	for (const key of keys) {
+		let entry = await tsvs.get(key);
+		let userTsvs = [];
+		for (let i = 0; i < entry.length; i += 4) {
+			userTsvs.push(entry.substr(i, 4));
+		}
+		entries.push([key, userTsvs.join(', ')]);
+	}
+	return entries.sort((a, b) => a[0].localeCompare(b[0]));
+}
+
+new Page('tsv', tsvPageGenerator, 'tsv.html', {rooms: [WIFI_ROOM]});
+
 // Very ugly but meh
 let toTSV = val => (val < 1000 ? '0' : '') + (val < 100 ? '0' : '') + (val < 10 ? '0' : '') + val;
 
