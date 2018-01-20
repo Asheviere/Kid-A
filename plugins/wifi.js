@@ -72,11 +72,32 @@ module.exports = {
 
 				if (!(this.canUse(2))) return this.pmreply("Permission denied.");
 
-				let name = toId(message);
+				let name, tsv;
+				if (message.includes(',')) [message, tsv] = message.split(',');
+
+				name = toId(message);
+
+				if (tsv) {
+					tsv = parseInt(tsv.trim());
+					if (isNaN(tsv) || tsv < 0 || tsv > 4095) return this.pmreply("Invalid value for TSV, should be between 0 and 4096");
+					tsv = toTSV(tsv);
+				}
 
 				if (!(await tsvs.exists(name))) return this.pmreply("User not found");
 
-				await tsvs.del(name);
+				if (tsv) {
+					let tsvString = await tsvs.get(name);
+
+					for (let i = 0; i < tsvString.length; i += 4) {
+						if (tsvString.substr(i, 4) === tsv) {
+							let newString = tsvString.slice(0, i) + tsvString.slice(i + 4);
+							await tsvs.set(name, newString);
+							break;
+						}
+					}
+				} else {
+					await tsvs.del(name);
+				}
 
 				Connection.send(`${WIFI_ROOM}|/modnote ${this.username} deleted a TSV for ${name}`);
 				this.reply("TSV successfully deleted.");
