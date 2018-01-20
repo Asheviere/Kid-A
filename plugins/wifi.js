@@ -107,7 +107,15 @@ module.exports = {
 			rooms: [WIFI_ROOM],
 			permission: 1,
 			async action(message) {
-				if (!message) return;
+				if (!message) {
+					let entry = await tsvs.get(this.userid);
+					if (!entry) return this.reply("You don't have a TSV registered.");
+					let userTsvs = [];
+					for (let i = 0; i < entry.length; i += 4) {
+						userTsvs.push(entry.substr(i, 4));
+					}
+					return this.reply(`Your TSV${userTsvs.length > 1 ? 's' : ''}: ${userTsvs.join(', ')}`);
+				}
 
 				let input = message.split(',').map(val => parseInt(val.trim()));
 				if (input.some(tsv => isNaN(tsv) || tsv < 0 || tsv > 4095)) return this.pmreply("Invalid value for TSV, should be between 0 and 4096");
