@@ -147,7 +147,7 @@ class Page {
 			options.token = server.createAccessToken(tokenData, 60);
 		}
 
-		let optionString = Object.keys(options).map(opt => `${opt}=${options[opt]}`).join('&');
+		let optionString = Object.keys(options).map(opt => `${toId(opt)}=${toId(options[opt])}`).join('&');
 		if (optionString) fname += `?${optionString}`;
 		return `${server.url}${fname}`;
 	}
