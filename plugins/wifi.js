@@ -29,7 +29,7 @@ function renderEditor(room, query) {
 function saveEdits(data, room, tokenData, query) {
 	fs.writeFile(`./public/${room}/${query.name}.html`, data, err => {
 		if (err) return Connection.send(`|/pm ${tokenData.user}, Something went wrong saving the file.`);
-		Connection.send(`${room}|/modnote ${data.user} updated ${query.name}.html`);
+		Connection.send(`${room}|/modnote ${tokenData.user} updated ${query.name}.html`);
 	});
 }
 
