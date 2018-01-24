@@ -701,25 +701,27 @@ module.exports = {
 					for (let thisfc of split) {
 						if (thisfc === fc) {
 							this.reply(`This FC belongs to ${scammerList.data[i].username}, who is ${typeof(scammerList.data[i].date) === "string" && scammerList.data[i].date.startsWith("PERMA") ? 'a permabanned scammer' : 'on the scammers list'}.`);
-							return this.reply(`Reason: ${scammerList.data[i].reason}`);
+							this.reply(`Reason: ${scammerList.data[i].reason}`);
 						}
 					}
 				}
 
 				// Then, check all the other lists
 				for (let i in clonerList.data) {
-					if (clonerList.data[i].fc === fc) return this.reply(`This FC belongs to ${clonerList.data[i].username}, who is an approved cloner.`);
+					if (clonerList.data[i].fc === fc) this.reply(`This FC belongs to ${clonerList.data[i].username}, who is an approved cloner.`);
 				}
 
 				// Lastly, if available, check the .fc database
 				let db = redis.useDatabase('friendcodes');
 
 				let fcs = await db.keys('*');
+				let results = [];
 
 				for (let i = 0; i < fcs.length; i++) {
-					if ((await db.get(fcs[i])) === fc) return this.reply(`This FC belongs to ${fcs[i]}.`);
+					if ((await db.get(fcs[i])) === fc) results.push(fcs[i]);
 				}
 
+				if (results.length) return this.reply(`This FC belongs to ${results.join(', ')}.`);
 				return this.reply("This FC was not found.");
 			},
 		},
