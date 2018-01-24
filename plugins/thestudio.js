@@ -22,7 +22,7 @@ async function recsGenerator() {
 	return {room: THE_STUDIO, columnNames: keys, entries: data};
 }
 
-new Page('recs', recsGenerator, 'songrecs.html', {rooms: THE_STUDIO});
+new Page('recs', recsGenerator, 'songrecs.html', {rooms: [THE_STUDIO]});
 
 module.exports = {
 	commands: {

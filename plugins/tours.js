@@ -269,8 +269,8 @@ async function leaderboardGenerator() {
 	return data;
 }
 
-new Page('tournament', tournamentGenerator, 'tournament.html', {rooms: WIFI_ROOM});
-new Page('leaderboard', leaderboardGenerator, 'leaderboard.html', {rooms: WIFI_ROOM});
+new Page('tournament', tournamentGenerator, 'tournament.html', {rooms: [WIFI_ROOM]});
+new Page('leaderboard', leaderboardGenerator, 'leaderboard.html', {rooms: [WIFI_ROOM]});
 
 const HELP_URL = `${server.url}${WIFI_ROOM}/tours.html`;
 
