@@ -99,10 +99,11 @@ class Tour {
 
 		for (let user of this.participants) {
 			let matchup = this.getMatchup(toId(user));
-			if (matchup) notifs.push(`|/pm ${user}, Your opponent for this round of the tournament is **${matchup[0]} (FC: ${this.fcs[matchup[0]]})**`);
+			if (matchup) notifs.push(`|/pm ${user}, Your opponent for this round of the tournament is **${matchup[0]} (FC: ${this.fcs[toId(matchup[0])]})**`);
 		}
 
 		let sendNotif = async notifs => {
+			if (!notifs.length) return;
 			Connection.send(notifs[0]);
 			setTimeout(() => sendNotif(notifs.slice(1)), 500);
 		};
@@ -113,7 +114,7 @@ class Tour {
 	addUser(username, fc) {
 		if (this.started) return false;
 		if (this.hasId(toId(username))) return false;
-		if (this.fcs.values().includes(fc)) return false;
+		if (Object.values(this.fcs).includes(fc)) return false;
 
 		Connection.send(`${toId(username)}|You have been successfully signed up for the tournament.`);
 
@@ -350,9 +351,9 @@ module.exports = {
 					return this.pmreply("The tournament was forcibly ended.");
 				case 'add':
 					if (!(this.canUse(2) || await this.settings.hexists('whitelist:tourhelpers', this.userid))) return this.pmreply("Permission denied.");
-					let [username, fc] = message.split(',').map(param => param.trim());
+					let [username, fc] = rest.split(',').map(param => param.trim());
 					if (!username || !fc || !FC_REGEX.test(fc)) return this.pmreply("Syntax error. ``.tour add username, fc``");
-					username = username.trim();
+					fc = toId(fc);
 					fc = `${fc.substr(0, 4)}-${fc.substr(4, 4)}-${fc.substr(8, 4)}`;
 					if (Object.keys(getBan(toId(username), fc)).length) return this.reply("This user is banned from entering tournaments.");
 					if (!utils.validateFc(fc)) return this.reply("Invalid Friend Code.");
