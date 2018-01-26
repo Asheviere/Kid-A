@@ -12,6 +12,7 @@ const FC_REGEX = /[0-9]{4}[- ]?[0-9]{4}[- ]?[0-9]{4}/;
 let curTournament;
 
 const settings = redis.useDatabase('settings');
+let friendcodes = redis.useDatabase('friendcodes');
 
 class Tour {
 	constructor(room, format, points, prize) {
@@ -116,9 +117,12 @@ class Tour {
 		if (this.hasId(toId(username))) return false;
 		if (Object.values(this.fcs).includes(fc)) return false;
 
-		Connection.send(`${toId(username)}|You have been successfully signed up for the tournament.`);
+		const userid = toId(username);
 
-		this.fcs[toId(username)] = fc;
+		Connection.send(`${userid}|You have been successfully signed up for the tournament.`);
+
+		this.fcs[userid] = fc;
+		friendcodes.set(userid, fc);
 		return this.participants.push(username);
 	}
 
