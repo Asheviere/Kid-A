@@ -1,6 +1,7 @@
 'use strict';
 
-process.on('uncaughtException', (err) => console.log(err));
+process.on('uncaughtException', err => errorMsg(err.stack));
+process.on('unhandledRejection', err => errorMsg(err.stack));
 
 // TODO: abstract logging away from the global namespace.
 global.stdout = '';
