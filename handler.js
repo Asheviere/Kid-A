@@ -32,8 +32,8 @@ module.exports = {
 
 		Array.prototype.push.apply(this.toJoin, Config.rooms);
 
-		let autojoin = await redis.getList(settings, 'autojoin');
-		let privateRooms = await redis.getList(settings, 'privaterooms');
+		let autojoin = await settings.lrange('autojoin', 0, -1);
+		let privateRooms = await settings.lrange('privaterooms', 0, -1);
 
 		if (autojoin && autojoin.length) {
 			Array.prototype.push.apply(

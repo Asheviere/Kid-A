@@ -11,8 +11,8 @@ const settingsPage = new Page('settings', settingsGenerator, 'settings.html', {t
 async function changeSettings(settings, room) {
 	let output = '';
 	let changed = false;
-	let options = await redis.getList(db, `${room}:options`);
-	let disabled = await redis.getList(db, `${room}:disabledCommands`);
+	let options = await db.lrange(`${room}:options`, 0, -1);
+	let disabled = await db.lrange(`${room}:disabledCommands`, 0, -1);
 	for (let key in settings) {
 		if (key in Handler.chatHandler.commands && !Handler.chatHandler.commands[key].hidden) {
 			if (settings[key]) {
@@ -60,8 +60,8 @@ async function changeSettings(settings, room) {
 async function settingsGenerator(room) {
 	if (!(room && room in Handler.chatHandler.settings)) return `Room '${room}' has no available settings.`;
 
-	let enabledOptions = await redis.getList(db, `${room}:options`);
-	let disabled = await redis.getList(db, `${room}:disabledCommands`);
+	let enabledOptions = await db.lrange(`${room}:options`, 0, -1);
+	let disabled = await db.lrange(`${room}:disabledCommands`, 0, -1);
 
 	let options = [];
 	Handler.chatHandler.options.forEach(val => {

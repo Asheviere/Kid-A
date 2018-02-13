@@ -234,7 +234,7 @@ class ChatHandler {
 			if (canUse(2, toId(userstr), userstr[0]) && message.startsWith('/invite')) {
 				let toJoin = message.substr(8);
 
-				let autojoin = await redis.getList(this.settings, 'autojoin');
+				let autojoin = await this.settings.lrange('autojoin', 0, -1);
 
 				if (!(Config.rooms.includes(toJoin) || (autojoin && autojoin.includes(toJoin)))) {
 					if (toJoin.includes('groupchat')) return Connection.send(`|/pm ${userstr.substr[1]}, Kid A is currently unsupported in groupchats.`);
@@ -278,7 +278,7 @@ class ChatHandler {
 			return sendPM(username, 'Invalid command.');
 		}
 
-		let disabled = await redis.getList(this.settings, `${room}:disabledCommands`);
+		let disabled = await this.settings.lrange(`${room}:disabledCommands`, 0, -1);
 		if (disabled && disabled.includes(cmd)) return;
 
 		const wrapper = new CommandWrapper(this.userlists, this.settings, this.commands, this.options);

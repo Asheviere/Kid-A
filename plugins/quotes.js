@@ -11,7 +11,7 @@ const quotePage = new Page('quotes', quoteGenerator, 'quotes.html', {token: 'quo
 async function editQuotes(data, room) {
 	let {delete: toDelete, edits: toEdit} = data;
 
-	let quotes = await redis.getList(quotedata, room);
+	let quotes = await quotedata.lrange(room, 0, -1);
 
 	for (let i = 0; i < quotes.length; i++) {
 		if (toDelete && toDelete.includes(i.toString())) {
@@ -25,7 +25,7 @@ async function editQuotes(data, room) {
 }
 
 async function quoteGenerator(room, query, tokenData) {
-	let quotes = await redis.getList(quotedata, room);
+	let quotes = await quotedata.lrange(room, 0, -1);
 	if (!tokenData && Handler.privateRooms.has(room)) return 'Private Room quotes require an access token to be viewed.';
 
 	return {room: room, data: quotes, permission: tokenData.quotes};
@@ -50,7 +50,7 @@ module.exports = {
 					setTimeout(() => server.restart(), 500);
 				}
 
-				let quotes = await redis.getList(quotedata, this.room);
+				let quotes = await quotedata.lrange(this.room, 0, -1);
 
 				if (quotes.includes(message)) {
 					return this.reply("Quote is already added.");
@@ -112,7 +112,7 @@ module.exports = {
 			disallowPM: true,
 			async action() {
 				if (await quotedata.exists(this.room)) {
-					let quotes = await redis.getList(quotedata, this.room);
+					let quotes = await quotedata.lrange(this.room, 0, -1);
 					let randquote = quotes[Math.floor(Math.random() * quotes.length)];
 					if (randquote[0] === '/' || (randquote[0] === '!' && !randquote.startsWith('!showimage '))) randquote = randquote.substr(1);
 					return this.reply(randquote);

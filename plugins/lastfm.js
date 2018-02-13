@@ -22,7 +22,7 @@ module.exports = {
 				if (!message && (await db.exists(this.userid))) message = await db.get(this.userid);
 				if (!message) message = this.userid;
 
-				let options = await redis.getList(this.settings, `${this.room}:options`);
+				let options = await this.settings.lrange(`${this.room}:options`, 0, -1);
 
 				let htmlbox = options && options.includes('lastfmhtmlbox');
 
@@ -118,7 +118,7 @@ module.exports = {
 				let parts = message.split('-').map(param => encodeURIComponent(param.trim()));
 				if (parts.length !== 2) return this.pmreply("Invalid syntax. Format: ``.track Artist - Song name``");
 
-				let options = await redis.getList(this.settings, `${this.room}:options`);
+				let options = await this.settings.lrange(`${this.room}:options`, 0, -1);
 
 				let htmlbox = options && options.includes('lastfmhtmlbox');
 

@@ -59,7 +59,7 @@ async function punish(username, room, val, msg) {
 	points += val;
 	let extraMsg = '';
 
-	let notol = await redis.getList(settings, `${room}:notol`);
+	let notol = await settings.lrange(`${room}:notol`, 0, -1);
 	if (notol.includes(userid)) {
 		points++;
 		extraMsg = " (zero tolerance)";
@@ -98,7 +98,7 @@ module.exports = {
 
 	analyzer: {
 		async parser(message) {
-			let options = await redis.getList(settings, `${this.room}:options`);
+			let options = await settings.lrange(`${this.room}:options`, 0, -1);
 
 			if (options && options.includes('disablemoderation')) return;
 			if (this.canUse(1)) return;
@@ -159,7 +159,7 @@ module.exports = {
 				let userid = toId(message);
 				if (!userid) return this.pmreply("No username entered. Syntax: ``.notol <username>``");
 
-				let notol = await redis.getList(this.settings, `${this.room}:notol`);
+				let notol = await this.settings.lrange(`${this.room}:notol`, 0, -1);
 
 				if (notol.includes(userid)) return this.pmreply("This user is already marked as zero tolerance.");
 

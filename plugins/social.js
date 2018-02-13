@@ -66,7 +66,7 @@ module.exports = {
 				if (!message) {
 					if (!(room in motds)) return this.reply("This room does not have a motd set.");
 
-					let options = await redis.getList(this.settings, `${room}:options`);
+					let options = await this.settings.lrange(`${room}:options`, 0, -1);
 					return this.reply((options && options.includes('announcemotd') ? '/wall ' : '') + "This room's motd is: " + motds[room]);
 				}
 

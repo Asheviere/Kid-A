@@ -103,7 +103,7 @@ module.exports = {
 			permission: 5,
 			disallowPM: true,
 			async action() {
-				let autojoin = await redis.getList(this.settings, 'autojoin');
+				let autojoin = await this.settings.lrange('autojoin', 0, -1);
 
 				if (autojoin && autojoin.includes(this.room)) {
 					await this.settings.lrem('autojoin', 0, this.room);
