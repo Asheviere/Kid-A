@@ -3,7 +3,8 @@
 const MINUTE = 60 * 1000;
 const DAY = 24 * 60 * MINUTE;
 
-const redis = require('../redis.js');
+const server = require('../server.js');
+const Page = require('../page.js');
 const Cache = require('../cache.js');
 
 let motds = Object.create(null);
@@ -11,6 +12,34 @@ let cache = new Cache('social');
 
 let motdTimers = {};
 let repeatTimers = {};
+
+let repeatsPage = new Page('repeats', repeatGenerator, 'repeats.html', {token: 'repeats', postHandler: editRepeats});
+
+async function editRepeats(data) {
+	let deletes = [];
+
+	for (let i in cache.get('repeats')) {
+		if (data.includes(i)) deletes.push(i);
+	}
+
+	for (let key of deletes) {
+		clearTimeout(repeatTimers[key]);
+		cache.deleteProperty('repeats', key);
+		delete repeatTimers[key];
+	}
+
+	cache.write();
+}
+
+async function repeatGenerator(room) {
+	let repeats = [];
+
+	for (let i in cache.get('repeats')) {
+		let repeatObj = cache.get('repeats')[i];
+		repeats.push({id: i, msg: repeatObj.msg, times: repeatObj.timesLeft});
+	}
+	return {room: room, data: repeats};
+}
 
 for (let i in cache.get('motd')) {
 	motdTimers[i] = setTimeout(() => destroyMotd(i), cache.get('motd')[i].end - Date.now());
@@ -51,8 +80,18 @@ function runRepeat(id) {
 	cache.write();
 }
 
+const rooms = new Set();
+
 module.exports = {
 	options: ['announcemotd'],
+	async init() {
+		for (let i in cache.get('repeats')) {
+			let room = i.split('|')[0];
+			if (rooms.has(room)) continue;
+			rooms.add(room);
+			repeatsPage.addRoom(room);
+		}
+	},
 	commands: {
 		motd: {
 			permission: 1,
@@ -102,7 +141,7 @@ module.exports = {
 				if (!interval) return this.pmreply("Invalid value for interval.");
 
 				times = Number(times);
-				if (!times) return this.pmreply("Invalud value for times");
+				if (!times) return this.pmreply("Invalid value for times");
 
 				repeatMsg = repeatMsg.join(',').trim();
 
@@ -110,6 +149,12 @@ module.exports = {
 
 				let id = `${this.room}|${toId(repeatMsg)}`;
 				if (id in cache.get('repeats')) return this.pmreply("This message is already being repeated.");
+
+				if (!rooms.has(this.room)) {
+					rooms.add(this.room);
+					repeatsPage.addRoom(this.room);
+					setTimeout(() => server.restart(), 500);
+				}
 
 				let repeatObj = {msg: repeatMsg, timesLeft: times, interval: interval, room: this.room};
 				cache.setProperty('repeats', id, repeatObj);
@@ -154,6 +199,26 @@ module.exports = {
 
 				cache.write();
 				this.reply("Cleared all repeated messages in this room.");
+			},
+		},
+
+		repeats: {
+			permission: 3,
+			hidden: true,
+			async action(message) {
+				let room = this.room;
+				if (!room) {
+					if (message) {
+						room = toId(message);
+					} else {
+						return this.pmreply("No room supplied.");
+					}
+				}
+				if (rooms.has(room)) {
+					return this.reply(`Repeats for this room: ${repeatsPage.getUrl(room, this.userid)}`);
+				}
+
+				this.reply("This room has no repeats.");
 			},
 		},
 	},
