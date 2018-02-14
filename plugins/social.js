@@ -215,7 +215,7 @@ module.exports = {
 					}
 				}
 				if (rooms.has(room)) {
-					return this.reply(`Repeats for this room: ${repeatsPage.getUrl(room, this.userid)}`);
+					return this.pmreply(`Repeats for this room: ${repeatsPage.getUrl(room, this.userid)}`);
 				}
 
 				this.reply("This room has no repeats.");
