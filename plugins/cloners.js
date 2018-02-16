@@ -699,7 +699,7 @@ module.exports = {
 
 					for (let thisfc of split) {
 						if (thisfc === fc) {
-							this.reply(`This FC belongs to ${scammerList.data[i].username}, who is ${scammerList.data[i].date.startsWith("PERMA") ? 'a permabanned scammer' : `was added to the scammers list on ${(new Date(parseInt(scammerList.data[i].date))).toDateString()}`}.`);
+							this.reply(`This FC belongs to ${scammerList.data[i].username}, who ${scammerList.data[i].date.startsWith("PERMA") ? 'is a permabanned scammer' : `was added to the scammers list on ${(new Date(parseInt(scammerList.data[i].date))).toDateString()}`}.`);
 							this.reply(`Reason: ${scammerList.data[i].reason}`);
 						}
 					}
