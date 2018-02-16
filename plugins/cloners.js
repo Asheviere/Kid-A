@@ -3,7 +3,6 @@
 const fs = require('fs');
 
 const Page = require('../page.js');
-const server = require('../server.js');
 const redis = require('../redis.js');
 const utils = require('../utils.js');
 const Cache = require('../cache.js');
@@ -700,7 +699,7 @@ module.exports = {
 
 					for (let thisfc of split) {
 						if (thisfc === fc) {
-							this.reply(`This FC belongs to ${scammerList.data[i].username}, who is ${typeof(scammerList.data[i].date) === "string" && scammerList.data[i].date.startsWith("PERMA") ? 'a permabanned scammer' : `was added to the scammers list on ${(new Date(scammerList.data[i].date)).toDateString()}`}.`);
+							this.reply(`This FC belongs to ${scammerList.data[i].username}, who is ${scammerList.data[i].date.startsWith("PERMA") ? 'a permabanned scammer' : `was added to the scammers list on ${(new Date(parseInt(scammerList.data[i].date))).toDateString()}`}.`);
 							this.reply(`Reason: ${scammerList.data[i].reason}`);
 						}
 					}
