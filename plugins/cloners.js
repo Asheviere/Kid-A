@@ -700,7 +700,7 @@ module.exports = {
 
 					for (let thisfc of split) {
 						if (thisfc === fc) {
-							this.reply(`This FC belongs to ${scammerList.data[i].username}, who is ${typeof(scammerList.data[i].date) === "string" && scammerList.data[i].date.startsWith("PERMA") ? 'a permabanned scammer' : 'on the scammers list'}.`);
+							this.reply(`This FC belongs to ${scammerList.data[i].username}, who is ${typeof(scammerList.data[i].date) === "string" && scammerList.data[i].date.startsWith("PERMA") ? 'a permabanned scammer' : `was added to the scammers list on ${(new Date(scammerList.data[i].date)).toDateString()}`}.`);
 							this.reply(`Reason: ${scammerList.data[i].reason}`);
 						}
 					}
