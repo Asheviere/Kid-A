@@ -134,7 +134,7 @@ class Tour {
 
 		const userid = toId(username);
 
-		Connection.send(`${userid}|You have been successfully signed up for the tournament.`);
+		Connection.send(`|/pm ${userid}, You have been successfully signed up for the tournament.`);
 
 		this.fcs[userid] = fc;
 		friendcodes.set(userid, fc);
