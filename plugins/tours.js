@@ -71,10 +71,19 @@ class Tour {
 		}
 	}
 
-	createMatchups() {
+	createMatchups(byes) {
 		this.matchups = [];
-		for (let i = 0; i < this.participants.length - 1; i += 2) {
+		let i = 0;
+		let byedUsers = [];
+		for (; i < byes; i++) {
+			this.matchups.push([this.participants[i], 'bye', '']);
+			byedUsers.push(toId(this.participants[i]));
+		}
+		for (; i < this.participants.length - 1; i += 2) {
 			this.matchups.push([this.participants[i], this.participants[i + 1], '']);
+		}
+		for (let userid of byedUsers) {
+			this.reportWin(userid);
 		}
 	}
 
@@ -100,7 +109,13 @@ class Tour {
 
 		for (let user of this.participants) {
 			let matchup = this.getMatchup(toId(user));
-			if (matchup) notifs.push(`|/pm ${user}, Your opponent for this round of the tournament is **${matchup[0]} (FC: ${this.fcs[toId(matchup[0])]})**`);
+			if (matchup) {
+				if (matchup[0] === 'bye') {
+					notifs.push(`|/pm ${user}, You have received a bye for this round of the tournament.`);
+				} else {
+					notifs.push(`|/pm ${user}, Your opponent for this round of the tournament is **${matchup[0]} (FC: ${this.fcs[toId(matchup[0])]})**`);
+				}
+			}
 		}
 
 		let sendNotif = async notifs => {
@@ -161,7 +176,11 @@ class Tour {
 
 	start() {
 		if (this.started) return false;
-		if (Math.floor(Math.log2(this.participants.length)) !== Math.log2(this.participants.length)) return false;
+		let byes;
+		if (Math.floor(Math.log2(this.participants.length)) !== Math.log2(this.participants.length)) {
+			byes = 2 ** Math.ceil(Math.log2(this.participants.length)) - this.participants.length;
+			if (byes > this.participants.length - Math.floor(Math.log2(this.participants.length))) return false;
+		}
 
 		Connection.send(`${this.room}|/wall The ${this.format} tournament has started! See ${server.url}${WIFI_ROOM}/tournament for the bracket!`);
 
@@ -169,7 +188,7 @@ class Tour {
 
 		this.started = true;
 		this.shuffle();
-		this.createMatchups();
+		this.createMatchups(byes);
 		this.notifyUsers();
 
 		return true;
@@ -234,6 +253,7 @@ class Tour {
 		}
 
 		for (let i in userdata) {
+			if (i === 'bye') continue;
 			for (let key in userdata[i]) {
 				if (key === 'name') {
 					this.db.hset(`${WIFI_ROOM}:${i}`, key, userdata[i][key]);
@@ -395,6 +415,9 @@ module.exports = {
 					let matchup = curTournament.getMatchup(this.userid);
 
 					if (!matchup) return this.pmreply("You're not in this tournament.");
+
+					if (matchup[0] === 'bye') return this.pmreply("You have received a bye for this round of the tournament.");
+
 					if (matchup[1]) {
 						return this.pmreply(`You ${matchup[0] === matchup[1] ? 'lost' : 'won'} your match against ${matchup[0]}.`);
 					}
