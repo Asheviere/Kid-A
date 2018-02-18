@@ -210,10 +210,13 @@ module.exports = {
 				if (!room) {
 					if (message) {
 						room = toId(message);
+						if (!this.getRoomAuth(room)) return;
 					} else {
 						return this.pmreply("No room supplied.");
 					}
 				}
+				if (!this.canUse(3)) return this.pmreply("Permission denied.");
+
 				if (rooms.has(room)) {
 					return this.pmreply(`Repeats for this room: ${repeatsPage.getUrl(room, this.userid)}`);
 				}
