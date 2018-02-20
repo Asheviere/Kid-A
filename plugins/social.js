@@ -203,7 +203,6 @@ module.exports = {
 		},
 
 		repeats: {
-			permission: 3,
 			hidden: true,
 			async action(message) {
 				let room = this.room;
