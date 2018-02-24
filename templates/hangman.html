@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>{{room}} - Kid A</title>
+		<script src="/scripts/repeats.js"></script>
+	</head>
+	
+	<body>
+		<div class="container">
+			{{#if data}}
+				<h1>{{room}} hangman words:</h1>
+				<p class="note">Check words to mark them for removal.</p>
+				<ul>
+					{{#each data}}
+						<li class="quote">
+							<input type="checkbox" name="{{@key}}" onclick="this.parentElement.style.background = (this.checked ? 'red' : 'white');">
+							{{solution}}{{#if hint}} (HINT: {{hint}}){{/if}} <i>(added by {{addedBy}})</i>
+						</li>
+					{{/each}}
+				</ul>
+				<div class="popup"><button onclick="submit()">Submit changes</button></div>
+			{{else}}
+				<h2>This room has no hangman words.</h2>
+			{{/if}}
+		</div>
+	</body>
+</html>
