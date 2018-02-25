@@ -79,7 +79,7 @@ module.exports = {
 				if (!(width && height)) return;
 
 				pendingApprovals.delete(this.room);
-				return this.reply(`/addhtmlbox <a href="${url}"><img src="${url}" width="${width}" height="${height}"/></a><br/><small>(Image suggested by ${user} and approved by ${this.username})</small>`);
+				return this.reply(`/addhtmlbox <a href="${url}"><img src="${url}" width="${Math.round(width)}" height="${Math.round(height)}"/></a><br/><small>(Image suggested by ${user} and approved by ${this.username})</small>`);
 			},
 		},
 		reject: {
