@@ -149,6 +149,7 @@ module.exports = {
 				let {user} = pendingApprovals.get(this.room);
 				pendingApprovals.delete(this.room);
 
+				Connection.send(`|/pm ${user}, Your link was rejected.`);
 				return this.reply(`/modnote ${this.username} rejected ${user}'s link.`);
 			},
 		},
