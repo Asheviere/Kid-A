@@ -1,4 +1,4 @@
-const imageSize = require('image-size');
+const probe = require('probe-image-size');
 const validUrl = require('valid-url');
 const request = require('request');
 
@@ -8,23 +8,8 @@ const YT_ROOT = 'https://www.googleapis.com/youtube/v3/videos';
 const VIDEO_ROOT = 'https://youtu.be/';
 const CHANNEL_ROOT = 'https://www.youtube.com/channel/';
 
-function getImageSize(url) {
-	return new Promise((resolve, reject) => {
-		const res = request(url);
-
-		res.on('error', err => {
-			reject(err.stack);
-		});
-
-		res.on('data', data => {
-			resolve(imageSize(data));
-			res.abort();
-		});
-	});
-}
-
 async function fitImage(url, maxHeight = 300, maxWidth = 400) {
-	let {height, width} = await getImageSize(url);
+	let {height, width} = await probe(url);
 
 	let ratio = 1;
 
