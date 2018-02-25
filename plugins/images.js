@@ -127,7 +127,7 @@ module.exports = {
 				switch (this.room) {
 				case YOUTUBE_ROOM:
 					pendingApprovals.delete(this.room);
-					return this.reply(`/addhtmlbox <table><tbody><tr><td style="padding-right: 5px"><img src="${data.thumbnail}" width="120" height="90"></td><td><b><a href=${VIDEO_ROOT}${data.id}>${data.title}</a></b><br/>Uploaded ${data.date.toDateString()} by <b><a href="${CHANNEL_ROOT}${data.channelUrl}">${data.channel}</a></b><br/><b>${data.views}</b> views, <b><span style="color:green">${data.likes}</span> | <span style="color:red">${data.dislikes}</span></b><br/><i>${data.description.substr(0, 300).replace(/\n/g, '<br/>')}</i></td></tr></tbody></table>`);
+					return this.reply(`/addhtmlbox <table><tbody><tr><td style="padding-right: 5px"><img src="${data.thumbnail}" width="120" height="90"></td><td><b><a href=${VIDEO_ROOT}${data.id}>${data.title}</a></b><br/>Uploaded ${data.date.toDateString()} by <b><a href="${CHANNEL_ROOT}${data.channelUrl}">${data.channel}</a></b><br/><b>${data.views}</b> views, <b><span style="color:green">${data.likes}</span> | <span style="color:red">${data.dislikes}</span></b><br/><details><summary>[Description]</summary><i>${data.description.replace(/\n/g, '<br/>')}</i></details></td></tr></tbody></table>`);
 				default:
 					let [width, height] = await fitImage(data).catch(() => this.reply("Something went wrong getting dimensions of the image."));
 
