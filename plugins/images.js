@@ -102,7 +102,7 @@ module.exports = {
 					}
 					id = id.split('&')[0];
 
-					let videoInfo = getYoutubeVideoInfo(id);
+					let videoInfo = await getYoutubeVideoInfo(id);
 					if (!videoInfo) return this.reply("Invalid youtube video.");
 
 					pendingApprovals.set(room, {user: this.username, data: videoInfo});
