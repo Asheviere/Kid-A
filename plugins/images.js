@@ -2,8 +2,6 @@ const imageSize = require('image-size');
 const validUrl = require('valid-url');
 const request = require('request');
 
-const Config = require('../config.js');
-
 const COSMO = 'cosmopolitan';
 const YOUTUBE_ROOM = 'youtube';
 const YT_ROOT = 'https://www.googleapis.com/youtube/v3/videos';
