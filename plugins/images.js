@@ -112,6 +112,7 @@ module.exports = {
 					pendingApprovals.set(room, {user: this.username, data: url});
 				}
 
+				Connection.send(`${room}|${this.username} wishes to have a link approved!`);
 				Connection.send(`${room}|/modnote ${this.username} wishes to get approval to post '${url}' in the room. Type .approve or .reject to handle the request.`);
 			},
 		},
@@ -148,7 +149,7 @@ module.exports = {
 				let {user} = pendingApprovals.get(this.room);
 				pendingApprovals.delete(this.room);
 
-				return this.reply(`/modnote ${this.username} rejected ${user}'s image.`);
+				return this.reply(`/modnote ${this.username} rejected ${user}'s link.`);
 			},
 		},
 	},
