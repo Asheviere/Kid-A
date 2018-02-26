@@ -56,7 +56,7 @@ async function getYoutubeVideoInfo(id) {
 const pendingApprovals = new Map();
 const ROOMS = [COSMO, YOUTUBE_ROOM];
 
-async function draw(user, data) {
+async function draw(user, data, self) {
 	switch (this.room) {
 	case YOUTUBE_ROOM:
 		return this.reply(`/addhtmlbox <table><tbody><tr><td style="padding-right: 5px"><img src="${data.thumbnail}" width="120" height="90"></td><td><b><a href=${VIDEO_ROOT}${data.id}>${data.title}</a></b><br/>Uploaded ${data.date.toDateString()} by <b><a href="${CHANNEL_ROOT}${data.channelUrl}">${data.channel}</a></b><br/><b>${data.views}</b> views, <b><span style="color:green">${data.likes}</span> | <span style="color:red">${data.dislikes}</span></b><br/><details><summary>[Description]</summary><i>${data.description.replace(/\n/g, '<br/>')}</i></details></td></tr></tbody></table>`);
@@ -64,7 +64,7 @@ async function draw(user, data) {
 		let [width, height] = await fitImage(data).catch(() => this.reply("Something went wrong getting dimensions of the image."));
 
 		if (!(width && height)) return;
-		return this.reply(`/addhtmlbox <a href="${data}"><img src="${data}" width="${Math.round(width)}" height="${Math.round(height)}"/></a><br/><small>(Image suggested by ${user} and approved by ${this.username})</small>`);
+		return this.reply(`/addhtmlbox <a href="${data}"><img src="${data}" width="${Math.round(width)}" height="${Math.round(height)}"/></a>${self ? "" : `<br/><small>(Image suggested by ${user} and approved by ${this.username})</small>`}`);
 	}
 }
 
@@ -158,7 +158,7 @@ module.exports = {
 				if (this.room === COSMO && !this.canUse(2)) return this.pmreply("Permission denied.");
 				let {user, data} = await parse.call(this, this.room, message);
 				if (!user) return;
-				draw.call(this, this.username, data);
+				draw.call(this, this.username, data, true);
 			},
 		},
 		reject: {
