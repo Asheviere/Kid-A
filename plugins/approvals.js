@@ -153,9 +153,9 @@ module.exports = {
 			hidden: true,
 			disallowPM: true,
 			rooms: ROOMS,
-			permission: 1,
 			async action(message) {
 				if (this.room === COSMO && !this.canUse(2)) return this.pmreply("Permission denied.");
+				if (this.room === YOUTUBE_ROOM && !(this.canUse(1) || (await settings.hexists(`whitelist:${YOUTUBE_ROOM}`, this.userid)))) return this.pmreply("Permission denied.");
 				let {user, data} = await parse.call(this, this.room, message);
 				if (!user) return;
 				draw.call(this, this.username, data, true);
