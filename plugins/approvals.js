@@ -50,7 +50,7 @@ async function getYoutubeVideoInfo(id) {
 		return false;
 	} else if (video.items && video.items.length && video.items[0].id) {
 		video = video.items[0];
-		return {id: video.id, title: video.snippet.title, date: new Date(video.snippet.publishedAt), description: video.snippet.description, channel: video.snippet.channelTitle, channelUrl: video.snippet.channelId, views: video.statistics.viewCount, thumbnail: video.snippet.thumbnails.standard.url, likes: video.statistics.likeCount, dislikes: video.statistics.dislikeCount};
+		return {id: video.id, title: video.snippet.title, date: new Date(video.snippet.publishedAt), description: video.snippet.description, channel: video.snippet.channelTitle, channelUrl: video.snippet.channelId, views: video.statistics.viewCount, thumbnail: video.snippet.thumbnails.default.url, likes: video.statistics.likeCount, dislikes: video.statistics.dislikeCount};
 	}
 }
 
