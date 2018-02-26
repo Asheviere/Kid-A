@@ -9,6 +9,7 @@ const YOUTUBE_ROOM = 'youtube';
 const YT_ROOT = 'https://www.googleapis.com/youtube/v3/videos';
 const VIDEO_ROOT = 'https://youtu.be/';
 const CHANNEL_ROOT = 'https://www.youtube.com/channel/';
+const HOUR = 60 * 60 * 1000;
 
 const settings = redis.useDatabase('settings');
 
@@ -55,6 +56,8 @@ async function getYoutubeVideoInfo(id) {
 
 const pendingApprovals = new Map();
 const ROOMS = [COSMO, YOUTUBE_ROOM];
+
+const selfLinkTimeouts = new Map();
 
 async function draw(user, data, self) {
 	switch (this.room) {
@@ -155,7 +158,11 @@ module.exports = {
 			rooms: ROOMS,
 			async action(message) {
 				if (this.room === COSMO && !this.canUse(2)) return this.pmreply("Permission denied.");
-				if (this.room === YOUTUBE_ROOM && !(this.canUse(1) || (await settings.hexists(`whitelist:${YOUTUBE_ROOM}`, this.userid)))) return this.pmreply("Permission denied.");
+				if (this.room === YOUTUBE_ROOM && !(this.canUse(1))) {
+					if (!(await settings.hexists(`whitelist:${YOUTUBE_ROOM}`, this.userid))) return this.pmreply("Permission denied.");
+					if (selfLinkTimeouts.has(this.userid)) return this.reply("You are only allowed to post your own link once per two hours.");
+					selfLinkTimeouts.set(this.userid, setTimeout(() => selfLinkTimeouts.delete(this.userid), 2 * HOUR));
+				}
 				let {user, data} = await parse.call(this, this.room, message);
 				if (!user) return;
 				draw.call(this, this.username, data, true);
