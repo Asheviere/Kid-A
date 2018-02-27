@@ -174,8 +174,11 @@ module.exports = {
 					if (selfLinkTimeouts.has(this.userid)) return this.reply("You are only allowed to post your own link once per two hours.");
 					selfLinkTimeouts.set(this.userid, setTimeout(() => selfLinkTimeouts.delete(this.userid), 2 * HOUR));
 				}
-				let [url, description] = message.split(',').map(param => param.trim());
-				if (description && description.length > 200) return this.reply("The description is too long.");
+				let [url, ...description] = message.split(',').map(param => param.trim());
+				if (description) {
+					description = description.join(', ');
+					if (description.length > 200) return this.reply("The description is too long.");
+				}
 				let {user, data} = await parse.call(this, this.room, url);
 				if (!user) return;
 				draw.call(this, this.username, data, description, true);
