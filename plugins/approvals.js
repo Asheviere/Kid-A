@@ -124,17 +124,21 @@ module.exports = {
 				let room = this.room;
 				let url, description;
 				if (!room) {
-					[room, url, description] = message.split(',').map(param => param.trim());
+					[room, url, ...description] = message.split(',').map(param => param.trim());
 					if (!(room && url)) return this.pmreply("Syntax: ``.requestapproval room, url, (optional) description``");
 					if (!ROOMS.includes(room)) return this.pmreply("This room does not support this feature.");
 					if (!this.getRoomAuth(room)) return;
 				} else {
-					[url, description] = message.split(',').map(param => param.trim());
+					[url, ...description] = message.split(',').map(param => param.trim());
 					if (!url) return this.pmreply("Syntax: ``.requestapproval url, (optional) description``");
 				}
 
 				if (pendingApprovals.has(room)) return this.reply("There is already someone awaiting approval.");
-				if (description && description.length > 200) return this.reply("The description is too long.");
+
+				if (description) {
+					description = description.join(', ');
+					if (description.length > 200) return this.reply("The description is too long.");
+				}
 
 				let data = await parse.call(this, room, url);
 				if (!data) return;
