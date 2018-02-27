@@ -73,7 +73,7 @@ async function draw(user, data, desc, self) {
 		let [width, height] = await fitImage(data).catch(() => this.reply("Something went wrong getting dimensions of the image."));
 
 		if (!(width && height)) return;
-		return this.reply(`/addhtmlbox <a href="${data}"><img src="${data}" width="${Math.round(width)}" height="${Math.round(height)}"/></a>${desc ? `<i>${escapeHTML(desc)}</i><br/>` : ""}${self ? "" : `<br/><small>(Image suggested by ${user} and approved by ${this.username})</small>`}`);
+		return this.reply(`/addhtmlbox <a href="${data}"><img src="${data}" width="${Math.round(width)}" height="${Math.round(height)}"/></a>${desc ? `<br/><i>${escapeHTML(desc)}</i>` : ""}${self ? "" : `<br/><small>(Image suggested by ${user} and approved by ${this.username})</small>`}`);
 	}
 }
 
