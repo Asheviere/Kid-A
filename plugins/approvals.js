@@ -4,7 +4,6 @@ const request = require('request');
 
 const redis = require('../redis.js');
 
-const COSMO = 'cosmopolitan';
 const YOUTUBE_ROOM = 'youtube';
 const YT_ROOT = 'https://www.googleapis.com/youtube/v3/videos';
 const VIDEO_ROOT = 'https://youtu.be/';
@@ -61,7 +60,6 @@ async function getYoutubeVideoInfo(id) {
 }
 
 const pendingApprovals = new Map();
-const ROOMS = [COSMO, YOUTUBE_ROOM];
 
 const selfLinkTimeouts = new Map();
 
@@ -119,14 +117,12 @@ async function parse(room, url) {
 module.exports = {
 	commands: {
 		requestapproval: {
-			rooms: ROOMS,
 			async action(message) {
 				let room = this.room;
 				let url, description;
 				if (!room) {
 					[room, url, ...description] = message.split(',').map(param => param.trim());
 					if (!(room && url)) return this.pmreply("Syntax: ``.requestapproval room, url, (optional) description``");
-					if (!ROOMS.includes(room)) return this.pmreply("This room does not support this feature.");
 					if (!this.getRoomAuth(room)) return;
 				} else {
 					[url, ...description] = message.split(',').map(param => param.trim());
@@ -153,7 +149,6 @@ module.exports = {
 		approve: {
 			hidden: true,
 			disallowPM: true,
-			rooms: ROOMS,
 			permission: 2,
 			async action() {
 				if (!pendingApprovals.has(this.room)) return this.pmreply("There is nothing to approve.");
@@ -166,13 +161,13 @@ module.exports = {
 		link: {
 			hidden: true,
 			disallowPM: true,
-			rooms: ROOMS,
 			async action(message) {
-				if (this.room === COSMO && !this.canUse(2)) return this.pmreply("Permission denied.");
-				if (this.room === YOUTUBE_ROOM && !(this.canUse(1))) {
-					if (!(await settings.hexists(`whitelist:${YOUTUBE_ROOM}`, this.userid))) return this.pmreply("Permission denied.");
-					if (selfLinkTimeouts.has(this.userid)) return this.reply("You are only allowed to post your own link once per two hours.");
-					selfLinkTimeouts.set(this.userid, setTimeout(() => selfLinkTimeouts.delete(this.userid), 2 * HOUR));
+				if (!(this.canUse(this.room === YOUTUBE_ROOM ? 1 : 2))) {
+					if (!(await settings.hexists(`whitelist:${this.room}`, this.userid))) return this.pmreply("Permission denied.");
+					if (this.room === YOUTUBE_ROOM) {
+						if (selfLinkTimeouts.has(this.userid)) return this.reply("You are only allowed to post your own link once per two hours.");
+						selfLinkTimeouts.set(this.userid, setTimeout(() => selfLinkTimeouts.delete(this.userid), 2 * HOUR));
+					}
 				}
 				let [url, ...description] = message.split(',').map(param => param.trim());
 				if (description) {
@@ -187,7 +182,6 @@ module.exports = {
 		reject: {
 			hidden: true,
 			disallowPM: true,
-			rooms: ROOMS,
 			permission: 2,
 			async action() {
 				if (!pendingApprovals.has(this.room)) return this.pmreply("There is nothing to reject.");
@@ -200,7 +194,6 @@ module.exports = {
 			},
 		},
 		whitelist: {
-			rooms: ROOMS,
 			async action(message) {
 				let room = this.room;
 				let user;
@@ -208,7 +201,6 @@ module.exports = {
 					let split = message.split(',');
 					[room, user] = split.map(param => param.trim());
 					if (!(room && user)) return this.pmreply("Syntax: ``.whitelist room, username``");
-					if (!ROOMS.includes(room)) return this.pmreply("This room does not support this feature.");
 					if (!this.getRoomAuth(room)) return;
 				} else {
 					user = message;
@@ -224,7 +216,6 @@ module.exports = {
 			},
 		},
 		unwhitelist: {
-			rooms: ROOMS,
 			async action(message) {
 				let room = this.room;
 				let user;
@@ -232,7 +223,6 @@ module.exports = {
 					let split = message.split(',');
 					[room, user] = split.map(param => param.trim());
 					if (!(room && user)) return this.pmreply("Syntax: ``.whitelist room, username``");
-					if (!ROOMS.includes(room)) return this.pmreply("This room does not support this feature.");
 					if (!this.getRoomAuth(room)) return;
 				} else {
 					user = message;
