@@ -105,7 +105,7 @@ async function parse(room, url) {
 			return false;
 		}
 
-		let [width, height] = await fitImage(data).catch(() => this.reply("Something went wrong getting the dimensions of the image."));
+		let [width, height] = await fitImage(url).catch(() => this.reply("Something went wrong getting the dimensions of the image."));
 		if (!(width && height)) return false;
 
 		data = {user: this.username, data: {url: url, width: Math.round(width), height: Math.round(height)}};
