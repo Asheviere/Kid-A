@@ -295,6 +295,26 @@ class WifiList {
 
 		this.writeList();
 	}
+
+	getBannedFCs() {
+		let fcs = [];
+		let now = new Date();
+
+		for (let key in this.data) {
+			let val = this.data[key];
+			if (typeof(val.date) === "string" && val.date.startsWith("PERMA")) {
+				fcs = fcs.concat(val.fc.split(',').map(fc => fc.trim()));
+			} else if (parseInt(val.date)) {
+				let date = new Date(parseInt(val.date));
+
+				if (!(date.getUTCFullYear() < now.getUTCFullYear() - 1 || (date.getUTCFullYear() < now.getUTCFullYear() && (date.getUTCMonth() < now.getUTCMonth() || (date.getUTCMonth() === now.getUTCMonth() && date.getUTCDate() < now.getUTCDate()))))) {
+					fcs = fcs.concat(val.fc.split(',').map(fc => fc.trim()));
+				}
+			}
+		}
+
+		return fcs;
+	}
 }
 
 const clonerList = new WifiList('cloners', './data/cloners.tsv', ['PS Username', 'Friend code', 'IGN', 'Notes', 'Monthly Score', 'Total Score', 'Date of last giveaway'], ['username', 'fc', 'ign', 'notes', 'score', 'totalscore']);
@@ -373,6 +393,8 @@ function getScammerEntry(userid) {
 
 	return false;
 }
+
+new Page('bannedfcs.xml', async () => scammerList.getBannedFCs.bind(scammerList), 'bannedfcs.xml', {rooms: [WIFI_ROOM]});
 
 module.exports = {
 	onUserJoin: {
