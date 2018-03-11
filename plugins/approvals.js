@@ -3,6 +3,7 @@ const validUrl = require('valid-url');
 const request = require('request');
 
 const redis = require('../redis.js');
+const Cache = require('../cache.js');
 
 const YOUTUBE_ROOM = 'youtube';
 const YT_ROOT = 'https://www.googleapis.com/youtube/v3/videos';
@@ -11,6 +12,7 @@ const CHANNEL_ROOT = 'https://www.youtube.com/channel/';
 const HOUR = 60 * 60 * 1000;
 
 const settings = redis.useDatabase('settings');
+const dailyCache = new Cache('daily');
 
 // Thanks Zarel for this obviously extremely well-coded function from PS.
 function escapeHTML(str) {
@@ -31,7 +33,7 @@ async function fitImage(url, maxHeight = 300, maxWidth = 400) {
 		ratio = maxWidth / width;
 	}
 
-	return [width * ratio, height * ratio];
+	return [Math.round(width * ratio), Math.round(height * ratio)];
 }
 
 async function getYoutubeVideoInfo(id) {
@@ -108,7 +110,7 @@ async function parse(room, url) {
 		let [width, height] = await fitImage(url).catch(() => this.reply("Something went wrong getting the dimensions of the image."));
 		if (!(width && height)) return false;
 
-		data = {user: this.username, data: {url: url, width: Math.round(width), height: Math.round(height)}};
+		data = {user: this.username, data: {url: url, width: width, height: height}};
 	}
 
 	return data;
@@ -235,6 +237,50 @@ module.exports = {
 				await settings.hdel(`whitelist:${room}`, toId(user));
 				Connection.send(`${room}|/modnote ${toId(user)} was unwhitelisted for links list by ${this.username}.`);
 				return this.reply("User successfully removed from the whitelist.");
+			},
+		},
+		daily: {
+			disallowPM: true,
+			async action(message) {
+				let [key, ...rest] = message.split(',');
+				key = toId(key);
+				if (!key) return this.pmreply("No topic specified.");
+
+				let text, image;
+
+				if (rest.length) {
+					if (!this.canUse(2)) return this.pmreply("Permission denied.");
+					if (toId(rest[0]) === 'clear') {
+						dailyCache.deleteProperty(this.room, key);
+						dailyCache.write();
+						return this.reply(`/modnote The daily ${key} was cleared by ${this.username}`);
+					}
+					if (validUrl.isWebUri(rest[0].trim())) {
+						image = rest[0].trim();
+						rest = rest.slice(1);
+					}
+					text = rest.join(',').trim();
+					dailyCache.setProperty(this.room, key, {text: text, image: image});
+					dailyCache.write();
+					this.reply(`/modnote ${this.username} set the daily ${key} to '${text}'${image ? ` (${image})` : ''}`);
+				} else {
+					if (!(key in dailyCache.get(this.room))) return this.pmreply("Invalid topic");
+					let entry = dailyCache.get(this.room)[key];
+					text = entry.text;
+					image = entry.image;
+				}
+
+				if (!image) image = 'http://bumba.me/logo.png';
+				let width, height;
+				let dimensions = await fitImage(image, 150, 200).catch(() => {});
+				if (dimensions) {
+					[width, height] = dimensions;
+				} else {
+					image = 'http://bumba.me/logo.png';
+					[width, height] = await fitImage(image, 150, 200);
+				}
+
+				return this.reply(`/addhtmlbox <h3 style="text-align:center;">Daily ${key}:</h3><table style="text-align:center;margin:auto"><tr><td><img src="${image}" width="${width}" height="${height}"/></td><td style="padding-left:10px;">${escapeHTML(text)}</td></tr></table>`);
 			},
 		},
 	},
