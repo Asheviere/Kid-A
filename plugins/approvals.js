@@ -287,7 +287,7 @@ module.exports = {
 					[width, height] = await fitImage(image, 100, 100);
 				}
 
-				return this.reply(`/addhtmlbox <h3 style="text-align:center;">Daily ${key}:</h3><table style="text-align:center;margin:auto"><tr><td><img src="${image}" width="${width}" height="${height}"/></td><td style="padding-left:10px;">${escapeHTML(text)}</td></tr></table>`);
+				return this.reply(`/addhtmlbox <table style="text-align:center;margin:auto"><tr><td style="padding-right:10px;">${escapeHTML(text)}</td><td><img src="${image}" width="${width}" height="${height}"/></td></tr></table>`);
 			},
 		},
 	},
