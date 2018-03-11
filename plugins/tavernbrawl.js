@@ -2,7 +2,7 @@ const request = require('request');
 
 const TAVERN_BRAWL = 'tavernbrawl';
 const QUERYURL = 'https://omgvamp-hearthstone-v1.p.mashape.com/cards/';
-const STANDARD_SETS = ['Basic', 'Classic', 'Whispers of the Old Gods', 'One Night in Karazhan', 'Mean Streets of Gadgetzan', 'Journey to Un\'Goro', 'Knights of the Frozen Throne', 'Kobolds and Catacombs'];
+const STANDARD_SETS = ['Basic', 'Classic', 'Whispers of the Old Gods', 'One Night in Karazhan', 'Mean Streets of Gadgetzan', 'Journey to Un\'Goro', 'Knights of the Frozen Throne', 'Kobolds & Catacombs'];
 
 function sanitizeCardText(text) {
 	return text.replace(/\[x\]/g, '').replace(/\\n/g, '<br/>').replace(/\n/g, '<br/>').replace(/_/g, ' ').replace(/\$/g, '');
