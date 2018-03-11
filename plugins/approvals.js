@@ -270,14 +270,21 @@ module.exports = {
 					image = entry.image;
 				}
 
-				if (!image) image = 'http://bumba.me/logo.png';
+				let maxWidth = 200;
+				let maxHeight = 150;
+
+				if (!image) {
+					maxWidth = 100;
+					maxHeight = 100;
+					image = 'http://bumba.me/logo.png';
+				}
 				let width, height;
-				let dimensions = await fitImage(image, 150, 200).catch(() => {});
+				let dimensions = await fitImage(image, maxHeight, maxWidth).catch(() => {});
 				if (dimensions) {
 					[width, height] = dimensions;
 				} else {
 					image = 'http://bumba.me/logo.png';
-					[width, height] = await fitImage(image, 150, 200);
+					[width, height] = await fitImage(image, 100, 100);
 				}
 
 				return this.reply(`/addhtmlbox <h3 style="text-align:center;">Daily ${key}:</h3><table style="text-align:center;margin:auto"><tr><td><img src="${image}" width="${width}" height="${height}"/></td><td style="padding-left:10px;">${escapeHTML(text)}</td></tr></table>`);
