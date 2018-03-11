@@ -5,6 +5,41 @@ const request = require('request');
 const redis = require('../redis.js');
 const Cache = require('../cache.js');
 
+// Taken from the PS client
+const domainRegex = '[a-z0-9\\-]+(?:[.][a-z0-9\\-]+)*';
+const parenthesisRegex = '[(](?:[^\\s()<>&]|&amp;)*[)]';
+const linkRegex = new RegExp(
+	'\\b' +
+	'(?:' +
+		'(' +
+			// When using www. or http://, allow any-length TLD (like .museum)
+			'(?:https?://|www[.])' + domainRegex +
+			'|' + domainRegex + '[.]' +
+				// Allow a common TLD, or any 2-3 letter TLD followed by : or /
+				'(?:com?|org|net|edu|info|us|jp|[a-z]{2,3}(?=[:/]))' +
+		')' +
+		'(?:[:][0-9]+)?' +
+		'\\b' +
+		'(?:' +
+			'/' +
+			'(?:' +
+				'(?:' +
+					'[^\\s()&]|&amp;|&quot;' +
+					'|' + parenthesisRegex +
+				')*' +
+				// URLs usually don't end with punctuation, so don't allow
+				// punctuation symbols that probably aren't related to URL.
+				'(?:' +
+					'[^\\s`()\\[\\]{}\'".,!?;:&]' +
+					'|' + parenthesisRegex +
+				')' +
+			')?' +
+		')?' +
+		'|[a-z0-9.]+\\b@' + domainRegex + '[.][a-z]{2,3}' +
+	')',
+	'ig'
+);
+
 const YOUTUBE_ROOM = 'youtube';
 const YT_ROOT = 'https://www.googleapis.com/youtube/v3/videos';
 const VIDEO_ROOT = 'https://youtu.be/';
@@ -117,6 +152,7 @@ async function parse(room, url) {
 }
 
 module.exports = {
+	options: ['imagethumbnails'],
 	commands: {
 		requestapproval: {
 			async action(message) {
@@ -270,7 +306,7 @@ module.exports = {
 					image = entry.image;
 				}
 
-				let maxWidth = 200;
+				let maxWidth = 600;
 				let maxHeight = 150;
 
 				if (!image) {
@@ -289,6 +325,21 @@ module.exports = {
 
 				return this.reply(`/addhtmlbox <table style="text-align:center;margin:auto"><tr><td style="padding-right:10px;">${escapeHTML(text)}</td><td><img src="${image}" width="${width}" height="${height}"/></td></tr></table>`);
 			},
+		},
+	},
+	analyzer: {
+		async parser(message) {
+			let options = await settings.lrange(`${this.room}:options`, 0, -1);
+
+			if (!options || !options.includes('imagethumbnails')) return;
+
+			let match;
+			while ((match = linkRegex.exec(message)) !== null) {
+				if (validUrl.isWebUri(match[0])) {
+					let dimensions = await fitImage(match[0], 100, 500).catch(() => {});
+					if (dimensions) return Connection.send(`${this.room}|/addhtmlbox <a href="${match[0]}"><img src="${match[0]}" width="${dimensions[0]}" height="${dimensions[1]}"/></a>`);
+				}
+			}
 		},
 	},
 };
