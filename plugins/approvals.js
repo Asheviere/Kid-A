@@ -300,6 +300,7 @@ module.exports = {
 					dailyCache.write();
 					this.reply(`/modnote ${this.username} set the daily ${key} to '${text}'${image ? ` (${image})` : ''}`);
 				} else {
+					if (!this.canUse(1)) return this.pmreply("Permission denied.");
 					if (!(key in dailyCache.get(this.room))) return this.pmreply("Invalid topic");
 					let entry = dailyCache.get(this.room)[key];
 					text = entry.text;
