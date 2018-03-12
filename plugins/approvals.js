@@ -268,7 +268,7 @@ module.exports = {
 				}
 				if (!this.canUse(2)) return this.pmreply("Permission denied.");
 
-				if (await settings.hexists(`whitelist:${room}`, toId(user))) return this.reply("This user isn't whitelisted.");
+				if (!(await settings.hexists(`whitelist:${room}`, toId(user)))) return this.reply("This user isn't whitelisted.");
 
 				await settings.hdel(`whitelist:${room}`, toId(user));
 				Connection.send(`${room}|/modnote ${toId(user)} was unwhitelisted for links list by ${this.username}.`);
