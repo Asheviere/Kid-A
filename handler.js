@@ -190,7 +190,7 @@ module.exports = {
 			break;
 		case 'c:':
 			if (toId(split[3]) === this.userid) return;
-			let msg = split.splice(4).join('|').trim();
+			let msg = split.splice(4).join('|').trim().split('\n')[0];
 			ChatLogger.log(split[2], roomid, toId(split[3]), msg).catch(err => errorMsg(err));
 			this.chatHandler.parse(split[3], roomid, msg).catch(err => errorMsg(err));
 			break;
