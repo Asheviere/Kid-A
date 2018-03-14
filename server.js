@@ -7,7 +7,6 @@ const crypto = require('crypto');
 const connect = require('connect');
 const serveStatic = require('serve-static');
 const bodyParser = require('body-parser');
-const forceSsl = require('force-ssl');
 
 class Server {
 	constructor(host, port) {
