@@ -7,6 +7,7 @@ const crypto = require('crypto');
 const connect = require('connect');
 const serveStatic = require('serve-static');
 const bodyParser = require('body-parser');
+const forceSsl = require('force-ssl');
 
 class Server {
 	constructor(host, port) {
@@ -66,7 +67,30 @@ class Server {
 			res.end(buffer);
 		});
 
-		this._server = this.nativeProtocolModule.createServer(this.site);
+		let opts = {};
+
+		if (this.protocol === 'https') {
+			opts = {
+				key: Config.sslKey,
+				cert: Config.sslCert,
+				ca: Config.sslCa,
+			};
+			if (!(opts.key && opts.cert && opts.ca)) return errorMsg("Invalid SSL certs.");
+
+			if (!this.httpApp) {
+				this.httpApp = connect();
+				this.httpApp.use((req, res) => {
+					res.writeHead(301,
+						{Location: this.url + req.url.slice(1)}
+					);
+					res.end();
+				});
+				let httpServer = require('http').createServer(this.httpApp);
+				httpServer.listen(80);
+			}
+		}
+
+		this._server = this.nativeProtocolModule.createServer(opts, this.site);
 		this._server.listen(this.port);
 	}
 

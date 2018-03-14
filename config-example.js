@@ -5,6 +5,11 @@ exports.port = 8000;
 exports.serverhost = 'localhost';
 exports.serverport = 8000;
 
+// Enter a value (or load a file) for these if you want to use https and SSL.
+exports.sslCert = '';
+exports.sslKey = '';
+exports.sslCa = '';
+
 // Username and password to use on PS.
 exports.username = '';
 exports.password = '';
