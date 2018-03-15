@@ -337,7 +337,7 @@ module.exports = {
 
                 if (this.room && permission) return this.reply(`/addhtmlbox ${html}`);
 
-				return Connection.send(`|/pminfobox ${this.userid}, ${html}`);
+				return Connection.send(`${room}|/pminfobox ${this.userid}, ${html}`);
 			},
 		},
 	},
