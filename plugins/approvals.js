@@ -282,6 +282,7 @@ module.exports = {
 				if (!room) {
 					[room, ...split] = split;
 					room = toId(room);
+                    if (!split.length || !this.userlists[room]) return this.pmreply("You need to specify the room when using this command in PMs.");
 					if (!this.getRoomAuth(room)) return;
 				}
 				let [key, ...rest] = split;
@@ -289,9 +290,11 @@ module.exports = {
 				if (!key) return this.pmreply("No topic specified.");
 
 				let text, image;
+                let permission = false;
 
 				if (rest.length) {
 					if (!this.canUse(2)) return this.pmreply("Permission denied.");
+                    permission = true;
 					if (toId(rest[0]) === 'clear') {
 						dailyCache.deleteProperty(room, key);
 						dailyCache.write();
@@ -306,7 +309,7 @@ module.exports = {
 					dailyCache.write();
 					Connection.send(`${room}|/modnote ${this.username} set the daily ${key} to '${text}'${image ? ` (${image})` : ''}`);
 				} else {
-					if (!this.canUse(1)) return this.pmreply("Permission denied.");
+					if (this.canUse(1)) permission = true;
 					if (!(key in dailyCache.get(room))) return this.pmreply("Invalid topic");
 					let entry = dailyCache.get(room)[key];
 					text = entry.text;
@@ -330,7 +333,11 @@ module.exports = {
 					[width, height] = await fitImage(image, 100, 100);
 				}
 
-				return this.reply(`/addhtmlbox <table style="text-align:center;margin:auto"><tr><td style="padding-right:10px;">${escapeHTML(text)}</td><td><img src="${image}" width="${width}" height="${height}"/></td></tr></table>`);
+                const html = `<table style="text-align:center;margin:auto"><tr><td style="padding-right:10px;">${escapeHTML(text)}</td><td><img src="${image}" width="${width}" height="${height}"/></td></tr></table>`;
+
+                if (this.room && permission) return this.reply(`/addhtmlbox ${html}`);
+
+				return Connection.send(`|/pminfobox ${this.userid}, ${html}`);
 			},
 		},
 	},
