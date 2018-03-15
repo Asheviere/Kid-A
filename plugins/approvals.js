@@ -276,7 +276,6 @@ module.exports = {
 			},
 		},
 		daily: {
-			disallowPM: true,
 			async action(message) {
 				let room = this.room;
 				let split = message.split(',');
