@@ -293,7 +293,7 @@ module.exports = {
 				if (rest.length) {
 					if (!this.canUse(2)) return this.pmreply("Permission denied.");
 					if (toId(rest[0]) === 'clear') {
-						dailyCache.deleteProperty(this.room, key);
+						dailyCache.deleteProperty(room, key);
 						dailyCache.write();
 						Connection.send(`${room}|/modnote The daily ${key} was cleared by ${this.username}`);
 					}
@@ -302,13 +302,13 @@ module.exports = {
 						rest = rest.slice(1);
 					}
 					text = rest.join(',').trim();
-					dailyCache.setProperty(this.room, key, {text: text, image: image});
+					dailyCache.setProperty(room, key, {text: text, image: image});
 					dailyCache.write();
 					Connection.send(`${room}|/modnote ${this.username} set the daily ${key} to '${text}'${image ? ` (${image})` : ''}`);
 				} else {
 					if (!this.canUse(1)) return this.pmreply("Permission denied.");
-					if (!(key in dailyCache.get(this.room))) return this.pmreply("Invalid topic");
-					let entry = dailyCache.get(this.room)[key];
+					if (!(key in dailyCache.get(room))) return this.pmreply("Invalid topic");
+					let entry = dailyCache.get(room)[key];
 					text = entry.text;
 					image = entry.image;
 				}
