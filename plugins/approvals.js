@@ -278,7 +278,14 @@ module.exports = {
 		daily: {
 			disallowPM: true,
 			async action(message) {
-				let [key, ...rest] = message.split(',');
+				let room = this.room;
+				let split = message.split(',');
+				if (!room) {
+					[room, ...split] = split;
+					room = toId(room);
+					if (!this.getRoomAuth(room)) return;
+				}
+				let [key, ...rest] = split;
 				key = toId(key);
 				if (!key) return this.pmreply("No topic specified.");
 
