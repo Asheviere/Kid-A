@@ -350,7 +350,7 @@ module.exports = {
 			let match;
 			while ((match = linkRegex.exec(message)) !== null) {
 				if (validUrl.isWebUri(match[0])) {
-                    if (match[0].includes("deviantart.com") continue; // dA links render as images for some reason
+                    if (match[0].includes("deviantart.com")) continue; // dA links render as images for some reason
 					let dimensions = await fitImage(match[0], 120, 500).catch(() => {});
 					if (dimensions) return Connection.send(`${this.room}|/addhtmlbox <a href="${match[0]}"><img src="${match[0]}" width="${dimensions[0]}" height="${dimensions[1]}"/></a>`);
 				}
