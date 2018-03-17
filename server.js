@@ -89,7 +89,11 @@ class Server {
 			}
 		}
 
-		this._server = this.nativeProtocolModule.createServer(opts, this.site);
+		if (Object.keys(opts).length) {
+			this._server = this.nativeProtocolModule.createServer(opts, this.site);
+		} else {
+			this._server = this.nativeProtocolModule.createServer(this.site);
+		}
 		this._server.listen(this.port);
 	}
 
