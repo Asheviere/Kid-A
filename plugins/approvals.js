@@ -282,7 +282,7 @@ module.exports = {
 				if (!room) {
 					[room, ...split] = split;
 					room = toId(room);
-                    if (!split.length || !this.userlists[room]) return this.pmreply("You need to specify the room when using this command in PMs.");
+					if (!split.length || !this.userlists[room]) return this.pmreply("You need to specify the room when using this command in PMs.");
 					if (!this.getRoomAuth(room)) return;
 				}
 				let [key, ...rest] = split;
@@ -290,15 +290,15 @@ module.exports = {
 				if (!key) return this.pmreply("No topic specified.");
 
 				let text, image;
-                let permission = false;
+				let permission = false;
 
 				if (rest.length) {
 					if (!this.canUse(2)) return this.pmreply("Permission denied.");
-                    permission = true;
+					permission = true;
 					if (toId(rest[0]) === 'clear') {
 						dailyCache.deleteProperty(room, key);
 						dailyCache.write();
-						Connection.send(`${room}|/modnote The daily ${key} was cleared by ${this.username}`);
+						return Connection.send(`${room}|/modnote The daily ${key} was cleared by ${this.username}`);
 					}
 					if (validUrl.isWebUri(rest[0].trim())) {
 						image = rest[0].trim();
@@ -333,9 +333,9 @@ module.exports = {
 					[width, height] = await fitImage(image, 100, 100);
 				}
 
-                const html = `<table style="text-align:center;margin:auto"><tr><td style="padding-right:10px;">${escapeHTML(text)}</td><td><img src="${image}" width="${width}" height="${height}"/></td></tr></table>`;
+				const html = `<table style="text-align:center;margin:auto"><tr><td style="padding-right:10px;">${escapeHTML(text)}</td><td><img src="${image}" width="${width}" height="${height}"/></td></tr></table>`;
 
-                if (this.room && permission) return this.reply(`/addhtmlbox ${html}`);
+				if (this.room && permission) return this.reply(`/addhtmlbox ${html}`);
 
 				return Connection.send(`${room}|/pminfobox ${this.userid}, ${html}`);
 			},
@@ -350,7 +350,7 @@ module.exports = {
 			let match;
 			while ((match = linkRegex.exec(message)) !== null) {
 				if (validUrl.isWebUri(match[0])) {
-                    if (match[0].includes("deviantart.com")) continue; // dA links render as images for some reason
+					if (match[0].includes("deviantart.com")) continue; // dA links render as images for some reason
 					let dimensions = await fitImage(match[0], 120, 500).catch(() => {});
 					if (dimensions) return Connection.send(`${this.room}|/addhtmlbox <a href="${match[0]}"><img src="${match[0]}" width="${dimensions[0]}" height="${dimensions[1]}"/></a>`);
 				}
