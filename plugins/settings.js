@@ -89,7 +89,7 @@ module.exports = {
 			hidden: true,
 			async action(message) {
 				let room = this.room || toId(message);
-				if (!room) return;
+				if (!room) return this.reply("Please specify the room when using this command in PM.");
 				if (!this.getRoomAuth(room)) return;
 				if (!this.canUse(5)) return this.pmreply("Permission denied.");
 
