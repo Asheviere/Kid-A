@@ -40,10 +40,10 @@ module.exports = {
 						fname += `?token=${token}`;
 					}
 					if (this.canUse(1)) {
-						this.reply(`Chat data: ${server.url}${fname}`);
-					} else {
-						return this.pmreply(`Chat data: ${server.url}${fname}`);
+						return this.reply(`Chat data: ${server.url}${fname}`);
 					}
+
+					return this.pmreply(`Chat data: ${server.url}${fname}`);
 				}
 
 				return this.reply("This room has no data.");
