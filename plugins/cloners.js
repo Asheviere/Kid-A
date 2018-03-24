@@ -280,11 +280,19 @@ class WifiList {
 	}
 
 	writeList() {
+		if (this.writing) {
+			this.writePending = true;
+			return;
+		}
+		this.writing = true;
 		let toWrite = this.columnNames.join('\t') + "\n";
 		for (let i in this.data) {
 			toWrite += this.renderEntry(i);
 		}
-		fs.writeFile(this.file, toWrite, () => {});
+		fs.writeFile(this.file, toWrite, () => {
+			this.writing = false;
+			if (this.writePending) this.writeList();
+		});
 	}
 
 	updateScore(userid) {
