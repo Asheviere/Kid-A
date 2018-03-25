@@ -434,7 +434,7 @@ module.exports = {
 				if (!this.room) {
 					if (!this.getRoomAuth(WIFI_ROOM)) return;
 				}
-				if (!this.canUse(5)) return this.pmreply("Permission denied.");
+				if (!this.canUse(4)) return this.pmreply("Permission denied.");
 
 				if (await this.settings.hexists('whitelist:tourhelpers', toId(message))) return this.reply("This user is already whitelisted.");
 
@@ -449,7 +449,7 @@ module.exports = {
 				if (!this.room) {
 					if (!this.getRoomAuth(WIFI_ROOM)) return;
 				}
-				if (!this.canUse(5)) return this.pmreply("Permission denied.");
+				if (!this.canUse(4)) return this.pmreply("Permission denied.");
 
 				if (!await this.settings.hexists('whitelist:tourhelpers', toId(message))) return this.reply("This user isn't whitelisted.");
 
