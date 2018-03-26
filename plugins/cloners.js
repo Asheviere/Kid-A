@@ -672,7 +672,7 @@ module.exports = {
 		},
 		removescammer: {
 			rooms: [WIFI_ROOM],
-			action(message) {
+			async action(message) {
 				if (!this.room) {
 					if (!this.getRoomAuth(WIFI_ROOM)) return;
 				}
@@ -800,7 +800,7 @@ module.exports = {
 		},
 		removehackmon: {
 			rooms: [WIFI_ROOM],
-			action(message) {
+			async action(message) {
 				if (!this.room) {
 					if (!this.getRoomAuth(WIFI_ROOM)) return;
 				}
