@@ -18,13 +18,14 @@ async function linecountGenerator(room, query) {
 	// Fill up gaps
 	let today = new Date();
 	let dayCounter;
+	let monthCounter;
 	let i = 1;
-	// I feel like I shouldn't be doing it this way, but I cannot think of a better solution for this bug that doesn't require me to rewrite it all.
-	while (dayCounter !== today.getUTCDate() && !(today.getUTCDate() === 31 && [2, 4, 6, 9, 11].includes(today.getUTCMonth()) && dayCounter >= 28)) {
+	while (dayCounter !== today.getUTCDate() && !(monthCounter !== today.getUTCMonth() && dayCounter < today.getUTCDate())) {
 		let newDay = new Date(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() - i);
 		dayCounter = newDay.getUTCDate();
+		monthCounter = newDay.getUTCMonth();
 		let newKey = `${leftpad(newDay.getUTCDate())}/${leftpad(newDay.getUTCMonth() + 1)}`;
-		if (!keys.includes(newKey)) keys.push(newKey);
+		if (!keys.includes(newKey)) keys.unshift(newKey);
 		i++;
 	}
 
