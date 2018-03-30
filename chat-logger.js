@@ -7,6 +7,13 @@ const DAY = 24 * 60 * MINUTE;
 
 let leftpad = val => (val < 10 ? `0${val}`: `${val}`);
 
+function lastMonth(today, day, month) {
+	if (today.getUTCMonth() + 1 === month) return true;
+	if (today.getUTCDate() > day) return true;
+
+	return false;
+}
+
 class ChatLogger {
 	constructor() {
 		this.logs = redis.useDatabase('logs');
@@ -93,14 +100,14 @@ class ChatLogger {
 		let toPrune = [];
 
 		for (let key of linecount) {
-			let [day, month] = key.split(':');
+			let [day, month] = key.split(':').map(val => parseInt(val));
 
-			if ((parseInt(month) < today.getUTCMonth() + 1 || (parseInt(month) === 12 && !today.getUTCMonth())) && (parseInt(day) < today.getUTCDate() || parseInt(month) < today.getUTCMonth())) {
+			if (!lastMonth(today, day, month)) {
 				toPrune.push(key);
 				continue;
 			}
 
-			let outputkey = `${day}/${month}`;
+			let outputkey = `${leftpad(day)}/${leftpad(month)}`;
 			if (outputkey in output) {
 				output[outputkey] ++;
 			} else {
@@ -131,7 +138,7 @@ class ChatLogger {
 
 			let keys = await this.logs.hkeys(users[i]);
 
-			let toPrune = keys.filter(key => (parseInt(key.split(':')[1]) < today.getUTCMonth() + 1 || (parseInt(key.split(':')[1]) === 12 && !today.getUTCMonth())) && (parseInt(key.split(':')[0]) < today.getUTCDate() || parseInt(key.split(':')[1]) < today.getUTCMonth()));
+			let toPrune = keys.filter(key => !lastMonth(today, parseInt(key.split(':')[0]), parseInt(key.split(':')[1])));
 			keys = keys.filter(key => !toPrune.includes(key));
 
 			if (options.day) {
@@ -171,9 +178,9 @@ class ChatLogger {
 			let toPrune = [];
 
 			for (let time of userlogs) {
-				let [day, month, hour] = time.split(':');
+				let [day, month, hour] = time.split(':').map(val => parseInt(val));
 
-				if ((parseInt(month) < today.getUTCMonth() + 1 || (parseInt(month) === 12 && !today.getUTCMonth())) && (parseInt(day) < today.getUTCDate() || parseInt(month) < today.getUTCMonth())) {
+				if (!lastMonth(today, day, month)) {
 					toPrune.push(time);
 					continue;
 				}
@@ -216,9 +223,9 @@ class ChatLogger {
 			let toPrune = [];
 
 			for (let key of linecount) {
-				let [day, month] = key.split(':');
+				let [day, month] = key.split(':').map(val => parseInt(val));
 
-				if ((parseInt(month) < today.getUTCMonth() + 1 || (parseInt(month) === 12 && !today.getUTCMonth())) && (parseInt(day) < today.getUTCDate() || parseInt(month) < today.getUTCMonth())) {
+				if (!lastMonth(today, day, month)) {
 					toPrune.push(key);
 				}
 			}
