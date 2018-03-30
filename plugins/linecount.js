@@ -20,14 +20,14 @@ async function linecountGenerator(room, query) {
 	let dayCounter;
 	let monthCounter;
 	let i = 1;
-	while (dayCounter !== today.getUTCDate() && !(monthCounter !== today.getUTCMonth() && dayCounter < today.getUTCDate())) {
+	do {
 		let newDay = new Date(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() - i);
 		dayCounter = newDay.getUTCDate();
 		monthCounter = newDay.getUTCMonth();
 		let newKey = `${leftpad(newDay.getUTCDate())}/${leftpad(newDay.getUTCMonth() + 1)}`;
 		if (!keys.includes(newKey)) keys.unshift(newKey);
 		i++;
-	}
+	} while (dayCounter !== today.getUTCDate() && !(monthCounter !== today.getUTCMonth() && dayCounter < today.getUTCDate()));
 
 	keys.sort((a, b) => {
 		let [day1, month1] = a.split('/').map(val => parseInt(val));
