@@ -3,14 +3,24 @@ body {
     font-family: 'Segoe UI', 'Segoe', 'Liberation Sans', 'Arial', sans-serif;
     font-size: 11pt;
     line-height: 1.4;
+    overflow: hidden
 }
+
 .container {
-    margin: auto;
+    display:block;
     overflow: auto;
-	background: #FDFDFD;
-    height:100%;
+    background: #FDFDFD;
+    height:98%;
     padding: 0px 0px 10px 0px;
     max-width: 1300px;
+    position:absolute;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin: auto;
+    
 }
 h1 {
     text-align: center;
@@ -75,7 +85,7 @@ tr:hover {
     background-color: #fafafa
 }
 details span {
-	color: #586A8B;
+    color: #586A8B;
 }
 summary {
     text-decoration: underline #586A8B;
@@ -148,12 +158,12 @@ details[open] > summary::after {
 }
 .analyzer {
     margin-bottom: 10px;
-	overflow: auto;
+    overflow: auto;
 }
 .analyzer li {
-	margin: 1px 30px 4px;
-	font-size: 9pt;
-	opacity: 0.87;
+    margin: 1px 30px 4px;
+    font-size: 9pt;
+    opacity: 0.87;
 }
 .analyzer p {
     margin: 0px 40px;
