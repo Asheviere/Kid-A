@@ -133,6 +133,7 @@ module.exports = {
 
 		info: {
 			disallowPM: true,
+			permission: 1,
 			async action(message) {
 				let params = message.split(',').map(param => param.trim());
 
