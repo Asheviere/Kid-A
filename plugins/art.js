@@ -95,7 +95,7 @@ module.exports = {
 
 				let [banner, note, flavor] = message.split(message.includes('|') ? '|' : ',').map(param => param.trim());
 
-				if (!(banner && note && flavor)) return this.pmreply("Syntax: ``.addroomintro banner | note | flavor text``");
+				if (!(banner && note && flavor)) return this.pmreply("Syntax: ``.addbanner banner | note | flavor text``");
 
 				intros[banner] = {banner: banner, note: note, flavor: flavor};
 				fs.writeFile(`./data/${ROOMINTROS_FILE}`, JSON.stringify(intros), () => {});
