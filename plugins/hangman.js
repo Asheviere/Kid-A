@@ -47,6 +47,8 @@ module.exports = {
 				let split = message.split(',');
 				if (!room) {
 					[room, ...split] = split;
+					room = toId(room);
+					if (!this.userlists[room]) return this.pmreply("Unknown room.");
 					if (!this.getRoomAuth(room)) return;
 				}
 
@@ -87,6 +89,8 @@ module.exports = {
 				let room = this.room;
 				if (!room) {
 					[room, message] = message.split(',');
+					room = toId(room);
+					if (!this.userlists[room]) return this.pmreply("Unknown room.");
 					if (!this.getRoomAuth(room)) return;
 				}
 
