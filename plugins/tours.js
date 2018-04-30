@@ -157,6 +157,7 @@ class Tour {
 		} else {
 			let i = this.participants.findIndex(val => toId(val) === userid);
 			if (i > -1) {
+				delete this.fcs[userid];
 				return this.participants.splice(i, 1);
 			}
 			return false;
