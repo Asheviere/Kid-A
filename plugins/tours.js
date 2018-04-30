@@ -175,6 +175,15 @@ class Tour {
 		return true;
 	}
 
+	unreportWin(userid) {
+		let i = this.findMatchup(userid);
+
+		if (i < 0) return false;
+
+		this.matchups[i][2] = null;
+		return true;
+	}
+
 	start() {
 		if (this.started) return false;
 		let byes;
@@ -411,6 +420,17 @@ module.exports = {
 					}
 
 					return this.pmreply("Cannot report a win for this user at the time.");
+				case 'unreportwin':
+					if (!(this.canUse(2) || await this.settings.hexists('whitelist:tourhelpers', this.userid))) return this.pmreply("Permission denied.");
+					if (!curTournament) return this.pmreply("There is no tournament right now.");
+					rest = toId(rest);
+					if (!rest) return this.pmreply("No user entered.");
+
+					if (curTournament.unreportWin(rest)) {
+						return this.pmreply("Win successfully unreported.");
+					}
+
+					return this.pmreply("Cannot uneport a win for this user at the time.");
 				case 'matchup':
 					if (!curTournament) return this.pmreply("There is no tournament right now.");
 					let matchup = curTournament.getMatchup(this.userid);
