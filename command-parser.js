@@ -36,7 +36,7 @@ function canUse(permission, userid, auth) {
 }
 
 class CommandWrapper {
-	constructor(userlists, settings, command) {
+	constructor(userlists, settings, commands) {
 		this.userlists = userlists;
 		this.data = analytics;
 		this.settings = settings;
