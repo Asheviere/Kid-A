@@ -255,15 +255,9 @@ class ChatHandler {
 	}
 
 	async analyze(userstr, room, message) {
-		let restartNeeded = !(await analytics.keys(`*:${room}`)).length;
 		let wrapper = new AnalyzerWrapper(this.userlists, this.settings, this.options);
 		for (let i in this.analyzers) {
 			wrapper.run(this.analyzers[i], userstr, room, message);
-		}
-		restartNeeded = restartNeeded && (await analytics.keys(`*:${room}`)).length;
-		if (restartNeeded) {
-			server.addRoute(`/${room}/data`, this.dataResolver);
-			server.restart();
 		}
 	}
 
