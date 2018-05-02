@@ -98,12 +98,10 @@ module.exports = {
 
 	analyzer: {
 		async parser(message) {
-			let options = await settings.lrange(`${this.room}:options`, 0, -1);
-
-			if (options && options.includes('disablemoderation')) return;
+			if (this.options.includes('disablemoderation')) return;
 			if (this.canUse(1)) return;
 
-			if (!(options && options.includes('allowflooding'))) {
+			if (!this.options.includes('allowflooding')) {
 				addBuffer(this.userid, this.room, message);
 
 				let msgs = 0;
@@ -121,7 +119,7 @@ module.exports = {
 				}
 			}
 
-			if (!(options && options.includes('allowbold'))) {
+			if (!this.options.includes('allowbold')) {
 				let boldString = message.match(/\*\*([^< ](?:[^<]*?[^< ])??)\*\*/g);
 				if (boldString) {
 					let len = message.replace('*', '').length;
@@ -133,7 +131,7 @@ module.exports = {
 			}
 
 			// Moderation for caps and stretching copied from boTTT.
-			if (!(options && options.includes('allowcaps'))) {
+			if (!this.options.includes('allowcaps')) {
 				let capsString = message.replace(/[^A-Za-z]/g, '').match(/[A-Z]/g);
 				let len = toId(message).length;
 
@@ -142,7 +140,7 @@ module.exports = {
 				}
 			}
 
-			if (!(options && options.includes('allowstretching'))) {
+			if (!this.options.includes('allowstretching')) {
 				let stretchString = message.replace(/ {2,}/g, ' ');
 
 				if (/(.)\1{7,}/gi.test(stretchString) || (/(..+)\1{4,}/gi.test(stretchString) && !/(\d+\/)+/gi.test(stretchString))) {

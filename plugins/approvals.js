@@ -343,9 +343,7 @@ module.exports = {
 	},
 	analyzer: {
 		async parser(message) {
-			let options = await settings.lrange(`${this.room}:options`, 0, -1);
-
-			if (!options || !options.includes('imagethumbnails')) return;
+			if (!this.options.includes('imagethumbnails')) return;
 
 			let match;
 			while ((match = linkRegex.exec(message)) !== null) {

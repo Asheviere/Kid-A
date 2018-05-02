@@ -36,12 +36,11 @@ function canUse(permission, userid, auth) {
 }
 
 class CommandWrapper {
-	constructor(userlists, settings, commands, options) {
+	constructor(userlists, settings, command) {
 		this.userlists = userlists;
 		this.data = analytics;
 		this.settings = settings;
 		this.commands = commands;
-		this.options = options;
 
 		this.canUse = permission => canUse(permission, this.userid, this.auth);
 	}
@@ -51,6 +50,7 @@ class CommandWrapper {
 		this.username = userstr.substr(1);
 		this.userid = toId(userstr);
 		this.room = room;
+		this.options = await this.settings.lrange(`${room}:options`, 0, -1);
 		let command = this.commands[cmd];
 
 		if (command.permission && !this.canUse(command.permission)) return this.pmreply("Permission denied.");
@@ -88,11 +88,10 @@ class CommandWrapper {
 }
 
 class AnalyzerWrapper {
-	constructor(userlists, settings, options) {
+	constructor(userlists, settings) {
 		this.userlists = userlists;
 		this.data = analytics;
 		this.settings = settings;
-		this.options = options;
 
 		this.canUse = permission => canUse(permission, this.userid, this.auth);
 	}
@@ -105,6 +104,8 @@ class AnalyzerWrapper {
 
 	async run(analyzer, userstr, room, message) {
 		if (analyzer.rooms && !(analyzer.rooms.includes(room))) return;
+
+		this.options = await this.settings.lrange(`${room}:options`, 0, -1);
 
 		if (!userstr) {
 			if (!analyzer.modnoteParser) return;
@@ -255,7 +256,7 @@ class ChatHandler {
 	}
 
 	async analyze(userstr, room, message) {
-		let wrapper = new AnalyzerWrapper(this.userlists, this.settings, this.options);
+		let wrapper = new AnalyzerWrapper(this.userlists, this.settings);
 		for (let i in this.analyzers) {
 			wrapper.run(this.analyzers[i], userstr, room, message);
 		}
@@ -275,7 +276,7 @@ class ChatHandler {
 		let disabled = await this.settings.lrange(`${room}:disabledCommands`, 0, -1);
 		if (disabled && disabled.includes(cmd)) return;
 
-		const wrapper = new CommandWrapper(this.userlists, this.settings, this.commands, this.options);
+		const wrapper = new CommandWrapper(this.userlists, this.settings, this.commands);
 
 		let user = (!room && userstr[0] === ' ' ? '+' : userstr[0]) + username;
 		await wrapper.run(cmd, user, room, words.join(' '));
