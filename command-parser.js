@@ -102,10 +102,10 @@ class AnalyzerWrapper {
 		return await analyzer.display.apply(this, [room]);
 	}
 
-	async run(analyzer, userstr, room, message) {
+	async run(analyzer, userstr, room, message, options) {
+		this.options = options;
+		
 		if (analyzer.rooms && !(analyzer.rooms.includes(room))) return;
-
-		this.options = await this.settings.lrange(`${room}:options`, 0, -1);
 
 		if (!userstr) {
 			if (!analyzer.modnoteParser) return;
@@ -257,8 +257,10 @@ class ChatHandler {
 
 	async analyze(userstr, room, message) {
 		let wrapper = new AnalyzerWrapper(this.userlists, this.settings);
+		let options = await this.settings.lrange(`${room}:options`, 0, -1);
+
 		for (let i in this.analyzers) {
-			wrapper.run(this.analyzers[i], userstr, room, message);
+			wrapper.run(this.analyzers[i], userstr, room, message, options);
 		}
 	}
 
