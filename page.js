@@ -85,7 +85,7 @@ class Page {
 		server.addRoute(`/${room}/${this.filename}`, (req, res) => this.resolve(req, res));
 	}
 
-	parseURL(url) {
+	static parseURL(url) {
 		let split = url.split('?');
 		if (split.length === 1) return {};
 		let query = split[1];

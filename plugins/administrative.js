@@ -1,14 +1,14 @@
 'use strict';
 
-const redis = require('../redis.js');
 const server = require('../server.js');
+const page = require('../page.js');
 const Cache = require('../cache.js');
 
 const DAY = 24 * 60 * 60 * 1000;
 const cache = new Cache('admin');
 
 function parseConsole(req, res) {
-	let query = server.parseURL(req.url);
+	let query = page.parseURL(req.url);
 	let token = query.token;
 	if (!token) return res.end('Please attach an access token. (You should get one when you type .console)');
 	let data = server.getAccessToken(token);
