@@ -3,6 +3,7 @@
 const fs = require('fs');
 
 const server = require('./server.js');
+const Page = require('./page.js');
 const redis = require('./redis.js');
 
 const analytics = redis.useDatabase('analytics');
@@ -138,7 +139,7 @@ class ChatHandler {
 		this.dataResolver = async (req, res) => {
 			let room = req.originalUrl.split('/')[1];
 			if (Handler.privateRooms.has(room)) {
-				let query = server.parseURL(req.url);
+				let query = Page.parseURL(req.url);
 				let token = query.token;
 				if (!token) return res.end('Private room data requires an access token to be viewed.');
 				let data = server.getAccessToken(token);

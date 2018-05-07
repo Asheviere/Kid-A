@@ -102,7 +102,7 @@ class Page {
 
 	async resolve(req, res) {
 		let room = req.originalUrl.split('/')[1];
-		let query = this.parseURL(req.url);
+		let query = Page.parseURL(req.url);
 		let token = query.token;
 		let tokenData;
 
