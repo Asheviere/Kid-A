@@ -58,7 +58,7 @@ class CommandWrapper {
 		if (room && room.includes('groupchat') && !command.allowGroupchats) return this.pmreply("This command cannot be used in groupchats.");
 		if (room && command.rooms && !command.rooms.includes(room)) return;
 
-		command.action.apply(this, [message]).catch(err => errorMsg(err.stack));
+		command.action.apply(this, [message]).catch(err => errorMsg(`${err.stack}\nuser: ${userstr}\nroom: ${room}\nmessage: ${message}`));
 	}
 
 	reply(message) {
@@ -104,7 +104,7 @@ class AnalyzerWrapper {
 
 	async run(analyzer, userstr, room, message, options) {
 		this.options = options;
-		
+
 		if (analyzer.rooms && !(analyzer.rooms.includes(room))) return;
 
 		if (!userstr) {
@@ -119,7 +119,7 @@ class AnalyzerWrapper {
 			this.userid = toId(userstr);
 			this.room = room;
 
-			analyzer.parser.apply(this, [message]).catch(err => errorMsg(err.stack));
+			analyzer.parser.apply(this, [message]).catch(err => errorMsg(`${err.stack}\nuser: ${userstr}\nroom: ${room}\nmessage: ${message}`));
 		}
 	}
 }
@@ -287,7 +287,7 @@ class ChatHandler {
 	async parseJoin(user, room) {
 		for (let i in this.plugins) {
 			if (this.plugins[i].onUserJoin && (!this.plugins[i].onUserJoin.rooms || this.plugins[i].onUserJoin.rooms.includes(room))) {
-				this.plugins[i].onUserJoin.action.apply(this, [user, room]).catch(err => errorMsg(err.stack));
+				this.plugins[i].onUserJoin.action.apply(this, [user, room]).catch(err => errorMsg(`${err.stack}\nuser: ${user}\nroom: ${room}`));
 			}
 		}
 	}
