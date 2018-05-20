@@ -62,11 +62,19 @@ module.exports = {
 	},
 	commands: {
 		addinfo: {
-			permission: 2,
 			hidden: true,
-			disallowPM: true,
 			async action(message) {
 				let params = message.split(',').map(param => param.trim());
+				let room = this.room;
+				if (!room) {
+					[room, ...params] = params;
+					room = toId(room);
+					if (!(room && params.length)) return this.pmreply("Syntax: ``.addinfo room, user, key: value``");
+					if (!this.userlists[room]) return this.reply(`Invalid room: ${room}`);
+					if (!this.getRoomAuth(room)) return;
+				}
+
+				if (!(this.canUse(3))) return this.pmreply("Permission denied.");
 
 				if (!params.length) return this.reply("No user supplied.");
 
@@ -84,12 +92,12 @@ module.exports = {
 				}
 
 				for (let key in info) {
-					await userlists.hset(`${this.room}:${userid}`, key, info[key]);
+					await userlists.hset(`${room}:${userid}`, key, info[key]);
 				}
 
-				if (!rooms.has(this.room)) {
-					rooms.add(this.room);
-					userlistPage.addRoom(this.room);
+				if (!rooms.has(room)) {
+					rooms.add(room);
+					userlistPage.addRoom(room);
 					// Wait 500ms to make sure everything's ready.
 					setTimeout(() => server.restart(), 500);
 				}
@@ -99,30 +107,38 @@ module.exports = {
 		},
 
 		removeinfo: {
-			permission: 2,
 			hidden: true,
-			disallowPM: true,
 			async action(message) {
 				let params = message.split(',').map(param => param.trim());
+				let room = this.room;
+				if (!room) {
+					[room, ...params] = params;
+					room = toId(room);
+					if (!(room && params.length)) return this.pmreply("Syntax: ``.removeinfo room, user, key``");
+					if (!this.userlists[room]) return this.reply(`Invalid room: ${room}`);
+					if (!this.getRoomAuth(room)) return;
+				}
+
+				if (!(this.canUse(3))) return this.pmreply("Permission denied.");
 
 				if (!params.length) return this.reply("No user supplied.");
 
 				let userid = toId(params[0]);
 
-				if (!(userlists.exists(`${this.room}:${userid}`))) return this.reply("User not found in this room's userlist.");
+				if (!(userlists.exists(`${room}:${userid}`))) return this.reply("User not found in this room's userlist.");
 
 				if (params.length === 1) {
-					await userlists.del(`${this.room}:${userid}`);
+					await userlists.del(`${room}:${userid}`);
 					return this.reply("User successfully deleted.");
 				}
 
-				let keys = await userlists.hkeys(`${this.room}:${userid}`);
+				let keys = await userlists.hkeys(`${room}:${userid}`);
 
 				for (let i = 1; i < params.length; i++) {
 					let val = toId(params[i]);
 					for (let j = 0; j < keys.length; j++) {
 						if (toId(keys[j]) === val) {
-							await userlists.hdel(`${this.room}:${userid}`, keys[j]);
+							await userlists.hdel(`${room}:${userid}`, keys[j]);
 						}
 					}
 				}
