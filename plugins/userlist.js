@@ -148,12 +148,19 @@ module.exports = {
 		},
 
 		info: {
-			disallowPM: true,
-			permission: 1,
 			async action(message) {
 				let params = message.split(',').map(param => param.trim());
-
+				let room = this.room;
+				if (!room) {
+					[room, ...params] = params;
+					room = toId(room);
+					if (!(room && params.length)) return this.pmreply("Syntax: ``.removeinfo room, user, key``");
+					if (!this.userlists[room]) return this.reply(`Invalid room: ${room}`);
+					if (!this.getRoomAuth(room)) return;
+				}
 				if (!params[0]) params = [this.username];
+
+				if (!(this.canUse(1)) && this.room) return this.pmreply("Permission denied.");
 
 				let userid = toId(params[0]);
 
