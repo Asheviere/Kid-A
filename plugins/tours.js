@@ -398,9 +398,10 @@ module.exports = {
 					return this.pmreply("You cannot add new people to the tournament.");
 				case 'remove':
 					if (!(this.canUse(2) || await this.settings.hexists('whitelist:tourhelpers', this.userid))) return this.pmreply("Permission denied.");
-					if (!rest.trim()) return this.pmreply("No username entered.");
 					if (!curTournament) return this.pmreply("There is no tournament right now.");
-					if (curTournament.removeUser(rest.trim())) {
+					rest = toId(rest);
+					if (!rest) return this.pmreply("No username entered.");					
+					if (curTournament.removeUser(rest)) {
 						return this.pmreply("User successfully removed.");
 					}
 					return this.pmreply("You cannot remove this person from the tournament.");
