@@ -42,3 +42,7 @@ exports.youtubeKey = '';
 
 // Mashape API key, used for the hs feature.
 exports.mashapeKey = '';
+
+// Logging related options.
+exports.disableLogging = false;
+exports.logMessages = true;

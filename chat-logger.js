@@ -40,7 +40,7 @@ class ChatLogger {
 			this.queuedOperations.forEach(val => val());
 
 			this.syncing = false;
-		}, 5 * MINUTE);
+		}, 2 * MINUTE);
 
 		setInterval(this.pruneAll.bind(this), DAY);
 
@@ -84,7 +84,7 @@ class ChatLogger {
 		}
 
 		this.queue[key].push(`${leftpad(date.getUTCDate())}:${leftpad(date.getUTCMonth() + 1)}:${leftpad(date.getUTCHours())}:${leftpad(date.getMinutes())}:${leftpad(date.getSeconds())}`);
-		this.queue[key].push(message);
+		this.queue[key].push(Config.logMessages ? message : '1');
 
 		if (!Handler.privateRooms.has(room)) this.seen.set(userid, timestamp);
 	}
