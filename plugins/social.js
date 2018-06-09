@@ -145,7 +145,7 @@ module.exports = {
 
 				repeatMsg = repeatMsg.join(',').trim();
 
-				if (repeatMsg.startsWith('!') || (repeatMsg.startsWith('/') && !(repeatMsg.startsWith('/announce ') || repeatMsg.startsWith('/wall ')))) return this.pmreply ("Please do not enter commands in ``.repeat`` except for ``/announce``");
+				if (repeatMsg.startsWith('!') && !(repeatMsg === '!events' || repeatMsg === '!roomevents') || (repeatMsg.startsWith('/') && !(repeatMsg.startsWith('/announce ') || repeatMsg.startsWith('/wall ')))) return this.pmreply ("Please do not enter commands in ``.repeat`` except for ``/announce`` and ``!events``");
 
 				let id = `${this.room}|${toId(repeatMsg)}`;
 				if (id in cache.get('repeats')) return this.pmreply("This message is already being repeated.");
