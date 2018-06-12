@@ -13,7 +13,7 @@ function toDurationString(number) {
 	const parts = [date.getUTCFullYear() - 1970, date.getUTCMonth(), date.getUTCDate() - 1, date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds()];
 	const unitNames = ["second", "minute", "hour", "day", "month", "year"];
 	const positiveIndex = parts.findIndex(elem => elem > 0);
-	return parts.slice(positiveIndex).reverse().map((value, index) => value ? `${value} ${unitNames[index]}${this.plural(value)}` : "").reverse().join(" ").trim();
+	return parts.slice(positiveIndex).reverse().map((value, index) => value ? `${value} ${unitNames[index]}${value > 1 ? 's' : ''}` : "").reverse().join(" ").trim();
 }
 
 // Prune mail scheduled over a month ago.
