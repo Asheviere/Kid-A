@@ -32,7 +32,7 @@ module.exports = {
 		async action(user) {
 			user = toId(user);
 			let inbox = cache.get(user);
-			if (inbox !== {}) {
+			if (Array.isArray(inbox)) {
 				for (let {sender, message, time} of inbox) {
 					Connection.send(`|/pm ${user}, [${toDurationString(Date.now() - time)} ago] **${sender}**: ${message}`);
 				}
@@ -51,7 +51,7 @@ module.exports = {
 				if (toSend.length > 250) return this.pmreply(`Your message is too long. (${toSend.length}/250)`);
 
 				let inbox = cache.get(target);
-				if (inbox === {}) inbox = [];
+				if (!Array.isArray(inbox)) inbox = [];
 				if (inbox.length >= 5) return this.pmreply(`${target}'s inbox is full.`);
 				cache.set(target, inbox.concat({sender: this.userid, message: toSend, time: Date.now()}));
 				cache.write();
