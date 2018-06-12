@@ -32,9 +32,9 @@ module.exports = {
 		async action(user) {
 			user = toId(user);
 			let inbox = cache.get(user);
-			if (inbox) {
+			if (inbox !== {}) {
 				for (let {sender, message, time} of inbox) {
-					Connection.send(`|/pm ${user} [${toDurationString(Date.now() - time)} ago] **${sender}**: ${message}`);
+					Connection.send(`|/pm ${user}, [${toDurationString(Date.now() - time)} ago] **${sender}**: ${message}`);
 				}
 				delete cache.data[user];
 				cache.write();
