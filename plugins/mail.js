@@ -42,20 +42,22 @@ module.exports = {
 		},
 	},
 	commands: {
-		async mail(userid, roomid, message) {
-			let [target, ...toSend] = message.split(',');
-			target = toId(target);
-			toSend = toSend.join(',').trim();
-			if (!(target && toSend)) return this.sendPM(userid, `Syntax: \`\`.mail user, message\`\``);
-			if (toSend.length > 250) return this.sendPM(userid, `Your message is too long. (${toSend.length}/250)`);
+		mail: {
+			async action(message) {
+				let [target, ...toSend] = message.split(',');
+				target = toId(target);
+				toSend = toSend.join(',').trim();
+				if (!(target && toSend)) return this.pmreply(`Syntax: \`\`.mail user, message\`\``);
+				if (toSend.length > 250) return this.pmreply(`Your message is too long. (${toSend.length}/250)`);
 
-			let inbox = cache.get(target);
-			if (inbox === {}) inbox = [];
-			if (inbox.length >= 5) return this.sendPM(userid, `${target}'s inbox is full.`);
-			cache.set(target, inbox.concat({sender: userid, message: toSend, time: Date.now()}));
-			cache.write();
+				let inbox = cache.get(target);
+				if (inbox === {}) inbox = [];
+				if (inbox.length >= 5) return this.pmreply(`${target}'s inbox is full.`);
+				cache.set(target, inbox.concat({sender: this.userid, message: toSend, time: Date.now()}));
+				cache.write();
 
-			return this.send(`Mail successfully scheduled for ${target}.`);
+				return this.reply(`Mail successfully scheduled for ${target}.`);
+			},
 		},
 	},
 };
