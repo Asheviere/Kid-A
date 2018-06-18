@@ -29,6 +29,8 @@ function canUse(permission, userid, auth) {
 		return (permission < 5);
 	case '%':
 		return (permission < 4);
+	case '*':
+		return (permission < 3);
 	case '+':
 		return (permission < 2);
 	default:
