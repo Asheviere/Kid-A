@@ -44,6 +44,19 @@ module.exports = {
 	commands: {
 		mail: {
 			async action(message) {
+				let hasPerms = !this.room && this.canUse(1);
+				if (!hasPerms) {
+					for (let room in this.userlists) {
+						if (this.userlists[room][this.userid]) {
+							const rank = this.userlists[room][this.userid][0];
+							if (rank !== '+' && rank !== ' ') {
+								hasPerms = true;
+								break;
+							}
+						}
+					}
+				}
+				if (!hasPerms) return this.pmreply(`Only roomstaff and global auth are allowed to use .mail.`);
 				let [target, ...toSend] = message.split(',');
 				target = toId(target);
 				toSend = toSend.join(',').trim();
