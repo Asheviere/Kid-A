@@ -10,7 +10,7 @@ async function uploadImage(url, room, fname) {
 	const extension = url.split('.')[url.split('.').length - 1];
 
 	const mkdir = new Promise((resolve) => {
-		fs.mkdir(`../public/${room}/`, () => {
+		fs.mkdir(`./public/${room}/`, () => {
 			resolve();
 		});
 	});
