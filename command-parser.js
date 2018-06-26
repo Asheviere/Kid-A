@@ -17,7 +17,7 @@ function sendPM(userid, message) {
 	Connection.send(`|/pm ${userid}, ${message}`);
 }
 
-function canUse(permission, userid, auth) {
+function canUse(permission, userid, auth, pm = false) {
 	if (Config.admins.has(userid)) return true;
 	switch (auth) {
 	case '~':
@@ -34,6 +34,7 @@ function canUse(permission, userid, auth) {
 	case '+':
 		return (permission < 2);
 	default:
+		if (pm) return (permission < 2);
 		return !permission;
 	}
 }
@@ -283,8 +284,7 @@ class ChatHandler {
 
 		const wrapper = new CommandWrapper(this.userlists, this.settings, this.commands);
 
-		let user = (!room && userstr[0] === ' ' ? '+' : userstr[0]) + username;
-		await wrapper.run(cmd, user, room, words.join(' '));
+		await wrapper.run(cmd, userstr, room, words.join(' '));
 	}
 
 	async parseJoin(user, room) {

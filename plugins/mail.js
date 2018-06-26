@@ -44,7 +44,7 @@ module.exports = {
 	commands: {
 		mail: {
 			async action(message) {
-				let hasPerms = !this.room && this.canUse(1);
+				let hasPerms = !this.room && this.auth !== ' ';
 				if (!hasPerms) {
 					for (let room in this.userlists) {
 						if (this.userlists[room][this.userid]) {
