@@ -46,7 +46,7 @@ class CommandWrapper {
 		this.settings = settings;
 		this.commands = commands;
 
-		this.canUse = permission => canUse(permission, this.userid, this.auth);
+		this.canUse = permission => canUse(permission, this.userid, this.auth, !this.room);
 	}
 
 	async run(cmd, userstr, room, message) {
