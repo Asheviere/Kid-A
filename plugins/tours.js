@@ -15,12 +15,11 @@ const settings = redis.useDatabase('settings');
 let friendcodes = redis.useDatabase('friendcodes');
 
 class Tour {
-	constructor(room, format, points, prize) {
+	constructor(room, format, prize) {
 		this.format = format;
 		this.participants = [];
 		this.matchups = [];
 		this.data = [];
-		this.points = points;
 		this.room = room;
 		this.prize = prize;
 		this.fcs = {};
@@ -232,46 +231,7 @@ class Tour {
 	}
 
 	finish() {
-		Connection.send(`${this.room}|/wall Congratulations to **${this.winner}** for winning the ${this.format} tournament and receiving ${this.points[0]} point${this.points[0] > 1 ? 's' : ''}!`);
-
-		let userdata = {};
-
-		for (let i = 0; i < this.data.length; i++) {
-			for (let matchup of this.data[i]) {
-				if (!userdata[toId(matchup[0])]) userdata[toId(matchup[0])] = {name: matchup[0], wins: 0, losses: 0, points: 0};
-				if (!userdata[toId(matchup[1])]) userdata[toId(matchup[1])] = {name: matchup[1], wins: 0, losses: 0, points: 0};
-				if (matchup[2] === matchup[0]) {
-					userdata[toId(matchup[0])].wins++;
-					userdata[toId(matchup[1])].losses++;
-					if (i === this.data.length - 1) {
-						userdata[toId(matchup[0])].points += this.points[0];
-						userdata[toId(matchup[1])].points += this.points[1];
-					} else if (i === this.data.length - 2) {
-						userdata[toId(matchup[1])].points += this.points[2];
-					}
-				} else {
-					userdata[toId(matchup[1])].wins++;
-					userdata[toId(matchup[0])].losses++;
-					if (i === this.data.length - 1) {
-						userdata[toId(matchup[1])].points += this.points[0];
-						userdata[toId(matchup[0])].points += this.points[1];
-					} else if (i === this.data.length - 2) {
-						userdata[toId(matchup[0])].points += this.points[2];
-					}
-				}
-			}
-		}
-
-		for (let i in userdata) {
-			if (i === 'bye') continue;
-			for (let key in userdata[i]) {
-				if (key === 'name') {
-					this.db.hset(`${WIFI_ROOM}:${i}`, key, userdata[i][key]);
-				} else {
-					this.db.hincrby(`${WIFI_ROOM}:${i}`, key, userdata[i][key]);
-				}
-			}
-		}
+		Connection.send(`${this.room}|/wall Congratulations to **${this.winner}** for winning the ${this.format} tournament!`);
 
 		this.finished = true;
 
@@ -298,7 +258,7 @@ async function leaderboardGenerator() {
 	let data = [];
 	for (let key of keys) {
 		let entry = await db.hgetall(key);
-		data.push([entry.name, entry.wins, entry.losses, (entry.wins / entry.losses).toFixed(2), entry.points]);
+		data.push([entry.username, entry.points, entry.total]);
 	}
 	data = data.sort((a, b) => parseInt(a[4]) > parseInt(b[4]) ? -1 : 1);
 	return data;
@@ -346,11 +306,8 @@ module.exports = {
 					if (!(this.canUse(2) || await this.settings.hexists('whitelist:tourhelpers', this.userid))) return this.pmreply("Permission denied.");
 					if (curTournament && !curTournament.finished) return this.pmreply("There is still a tournament going on.");
 
-					let [format, point1, point2, point3, room, prize] = rest.split(',').map(param => param.trim());
-					let points = [point1, point2, point3];
-					if (!format || points.length !== 3) return this.pmreply(`Invalid parameters. See ${HELP_URL} for a list of commands.`);
-					points = points.map(val => parseInt(val));
-					if (points.some(val => isNaN(val) || val < 0)) return this.pmreply("Points need to be valid numbers.");
+					let [format, room, prize] = rest.split(',').map(param => param.trim());
+					if (!format) return this.pmreply(`Invalid parameters. See ${HELP_URL} for a list of commands.`);
 					if (room) room = toId(room);
 
 					if (room && room !== WIFI_ROOM) {
@@ -370,7 +327,7 @@ module.exports = {
 						room = WIFI_ROOM;
 					}
 
-					curTournament = new Tour(room, format, points, prize);
+					curTournament = new Tour(room, format, prize);
 					if (room !== WIFI_ROOM) Connection.send(`${WIFI_ROOM}|/wall An in-game ${format} tournament was started in <<${room}>>`);
 					Connection.send(`${room}|/wall An in-game ${format} tournament was started! See ${server.url}${WIFI_ROOM}/tournament for the bracket!`);
 					Connection.send(`${WIFI_ROOM}|/modnote An in-game tournament was started by ${this.username} in '${room}'.`);
@@ -507,6 +464,78 @@ module.exports = {
 					this.settings.hset(`tourbans:fcs`, fc, Date.now() + BAN_DURATION);
 				}
 				return this.reply("User successfully tourbanned.");
+			},
+		},
+		addtp: {
+			rooms: [WIFI_ROOM],
+			async action(message) {
+				if (!this.room) {
+					if (!this.getRoomAuth(WIFI_ROOM)) return;
+				}
+				if (!(this.canUse(2) || await this.settings.hexists('whitelist:tourhelpers', this.userid))) return this.pmreply("Permission denied.");
+
+				let [username, points] = message.split(',').map(param => param.trim());
+				points = parseInt(points);
+				let userid = toId(username);
+				if (!userid || !points || points < 0) return this.pmreply("Syntax error. ``.addtp, username, amount``");
+				userid = toId(userid);
+
+				let db = redis.useDatabase('tours');
+
+				if (!(await db.exists(`${WIFI_ROOM}:${userid}`))) {
+					await db.hmset(`${WIFI_ROOM}:${userid}`, 'username', username, 'points', 0, 'total', 0);
+				}
+
+				await db.hincrby(`${WIFI_ROOM}:${userid}`, 'points', points);
+				await db.hincrby(`${WIFI_ROOM}:${userid}`, 'total', points);
+
+				return this.reply(`${points} points added for ${username}.`);
+			},
+		},
+		removetp: {
+			rooms: [WIFI_ROOM],
+			async action(message) {
+				if (!this.room) {
+					if (!this.getRoomAuth(WIFI_ROOM)) return;
+				}
+				if (!(this.canUse(2) || await this.settings.hexists('whitelist:tourhelpers', this.userid))) return this.pmreply("Permission denied.");
+
+				let [username, points, total] = message.split(',').map(param => param.trim());
+				points = parseInt(points);
+				let userid = toId(username);
+				if (!userid || !points || points < 0) return this.pmreply("Syntax error. ``.removetp, username, amount, remove from total``");
+				userid = toId(userid);
+
+				let db = redis.useDatabase('tours');
+				let entry = await db.hgetall(`${WIFI_ROOM}:${userid}`);
+
+				if (!entry) return this.reply("This person doesn't have any points.");
+
+				if (entry.points < points) return this.reply(`This user doesn't have ${points} points. You can only remove ${entry.points} points.`);
+
+				await db.hincrby(`${WIFI_ROOM}:${userid}`, 'points', -1 * points);
+				if (total === 'true' || total === 'yes') await db.hincrby(`${WIFI_ROOM}:${userid}`, 'total', -1 * points);
+
+				return this.reply(`${points} points removed from ${username}.`);
+			},
+		},
+		resettp: {
+			rooms: [WIFI_ROOM],
+			async action() {
+				if (!this.room) {
+					if (!this.getRoomAuth(WIFI_ROOM)) return;
+				}
+				if (!(this.canUse(5))) return this.pmreply("Permission denied.");
+
+				let db = redis.useDatabase('tours');
+				let keys = await db.keys(`${WIFI_ROOM}:*`);
+
+				let promises = keys.map(key => db.hset(key, 'points', 0));
+
+				await Promise.all(promises);
+
+				Connection.send(`${WIFI_ROOM}|/modnote ${this.username} reset the tour points.`);
+				return this.reply(`Points reset.`);
 			},
 		},
 	},
