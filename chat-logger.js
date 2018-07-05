@@ -9,7 +9,7 @@ let leftpad = val => (val < 10 ? `0${val}`: `${val}`);
 
 function lastMonth(today, day, month) {
 	if (today.getUTCMonth() + 1 === month) return true;
-	if (today.getUTCDate() < day) return true;
+	if (today.getUTCDate() < day && !(today.getUTCMonth() > month)) return true;
 
 	return false;
 }
