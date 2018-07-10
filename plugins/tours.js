@@ -502,19 +502,23 @@ module.exports = {
 
 				let [username, points, total] = message.split(',').map(param => param.trim());
 				points = parseInt(points);
+				total = toId(total);
+				let removeFromTotal = parseInt(total);
 				let userid = toId(username);
-				if (!userid || !points || points < 0) return this.pmreply("Syntax error. ``.removetp username, amount, remove from total``");
+				if (!userid || !(points || removeFromTotal) || points < 0) return this.pmreply("Syntax error. ``.removetp username, amount, remove from total``");
 				userid = toId(userid);
 
 				let db = redis.useDatabase('tours');
 				let entry = await db.hgetall(`${WIFI_ROOM}:${userid}`);
 
 				if (!entry) return this.reply("This person doesn't have any points.");
+				if (!removeFromTotal && (total === 'true' || total === 'yes')) removeFromTotal = points;				
 
 				if (entry.points < points) return this.reply(`This user doesn't have ${points} points. You can only remove ${entry.points} points.`);
+				if (entry.total < removeFromTotal) return this.reply(`This user doesn't have ${removeFromTotal} total points. You can only remove ${entry.total} points.`);
 
 				await db.hincrby(`${WIFI_ROOM}:${userid}`, 'points', -1 * points);
-				if (total === 'true' || total === 'yes') await db.hincrby(`${WIFI_ROOM}:${userid}`, 'total', -1 * points);
+				if (removeFromTotal) await db.hincrby(`${WIFI_ROOM}:${userid}`, 'total', -1 * points);
 
 				return this.reply(`${points} points removed from ${username}.`);
 			},
