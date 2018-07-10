@@ -260,7 +260,7 @@ async function leaderboardGenerator() {
 		let entry = await db.hgetall(key);
 		data.push([entry.username, entry.points, entry.total]);
 	}
-	data = data.sort((a, b) => parseInt(a[4]) > parseInt(b[4]) ? -1 : 1);
+	data = data.sort((a, b) => parseInt(a[2]) > parseInt(b[2]) ? -1 : 1);
 	return data;
 }
 
