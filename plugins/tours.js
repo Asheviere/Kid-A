@@ -518,9 +518,9 @@ module.exports = {
 				if (entry.total < removeFromTotal) return this.reply(`This user doesn't have ${removeFromTotal} total points. You can only remove ${entry.total} points.`);
 
 				await db.hincrby(`${WIFI_ROOM}:${userid}`, 'points', -1 * points);
-				if (removeFromTotal) await db.hincrby(`${WIFI_ROOM}:${userid}`, 'total', -1 * points);
+				if (removeFromTotal) await db.hincrby(`${WIFI_ROOM}:${userid}`, 'total', -1 * removeFromTotal);
 
-				return this.reply(`${points} points removed from ${username}.`);
+				return this.reply(`${points} points removed from ${username}${removeFromTotal ? `and ${removeFromTotal} total points.` : ''}.`);
 			},
 		},
 		resettp: {
