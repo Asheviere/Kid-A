@@ -477,7 +477,7 @@ module.exports = {
 				let [username, points] = message.split(',').map(param => param.trim());
 				points = parseInt(points);
 				let userid = toId(username);
-				if (!userid || !points || points < 0) return this.pmreply("Syntax error. ``.addtp, username, amount``");
+				if (!userid || !points || points < 0) return this.pmreply("Syntax error. ``.addtp username, amount``");
 				userid = toId(userid);
 
 				let db = redis.useDatabase('tours');
@@ -503,7 +503,7 @@ module.exports = {
 				let [username, points, total] = message.split(',').map(param => param.trim());
 				points = parseInt(points);
 				let userid = toId(username);
-				if (!userid || !points || points < 0) return this.pmreply("Syntax error. ``.removetp, username, amount, remove from total``");
+				if (!userid || !points || points < 0) return this.pmreply("Syntax error. ``.removetp username, amount, remove from total``");
 				userid = toId(userid);
 
 				let db = redis.useDatabase('tours');
