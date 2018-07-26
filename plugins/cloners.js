@@ -295,11 +295,11 @@ class WifiList {
 		});
 	}
 
-	updateScore(userid) {
+	updateScore(userid, amount = 1) {
 		if (!(this.data[userid] && ('score' in this.data[userid]))) return;
 
-		this.data[userid].score = parseInt(this.data[userid].score) + 1;
-		this.data[userid].totalscore = parseInt(this.data[userid].totalscore) + 1;
+		this.data[userid].score = parseInt(this.data[userid].score) + amount;
+		this.data[userid].totalscore = parseInt(this.data[userid].totalscore) + amount;
 
 		this.writeList();
 	}
@@ -380,6 +380,11 @@ class ClonerLog {
 			Connection.send(`|/pm ${user}, Confirmation request sent to ${target}.`);
 			Connection.send(`|/pm ${target}, ${user} wants you to confirm they cloned for you. If this is indeed the case, respond with \`\`.cloned ${user}\`\`. If you received this message randomly, please report this to a staff member.`);
 		}
+	}
+
+	addPoints(user, target, amount) {
+		this.log({timestamp: Date.now(), cloner: target, client: user});
+		clonerList.updateScore(target, amount);
 	}
 
 	async log(obj) {
@@ -611,6 +616,46 @@ module.exports = {
 				if (!(userIsCloner ^ targetIsCloner)) return this.pmreply("This command can only be used by a cloner on a client and vice-versa.");
 
 				clonerlog.process(this.userid, message, (userIsCloner ? 'cloner' : 'client'));
+			},
+		},
+		addcp: {
+			rooms: [WIFI_ROOM],
+			async action(message) {
+				if (!this.room) {
+					if (!this.getRoomAuth(WIFI_ROOM)) return;
+				}
+				if (!(this.canUse(2) || await this.settings.hexists('whitelist:cloners', this.userid))) return this.pmreply("Permission denied.");
+
+				let [username, points] = message.split(',').map(param => param.trim());
+				points = parseInt(points);
+				let userid = toId(username);
+				if (!userid || !points || points < 0) return this.pmreply("Syntax error. ``.addcp username, amount``");
+				userid = toId(userid);
+
+				clonerlog.addPoints(this.userid, userid, points);
+
+				return this.reply(`${points} points added for ${username}.`);
+			},
+		},
+		removecp: {
+			rooms: [WIFI_ROOM],
+			async action(message) {
+				if (!this.room) {
+					if (!this.getRoomAuth(WIFI_ROOM)) return;
+				}
+				if (!(this.canUse(2) || await this.settings.hexists('whitelist:cloners', this.userid))) return this.pmreply("Permission denied.");
+
+				let [username, points, total] = message.split(',').map(param => param.trim());
+				points = parseInt(points);
+				total = toId(total);
+				let removeFromTotal = parseInt(total);
+				let userid = toId(username);
+				if (!userid || !(points || removeFromTotal) || points < 0) return this.pmreply("Syntax error. ``.removecp username, amount, remove from total``");
+				userid = toId(userid);
+
+				clonerlog.addPoints(this.userid, userid, -1 * points);
+
+				return this.reply(`${points} points removed from ${username}${removeFromTotal ? `and ${removeFromTotal} total points.` : ''}.`);
 			},
 		},
 		clonerlog: {
