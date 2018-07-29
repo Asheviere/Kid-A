@@ -534,7 +534,13 @@ module.exports = {
 				let db = redis.useDatabase('tours');
 				let keys = await db.keys(`${WIFI_ROOM}:*`);
 
-				let promises = keys.map(key => db.hset(key, 'points', 0));
+				let promises = keys.map(async key => {
+					const entry = await db.hgetall(key);
+					if (entry.points > 50) {
+						await db.hset(key, 'points', 0);
+					}
+					return true;
+				});
 
 				await Promise.all(promises);
 
