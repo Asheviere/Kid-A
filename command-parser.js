@@ -223,16 +223,7 @@ class ChatHandler {
 
 	async parse(userstr, room, message) {
 		if (COMMAND_REGEX.test(message)) {
-			if (this.parsing) {
-				this.commandQueue.push([userstr, room, message]);
-			} else {
-				await this.parseCommand(userstr, room, message);
-				if (this.commandQueue.length) {
-					this.parseCommand.apply(this, this.commandQueue.splice(0, 1));
-				} else {
-					this.parsing = false;
-				}
-			}
+			this.parseCommand(userstr, room, message);
 		} else if (room) {
 			if (!room.includes('groupchat')) this.analyze(userstr, room, message);
 		} else {
@@ -269,6 +260,10 @@ class ChatHandler {
 	}
 
 	async parseCommand(userstr, room, message) {
+		if (this.parsing) {
+			this.commandQueue.push([userstr, room, message]);
+			return;
+		}
 		this.parsing = true;
 		const username = userstr.substr(1);
 
@@ -285,6 +280,11 @@ class ChatHandler {
 		const wrapper = new CommandWrapper(this.userlists, this.settings, this.commands);
 
 		await wrapper.run(cmd, userstr, room, words.join(' '));
+		if (this.commandQueue.length) {
+			this.parseCommand.apply(this, this.commandQueue.splice(0, 1));
+		} else {
+			this.parsing = false;
+		}
 	}
 
 	async parseJoin(user, room) {
