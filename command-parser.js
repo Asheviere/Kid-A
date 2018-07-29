@@ -270,16 +270,22 @@ class ChatHandler {
 		const words = message.split(' ');
 		const cmd = words.splice(0, 1)[0].substr(1);
 		if (!(cmd in this.commands)) {
+			if (this.commandQueue.length) {
+				this.parseCommand.apply(this, this.commandQueue.splice(0, 1));
+			} else {
+				this.parsing = false;
+			}
 			if (room) return;
 			return sendPM(username, 'Invalid command.');
 		}
 
 		let disabled = await this.settings.lrange(`${room}:disabledCommands`, 0, -1);
-		if (disabled && disabled.includes(cmd)) return;
+		if (!(disabled && disabled.includes(cmd))) {
+			const wrapper = new CommandWrapper(this.userlists, this.settings, this.commands);
 
-		const wrapper = new CommandWrapper(this.userlists, this.settings, this.commands);
+			await wrapper.run(cmd, userstr, room, words.join(' '));
+		}
 
-		await wrapper.run(cmd, userstr, room, words.join(' '));
 		if (this.commandQueue.length) {
 			this.parseCommand.apply(this, this.commandQueue.splice(0, 1));
 		} else {
