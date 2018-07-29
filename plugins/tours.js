@@ -188,7 +188,6 @@ class Tour {
 		let byes;
 		if (Math.floor(Math.log2(this.participants.length)) !== Math.log2(this.participants.length)) {
 			byes = 2 ** Math.ceil(Math.log2(this.participants.length)) - this.participants.length;
-			if (byes > this.participants.length - Math.floor(Math.log2(this.participants.length))) return false;
 		}
 
 		Connection.send(`${this.room}|/wall The ${this.format} tournament has started! See ${server.url}${WIFI_ROOM}/tournament for the bracket!`);
