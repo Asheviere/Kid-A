@@ -295,11 +295,12 @@ class WifiList {
 		});
 	}
 
-	updateScore(userid, amount = 1) {
+	updateScore(userid, amount = 1, total) {
 		if (!(this.data[userid] && ('score' in this.data[userid]))) return;
 
+		total = total || amount;
 		this.data[userid].score = parseInt(this.data[userid].score) + amount;
-		this.data[userid].totalscore = parseInt(this.data[userid].totalscore) + amount;
+		this.data[userid].totalscore = parseInt(this.data[userid].totalscore) + total;
 
 		this.writeList();
 	}
@@ -653,9 +654,9 @@ module.exports = {
 				if (!userid || !(points || removeFromTotal) || points < 0) return this.pmreply("Syntax error. ``.removecp username, amount, remove from total``");
 				userid = toId(userid);
 
-				clonerlog.addPoints(this.userid, userid, -1 * points);
+				clonerlog.addPoints(this.userid, userid, -1 * points, removeFromTotal);
 
-				return this.reply(`${points} points removed from ${username}${removeFromTotal ? `and ${removeFromTotal} total points.` : ''}.`);
+				return this.reply(`${points} points removed from ${username}${removeFromTotal ? ` and ${removeFromTotal} total points` : ''}.`);
 			},
 		},
 		clonerlog: {
