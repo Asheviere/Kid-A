@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>YouTube Channel Showcase - Kid A</title>
+	</head>
+	
+	<body>
+		<div class="container">
+			{{#if this}}
+				{{#each this}}
+					{{{this}}}
+				{{/each}}
+			{{else}}
+				<h2>There are no showcased channels.</h2>
+			{{/if}}
+		</div>
+	</body>
+</html>
