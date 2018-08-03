@@ -28,7 +28,8 @@ class YoutubePlugin {
 
 		setInterval(async () => {
 			if (!this.cache.size) return;
-			Connection.send(`${YOUTUBE_ROOM}|/adduhtml channelrepeat, ${await this.getHTML(this.getRandomId())}`);
+			const html = await this.getHTML(this.getRandomId());
+			Connection.send(`${YOUTUBE_ROOM}|/adduhtml channelrepeat, ${html}`);
 		}, REPEAT_INTERVAL);
 	}
 
@@ -125,12 +126,8 @@ class YoutubePlugin {
 			if (!showAll && value.username === 'false') continue;
 			entries.push(this.getHTML(key));
 		}
-		// Kinda hacky, but can't use a .map() for this because async garbage.
-		for (let i = 0; i < entries.length; i++) {
-			entries[i] = await entries[i];
-		}
 
-		return entries;
+		return await Promise.all(entries);
 	}
 }
 
