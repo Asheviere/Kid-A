@@ -190,7 +190,8 @@ module.exports = {
 			permission: 1,
 			async action() {
 				if (!plugin.cache.size) return this.reply("There are no channels in the database.");
-				Connection.send(`${YOUTUBE_ROOM}|/${this.room ? 'addhtmlbox' : `pminfobox ${this.userid},`} ${await plugin.getHTML(plugin.getRandomId())}`);
+				const html = await plugin.getHTML(plugin.getRandomId());
+				Connection.send(`${YOUTUBE_ROOM}|/${this.room ? 'addhtmlbox' : `pminfobox ${this.userid},`} ${html}`);
 			},
 		},
 		viewchannels: {
