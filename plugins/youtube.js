@@ -203,7 +203,7 @@ module.exports = {
 		channelhelp: {
 			rooms: [YOUTUBE_ROOM],
 			async action() {
-				Connection.send(`${YOUTUBE_ROOM}|/pminfobox ${this.userid}, <p style="font-weight:bold;">Youtube channel plugin commands:</p>` +
+				Connection.send(`${YOUTUBE_ROOM}|/${this.canUse(1) ? `addhtmlbox` : `pminfobox ${this.userid},`} <p style="font-weight:bold;">Youtube channel plugin commands:</p>` +
 					`<p><code>.addchannel channel id, [username]</code> - Adds a channel to the database. Username is the PS username of the channel owner. Omit the username argument if this is a channel that isn't owned by a PS user. Requires @ or #.</p>` +
 					`<p><code>.removechannel channel id</code> - Removes the channel with this channel id from the database. Requires @ or #.</p>` +
 					`<p><code>.updatechannel channel id, new username</code> - Updates the PS username attached to the channel with the given channel id. Requires @ or #.</p>` +
