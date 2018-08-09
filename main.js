@@ -19,7 +19,7 @@ const timeElem = string => (string < 10 ? '0' : '') + string;
 
 global.consoleMsg = msg => {
 	let time = new Date();
-	output('[' + timeElem(time.getHours()) + ':' + timeElem(time.getMinutes()) + '] ' + msg);
+	global.output('[' + timeElem(time.getHours()) + ':' + timeElem(time.getMinutes()) + '] ' + msg);
 };
 
 // Maybe also something more elaborate for this one
