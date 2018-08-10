@@ -236,7 +236,7 @@ class ChatLogger {
 		}
 
 		let rest = keys.slice(MAX_PRUNE_AMOUNT);
-		if (rest.length) this.prune(rest);
+		if (rest.length) setTimeout(() => this.prune(rest), MINUTE);
 	}
 
 	async pruneAll() {
