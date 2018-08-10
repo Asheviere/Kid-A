@@ -42,7 +42,7 @@ class ChatLogger {
 			this.syncing = false;
 		}, 2 * MINUTE);
 
-		setInterval(this.pruneAll.bind(this), 6 * 60 * MINUTE);
+		setInterval(this.pruneAll.bind(this), 24 * 60 * MINUTE);
 
 		this.pruneAll();
 	}
@@ -215,25 +215,28 @@ class ChatLogger {
 
 	async prune(keys) {
 		// Pace the pruning to avoid overloading the redis server.
+		await this.logs.multi();
 		for (let user of keys.slice(0, MAX_PRUNE_AMOUNT)) {
-			let linecount = await this.logs.hkeys(user);
+			this.logs.hkeys(user).then(linecount => {
 
-			let today = new Date();
-			let toPrune = [];
+				let today = new Date();
+				let toPrune = [];
 
-			for (let key of linecount) {
-				let [day, month] = key.split(':').map(val => parseInt(val));
+				for (let key of linecount) {
+					let [day, month] = key.split(':').map(val => parseInt(val));
 
-				if (!lastMonth(today, day, month)) {
-					toPrune.push(key);
+					if (!lastMonth(today, day, month)) {
+						toPrune.push(key);
+					}
 				}
-			}
 
-			if (toPrune.length) {
-				toPrune.unshift(user);
-				this.logs.hdel.apply(this.logs, toPrune);
-			}
+				if (toPrune.length) {
+					toPrune.unshift(user);
+					this.logs.hdel.apply(this.logs, toPrune);
+				}
+			});
 		}
+		await this.logs.exec();
 
 		let rest = keys.slice(MAX_PRUNE_AMOUNT);
 		if (rest.length) setTimeout(() => this.prune(rest), 30 * 1000);
