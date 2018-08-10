@@ -3,6 +3,8 @@
 const redis = require('thunk-redis');
 const fs = require('fs');
 
+const {exec} = require('child_process');
+
 let tables;
 
 try {
@@ -30,8 +32,23 @@ module.exports = {
 		}
 
 		let client = redis.createClient({database: i, usePromise: true});
+		client.on('error', async error => {
+			errorMsg(`Received ${error} from redis, restarting.`);
+			await this.restart();
+			client.clientConnect();
+		});
+		client.on('close', () => {
+			client.clientConnect();
+		})
 		this.databases[name] = client;
 		return client;
 	},
-};
 
+	restart() {
+		return new Promise(resolve => {
+			exec(`rm /var/run/redis_6379.pid && /etc/init.d/redis_6379 start`, async () => {
+				resolve();
+			});
+		});
+	}
+};

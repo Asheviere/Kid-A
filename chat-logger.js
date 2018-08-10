@@ -2,10 +2,7 @@
 
 const redis = require('./redis.js');
 
-const { exec } = require('child_process');
-
 const MINUTE = 1000 * 60;
-const DAY = 24 * 60 * MINUTE;
 
 let leftpad = val => (val < 10 ? `0${val}`: `${val}`);
 
@@ -31,12 +28,7 @@ class ChatLogger {
 			this.queue = {};
 
 			if (Object.keys(oldqueue).length) {
-				await this.logs.multi().catch(() => {
-					errorMsg("Could not load redis server, restarting");
-					exec(`rm /var/run/redis_6379.pid && /etc/init.d/redis_6379 start`, async () => {
-						await this.logs.multi();
-					});
-				});
+				await this.logs.multi();
 				for (let key in oldqueue) {
 					oldqueue[key].unshift(key);
 					this.logs.hmset.apply(this.logs, oldqueue[key]);
@@ -49,7 +41,7 @@ class ChatLogger {
 			this.syncing = false;
 		}, 2 * MINUTE);
 
-		setInterval(this.pruneAll.bind(this), DAY);
+		setInterval(this.pruneAll.bind(this), 6 * 60 * MINUTE);
 
 		this.pruneAll();
 	}
