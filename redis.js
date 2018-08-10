@@ -39,7 +39,7 @@ module.exports = {
 		});
 		client.on('close', () => {
 			client.clientConnect();
-		})
+		});
 		this.databases[name] = client;
 		return client;
 	},

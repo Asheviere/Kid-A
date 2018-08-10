@@ -3,6 +3,7 @@
 const redis = require('./redis.js');
 
 const MINUTE = 1000 * 60;
+const MAX_PRUNE_AMOUNT = 2500;
 
 let leftpad = val => (val < 10 ? `0${val}`: `${val}`);
 
@@ -212,10 +213,9 @@ class ChatLogger {
 		return (await this.seen.get(userid));
 	}
 
-	async pruneAll() {
-		let keys = await this.logs.keys('*');
-
-		for (let user of keys) {
+	async prune(keys) {
+		// Pace the pruning to avoid overloading the redis server.
+		for (let user of keys.slice(0, MAX_PRUNE_AMOUNT)) {
 			let linecount = await this.logs.hkeys(user);
 
 			let today = new Date();
@@ -234,6 +234,15 @@ class ChatLogger {
 				this.logs.hdel.apply(this.logs, toPrune);
 			}
 		}
+
+		let rest = keys.slice(MAX_PRUNE_AMOUNT);
+		if (rest.length) this.prune(rest);
+	}
+
+	async pruneAll() {
+		let keys = await this.logs.keys('*');
+
+		this.prune(keys);
 	}
 }
 
