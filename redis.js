@@ -34,7 +34,7 @@ module.exports = {
 		let client = redis.createClient({database: i, usePromise: true});
 		client.on('error', async error => {
 			errorMsg(`Received ${error} from redis, restarting.`);
-			await this.restart();
+			if (!this.restarting) await this.restart();
 			client.clientConnect();
 		});
 		client.on('close', () => {
@@ -45,8 +45,10 @@ module.exports = {
 	},
 
 	restart() {
+		this.restarting = true;
 		return new Promise(resolve => {
 			exec(`rm /var/run/redis_6379.pid && /etc/init.d/redis_6379 start`, async () => {
+				this.restarting = false;
 				resolve();
 			});
 		});
