@@ -8,6 +8,7 @@ const redis = require('../redis.js');
 const WIFI_ROOM = 'wifi';
 
 let tsvs = redis.useDatabase('tsv');
+let seen = redis.useDatabase('seen');
 
 function renderEditor(room, query) {
 	return new Promise(resolve => {
@@ -156,7 +157,14 @@ module.exports = {
 
 				if (Object.keys(matches).length) {
 					let output = "Found matches: ";
-					output += Object.keys(matches).map(i => `${matches[i].join(', ')} (${i})`).join(', ');
+
+					const matchStrings = [];
+					for (let i in matches) {
+						let seenUser = await seen.get(matches[i]);
+						if (seenUser) seenUser = new Date(parseInt(seenUser));
+						return `${matches[i].join(', ')} (${i}${seenUser ? ` last seen ${seenUser.getUTCDate()}/${seenUser.getUTCmonth() + 1}/${seenUser.getUTCYear()}` : ''})`;
+					}
+					output += matchStrings.join(', ');
 					return this.reply(output);
 				}
 
