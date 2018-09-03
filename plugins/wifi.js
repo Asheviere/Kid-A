@@ -162,7 +162,7 @@ module.exports = {
 					for (let i in matches) {
 						let seenUser = await seen.get(matches[i]);
 						if (seenUser) seenUser = new Date(parseInt(seenUser));
-						return `${matches[i].join(', ')} (${i}${seenUser ? ` last seen ${seenUser.getUTCDate()}/${seenUser.getUTCMonth() + 1}/${seenUser.getUTCYear()}` : ''})`;
+						return `${matches[i].join(', ')} (${i}${seenUser ? ` last seen ${seenUser.getUTCDate()}/${seenUser.getUTCMonth() + 1}/${seenUser.getUTCFullYear()}` : ''})`;
 					}
 					output += matchStrings.join(', ');
 					return this.reply(output);
