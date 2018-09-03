@@ -225,7 +225,36 @@ class WifiList {
 		let limit = new Date(year, month, 1, 0, 0, 0, 0).getTime();
 
 		for (let i in this.data) {
-			if ('score' in this.data[i]) this.data[i].score = 0;
+			if ('score' in this.data[i]) {
+				/* CP 1-10: 1 TP per CP
+				 * CP 11 and above: 0.5 TP per CP
+				 * For every 20 CP you earn, you receive a bonus of 5 TP.
+				*/
+				let tp = 0;
+				let cpLeft = parseInt(this.data[i].score);
+				if (cpLeft < 10) {
+					tp += cpLeft;
+				} else {
+					tp += 10;
+					tp += Math.floor(cpLeft / 20) * 5;
+					cpLeft -= 10;
+					tp += Math.floor(cpLeft / 2);
+				}
+
+				let db = redis.useDatabase('tours');
+				const username = this.data[i].username;
+
+				db.exists(`${WIFI_ROOM}:${i}`).then(exists => {
+					if (!exists) {
+						db.hmset(`${WIFI_ROOM}:${i}`, 'username', username, 'points', tp, 'total', tp);
+					} else {
+						db.hincrby(`${WIFI_ROOM}:${i}`, 'points', tp);
+						db.hincrby(`${WIFI_ROOM}:${i}`, 'total', tp);
+					}
+				});
+
+				this.data[i].score = 0;
+			}
 			let date = parseInt(this.data[i].date);
 			if (!isNaN(date) && date < limit) {
 				removed.push(i);
