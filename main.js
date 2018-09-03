@@ -6,9 +6,11 @@ process.on('unhandledRejection', err => console.log(err.stack));
 // TODO: abstract logging away from the global namespace.
 global.stdout = '';
 
-global.output = string => {
-	stdout += string + '\n';
-	console.log(string);
+const oldLog = console.log;
+
+console.log = content => {
+	stdout += content + '\n';
+	oldLog(content);
 };
 
 global.toId = text => text.toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -19,28 +21,28 @@ const timeElem = string => (string < 10 ? '0' : '') + string;
 
 global.consoleMsg = msg => {
 	let time = new Date();
-	global.output('[' + timeElem(time.getHours()) + ':' + timeElem(time.getMinutes()) + '] ' + msg);
+	console.log('[' + timeElem(time.getHours()) + ':' + timeElem(time.getMinutes()) + '] ' + msg);
 };
 
 // Maybe also something more elaborate for this one
 global.logMsg = msg => {
 	let time = new Date();
-	output('[' + timeElem(time.getDate()) + '/' + timeElem(time.getMonth() + 1) + ' ' + timeElem(time.getHours()) + ':' + timeElem(time.getMinutes()) + '] ' + msg);
+	console.log('[' + timeElem(time.getDate()) + '/' + timeElem(time.getMonth() + 1) + ' ' + timeElem(time.getHours()) + ':' + timeElem(time.getMinutes()) + '] ' + msg);
 };
 
 // For now these are pretty basic, but this might get fancier if/when I implement colors and other markup.
 
-global.statusMsg = msg => output('[STATUS] ' + msg);
+global.statusMsg = msg => console.log('[STATUS] ' + msg);
 
-global.errorMsg = msg => output('[ERROR] ' + msg);
+global.errorMsg = msg => console.log('[ERROR] ' + msg);
 
 global.pmMsg = msg => consoleMsg(msg);
 
 global.forceQuit = msg => {
-	output('[FATAL] ' + msg);
+	console.log('[FATAL] ' + msg);
 
 	let time = new Date();
-	output('Kid A forcequit ' + timeElem(time.getHours()) + ':' + timeElem(time.getMinutes()) + '.');
+	console.log('Kid A forcequit ' + timeElem(time.getHours()) + ':' + timeElem(time.getMinutes()) + '.');
 	process.exit(0);
 };
 
