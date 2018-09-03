@@ -257,9 +257,13 @@ async function leaderboardGenerator() {
 	let data = [];
 	for (let key of keys) {
 		let entry = await db.hgetall(key);
+		if (entry.points === '0' && entry.total === '0') {
+			db.del(key);
+			continue;
+		}
 		data.push([entry.username, entry.points, entry.total]);
 	}
-	data = data.sort((a, b) => parseInt(a[2]) > parseInt(b[2]) ? -1 : 1);
+	data = data.sort((a, b) => a[0].localeCompare(b[0]));
 	return data;
 }
 
