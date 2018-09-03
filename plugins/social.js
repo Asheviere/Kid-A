@@ -10,6 +10,8 @@ const Cache = require('../cache.js');
 let motds = Object.create(null);
 let cache = new Cache('social');
 
+const REPEAT_WHITELIST = ['!events', '!roomevent', '!event', '/wall', '/announce', '!rfaq'];
+
 let motdTimers = {};
 let repeatTimers = {};
 
@@ -145,7 +147,7 @@ module.exports = {
 
 				repeatMsg = repeatMsg.join(',').trim();
 
-				if ((repeatMsg.startsWith('!') && !(repeatMsg.startsWith('!event') || repeatMsg.startsWith('!roomevent'))) || (repeatMsg.startsWith('/') && !(repeatMsg.startsWith('/announce ') || repeatMsg.startsWith('/wall ')))) return this.pmreply ("Please do not enter commands in ``.repeat`` except for ``/announce`` and ``!events``");
+				if ((repeatMsg.startsWith('!') || repeatMsg.startsWith('/')) && !REPEAT_WHITELIST.includes(repeatMsg.split(' ')[0])) return this.pmreply (`Please do not enter commands in \`\`.repeat\`\` except for \`\`${REPEAT_WHITELIST.join(', ')}\`\``);
 
 				let id = `${this.room}|${toId(repeatMsg)}`;
 				if (id in cache.get('repeats')) return this.pmreply("This message is already being repeated.");
