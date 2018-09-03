@@ -5,11 +5,13 @@ const fs = require('fs');
 const server = require('./server.js');
 const Page = require('./page.js');
 const redis = require('./redis.js');
+const Cache = require('./cache.js');
 
 const analytics = redis.useDatabase('analytics');
 
 const COMMAND_TOKEN = Config.commandSymbol || '.';
 const COMMAND_REGEX = new RegExp(`^${".^$*+?()[{\\|-]".includes(COMMAND_TOKEN) ? '\\' : ''}${COMMAND_TOKEN}[\\w]+\\b`, "i");
+const MONTH = 31 * 24 * 60 * 60 * 1000;
 
 const dataCache = {};
 
@@ -39,12 +41,23 @@ function canUse(permission, userid, auth, pm = false) {
 	}
 }
 
+function toDurationString(number) {
+	// TODO: replace by Intl.DurationFormat or equivalent when it becomes available (ECMA-402)
+	// https://github.com/tc39/ecma402/issues/47
+	const date = new Date(+number);
+	const parts = [date.getUTCFullYear() - 1970, date.getUTCMonth(), date.getUTCDate() - 1, date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds()];
+	const unitNames = ["second", "minute", "hour", "day", "month", "year"];
+	const positiveIndex = parts.findIndex(elem => elem > 0);
+	return parts.slice(positiveIndex).reverse().map((value, index) => value ? `${value} ${unitNames[index]}${value > 1 ? 's' : ''}` : "").reverse().join(" ").trim();
+}
+
 class CommandWrapper {
-	constructor(userlists, settings, commands) {
+	constructor(userlists, settings, commands, sendMail) {
 		this.userlists = userlists;
 		this.data = analytics;
 		this.settings = settings;
 		this.commands = commands;
+		this.sendMail = sendMail;
 
 		this.canUse = permission => canUse(permission, this.userid, this.auth, !this.room);
 	}
@@ -138,6 +151,7 @@ class ChatHandler {
 		this.settings = settings;
 		this.commandQueue = [];
 		this.parsing = false;
+		this.mail = new Cache('mail');
 
 		this.dataResolver = async (req, res) => {
 			let room = req.originalUrl.split('/')[1];
@@ -218,6 +232,17 @@ class ChatHandler {
 			server.restart();
 		});
 
+		// Prune mail scheduled over a month ago.
+		for (let [curUser, messages] of Object.entries(this.mail.data)) {
+			messages = messages.filter(({time}) => Date.now() - time < MONTH);
+			if (messages) {
+				this.mail.set(curUser, messages);
+			} else {
+				delete this.mail.data[curUser];
+			}
+		}
+		this.mail.write();
+
 		Promise.all(inits).then(() => server.restart());
 	}
 
@@ -281,7 +306,7 @@ class ChatHandler {
 
 		let disabled = await this.settings.lrange(`${room}:disabledCommands`, 0, -1);
 		if (!(disabled && disabled.includes(cmd))) {
-			const wrapper = new CommandWrapper(this.userlists, this.settings, this.commands);
+			const wrapper = new CommandWrapper(this.userlists, this.settings, this.commands, this.sendMail.bind(this));
 
 			await wrapper.run(cmd, userstr, room, words.join(' '));
 		}
@@ -294,11 +319,31 @@ class ChatHandler {
 	}
 
 	async parseJoin(user, room) {
+		// Send mail
+		const userid = toId(user);
+		let inbox = this.mail.get(userid);
+		if (Array.isArray(inbox)) {
+			for (let {sender, message, time} of inbox) {
+				Connection.send(`|/pm ${userid}, [${toDurationString(Date.now() - time)} ago] **${sender}**: ${message}`);
+			}
+			delete this.mail.data[userid];
+			this.mail.write();
+		}
+
 		for (let i in this.plugins) {
 			if (this.plugins[i].onUserJoin && (!this.plugins[i].onUserJoin.rooms || this.plugins[i].onUserJoin.rooms.includes(room))) {
 				this.plugins[i].onUserJoin.action.apply(this, [user, room]).catch(err => errorMsg(`${err.stack}\nuser: ${user}\nroom: ${room}`));
 			}
 		}
+	}
+
+	sendMail(sender, target, message) {
+		let inbox = this.mail.get(target);
+		if (!Array.isArray(inbox)) inbox = [];
+		if (inbox.length >= 5) return false;
+		this.mail.set(target, inbox.concat({sender: sender, message: message, time: Date.now()}));
+		this.mail.write();
+		return true;
 	}
 }
 

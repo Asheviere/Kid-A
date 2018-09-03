@@ -241,23 +241,28 @@ class WifiList {
 					tp += Math.floor(cpLeft / 2);
 				}
 
-				let db = redis.useDatabase('tours');
-				const username = this.data[i].username;
+				if (tp > 0) {
+					let db = redis.useDatabase('tours');
+					const username = this.data[i].username;
 
-				db.exists(`${WIFI_ROOM}:${i}`).then(exists => {
-					if (!exists) {
-						db.hmset(`${WIFI_ROOM}:${i}`, 'username', username, 'points', tp, 'total', tp);
-					} else {
-						db.hincrby(`${WIFI_ROOM}:${i}`, 'points', tp);
-						db.hincrby(`${WIFI_ROOM}:${i}`, 'total', tp);
-					}
-				});
+					db.exists(`${WIFI_ROOM}:${i}`).then(exists => {
+						if (!exists) {
+							db.hmset(`${WIFI_ROOM}:${i}`, 'username', username, 'points', tp, 'total', tp);
+						} else {
+							db.hincrby(`${WIFI_ROOM}:${i}`, 'points', tp);
+							db.hincrby(`${WIFI_ROOM}:${i}`, 'total', tp);
+						}
+
+						Handler.chatHandler.sendMail('Kid A', i, `You have received ${tp} TP for your cloning efforts this month.`);
+					});
+				}
 
 				this.data[i].score = 0;
 			}
 			let date = parseInt(this.data[i].date);
 			if (!isNaN(date) && date < limit) {
 				removed.push(i);
+				Handler.chatHandler.sendMail('Kid A', i, `You have been removed from the ${this.name} list due to inactivity.`);
 				if (this.name === 'cloners') {
 					if (!notes[i]) notes[i] = {};
 					notes[i][Date.now()] = ['', "Purged from the list."];
