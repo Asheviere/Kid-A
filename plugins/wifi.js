@@ -144,6 +144,7 @@ module.exports = {
 
 				for (let i = 0; i < keys.length; i++) {
 					let entry = await tsvs.get(keys[i]);
+					console.log(keys);
 
 					for (let j = 0; j < entry.length; j += 4) {
 						let tsv = entry.slice(j, j + 4);
@@ -160,9 +161,13 @@ module.exports = {
 
 					const matchStrings = [];
 					for (let i in matches) {
-						let seenUser = await seen.get(matches[i]);
-						if (seenUser) seenUser = new Date(parseInt(seenUser));
-						matchStrings.push(`${matches[i].join(', ')} (${i}${seenUser ? ` last seen ${seenUser.getUTCDate()}/${seenUser.getUTCMonth() + 1}/${seenUser.getUTCFullYear()}` : ''})`);
+						let strs = [];
+						for (let match of matches[i]) {
+							let seenUser = await seen.get(match);
+							if (seenUser) seenUser = new Date(parseInt(seenUser));
+							strs.push(`${matches[i].join(', ')}${seenUser ? ` (last seen ${seenUser.getUTCDate()}/${seenUser.getUTCMonth() + 1}/${seenUser.getUTCFullYear()})` : ''}`);
+						}
+						matchStrings.push(`${i}: ${strs.join(', ')}`);
 					}
 					output += matchStrings.join(', ');
 					return this.reply(output);
