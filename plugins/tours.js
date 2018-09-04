@@ -360,7 +360,7 @@ module.exports = {
 					if (!(this.canUse(2) || await this.settings.hexists('whitelist:tourhelpers', this.userid))) return this.pmreply("Permission denied.");
 					if (!curTournament) return this.pmreply("There is no tournament right now.");
 					rest = toId(rest);
-					if (!rest) return this.pmreply("No username entered.");					
+					if (!rest) return this.pmreply("No username entered.");
 					if (curTournament.removeUser(rest)) {
 						return this.pmreply("User successfully removed.");
 					}
@@ -515,7 +515,7 @@ module.exports = {
 				let entry = await db.hgetall(`${WIFI_ROOM}:${userid}`);
 
 				if (!entry) return this.reply("This person doesn't have any points.");
-				if (!removeFromTotal && (total === 'true' || total === 'yes')) removeFromTotal = points;				
+				if (!removeFromTotal && (total === 'true' || total === 'yes')) removeFromTotal = points;
 
 				if (entry.points < points) return this.reply(`This user doesn't have ${points} points. You can only remove ${entry.points} points.`);
 				if (entry.total < removeFromTotal) return this.reply(`This user doesn't have ${removeFromTotal} total points. You can only remove ${entry.total} points.`);
@@ -540,7 +540,8 @@ module.exports = {
 				let promises = keys.map(async key => {
 					const entry = await db.hgetall(key);
 					if (entry.points > 50) {
-						await db.hset(key, 'points', 0);
+						await db.hset(key, 'points', 50);
+						this.sendMail('Kid A', key.split(':')[1], `Your tournament points have been reset. You now have 50 points.`);
 					}
 					return true;
 				});
