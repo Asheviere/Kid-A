@@ -3,7 +3,7 @@
 const redis = require('./redis.js');
 
 const MINUTE = 1000 * 60;
-const MAX_PRUNE_AMOUNT = 5000;
+const MAX_PRUNE_AMOUNT = 2500;
 
 let leftpad = val => (val < 10 ? `0${val}`: `${val}`);
 
