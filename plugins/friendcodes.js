@@ -42,12 +42,13 @@ module.exports = {
 				fc = fc.substr(0, 4) + '-' + fc.substr(4, 4) + '-' + fc.substr(8, 4);
 				if (!utils.validateFc(fc)) return this.pmreply("The Friend code you entered is invalid");
 
+				let fcstr = fc;
 				if (await friendcodes.exists(name)) {
 					const fcs = await getFCs(name);
 					if (fcs.includes(fc)) return this.pmreply("This friend code is already registered.");
-					fc = `:${fc}`;
+					fcstr = `:${fc}`;
 				}
-				await friendcodes.append(name, fc);
+				await friendcodes.append(name, fcstr);
 
 				if (room) Connection.send(`${room}|/modnote ${this.username} added a friend code for ${name}: ${fc}`);
 				this.reply("Friend Code successfully added.");
