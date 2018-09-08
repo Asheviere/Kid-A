@@ -4,11 +4,13 @@ const redis = require('../redis.js');
 const utils = require('../utils.js');
 
 const WIFI_ROOM = 'wifi';
-const INGAME_ROOM = 'sunmoon';
+const INGAME_ROOM = 'pokemongames';
 
 const FC_REGEX = /[0-9]{4}[- ]?[0-9]{4}[- ]?[0-9]{4}/;
 
 let friendcodes = redis.useDatabase('friendcodes');
+
+const getFCs = async key => (await friendcodes.get(key)).split(':');
 
 module.exports = {
 	commands: {
@@ -40,7 +42,12 @@ module.exports = {
 				fc = fc.substr(0, 4) + '-' + fc.substr(4, 4) + '-' + fc.substr(8, 4);
 				if (!utils.validateFc(fc)) return this.pmreply("The Friend code you entered is invalid");
 
-				await friendcodes.set(name, fc);
+				if (await friendcodes.exists(name)) {
+					const fcs = await getFCs(name);
+					if (fcs.includes(fc)) return this.pmreply("This friend code is already registered.");
+					fc = `:${fc}`;
+				}
+				await friendcodes.append(name, fc);
 
 				if (room) Connection.send(`${room}|/modnote ${this.username} added a friend code for ${name}: ${fc}`);
 				this.reply("Friend Code successfully added.");
@@ -67,9 +74,19 @@ module.exports = {
 					}
 				}
 
-				let name = toId(message);
+				let [name, ...fcs] = message.split(',').map(param => toId(param));
 
-				if (await friendcodes.del(name)) {
+				fcs = fcs.map(fc => fc.substr(0, 4) + '-' + fc.substr(4, 4) + '-' + fc.substr(8, 4));
+
+				if (await friendcodes.exists(name)) {
+					if (fcs.length) {
+						const userFCs = await getFCs(name);
+						console.log(userFCs);
+						console.log(fcs);
+						await friendcodes.set(name, userFCs.filter(fc => !fcs.includes(fc)).join(':'));
+					} else {
+						await friendcodes.del(name);
+					}
 					if (room) Connection.send(`${room}|/modnote ${this.username} deleted ${name}'s friend code.`);
 					this.reply("Friend Code successfully deleted.");
 				} else {
@@ -89,10 +106,12 @@ module.exports = {
 
 				if (!(await friendcodes.exists(message))) return this.pmreply((self ? "You don't" : "This person doesn't") + " have a friend code registered." + (self ? ` PM a staff member in the <<${WIFI_ROOM}>> or <<${INGAME_ROOM}>> room to have your FC added.` : ""));
 
+				const fcs = await getFCs(message);
+
 				if (this.canUse(1)) {
-					this.reply((self ? "Your" : message + "'s") + " friend code: " + (await friendcodes.get(message)));
+					this.reply(`${self ? "Your" : message + "'s"} friend code${fcs.length > 1 ? 's' : ''}: ${fcs.join(', ')}`);
 				} else {
-					this.pmreply((self ? "Your" : message + "'s") + " friend code: " + (await friendcodes.get(message)));
+					this.pmreply(`${self ? "Your" : message + "'s"} friend code${fcs.length > 1 ? 's' : ''}: ${fcs.join(', ')}`);
 				}
 			},
 		},

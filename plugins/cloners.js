@@ -827,7 +827,8 @@ module.exports = {
 				let results = [];
 
 				for (let i = 0; i < fcs.length; i++) {
-					if ((await db.get(fcs[i])) === fc) results.push(fcs[i]);
+					const entry = await db.get(fcs[i]);
+					if (entry.split(':').includes(fc)) results.push(fcs[i]);
 				}
 
 				if (results.length) return this.reply(`This FC belongs to ${results.join(', ')}.`);
