@@ -505,7 +505,7 @@ module.exports = {
 
 				let [username, points, total] = message.split(',').map(param => param.trim());
 				points = parseInt(points);
-				total = toId(total);
+				if (total) total = toId(total);
 				let removeFromTotal = parseInt(total);
 				let userid = toId(username);
 				if (!userid || !(points || removeFromTotal) || points < 0) return this.pmreply("Syntax error. ``.removetp username, amount, remove from total``");
@@ -523,7 +523,7 @@ module.exports = {
 				await db.hincrby(`${WIFI_ROOM}:${userid}`, 'points', -1 * points);
 				if (removeFromTotal) await db.hincrby(`${WIFI_ROOM}:${userid}`, 'total', -1 * removeFromTotal);
 
-				return this.reply(`${points} points removed from ${username}${removeFromTotal ? `and ${removeFromTotal} total points.` : ''}.`);
+				return this.reply(`${points} points removed from ${username}${removeFromTotal ? ` and ${removeFromTotal} total points` : ''}.`);
 			},
 		},
 		resettp: {
