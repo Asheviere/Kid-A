@@ -200,6 +200,13 @@ module.exports = {
 				this.parseIP(html);
 			}
 			break;
+		case 'tournament':
+			let cmds = ('|' + split.slice(1).join('|')).split('\n'); // This is very gross voodoo and there must be a better way to tackle this but I was lazy when writing this.
+			for (const cmd of cmds) {
+				if (!cmd) continue;
+				const cmdsplit = cmd.split('|');
+				this.chatHandler.parseTourCommand(roomid, cmdsplit[2], cmdsplit.slice(3));
+			}
 		}
 	},
 

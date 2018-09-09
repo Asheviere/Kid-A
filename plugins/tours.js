@@ -294,6 +294,46 @@ async function getBan(userid, fc) {
 }
 
 module.exports = {
+	onTourEnd: {
+		rooms: [WIFI_ROOM],
+		async action(roomid, data) {
+			if (data.generator === 'Round Robin') return; // This is currently not supported.
+			if (!toId(data.format).includes('leaderboard')) return; // TODO: better way to determine whether to give points for the tour.
+			let finalist1 = data.bracketData.rootNode.children[0].team;
+			let finalist2 = data.bracketData.rootNode.children[1].team;
+			let winner = data.bracketData.rootNode.result === 'win' ? finalist1 : finalist2;
+			let runnerup = winner === finalist1 ? finalist2 : finalist1;
+			let semifinalists = data.bracketData.rootNode.children[0].children.map(val => val.team).concat(data.bracketData.rootNode.children[1].children.map(val => val.team)).filter(name => ![finalist1, finalist2].includes(name));
+
+			// Use the fibonacci sequence and number of rounds to determine how many points the winners receive.
+			let prizes = [0, 0, 1];
+			let children = data.bracketData.rootNode.children;
+			while (children.length) {
+				prizes = [prizes[1], prizes[2], prizes[2] + prizes[1]];
+				children = children[0].children;
+			}
+			if (prizes[0] === prizes[1]) prizes[0]--;
+
+			Connection.send(`${roomid}|/wall Winner: ${winner} (${prizes[2]} point${prizes[2] !== 1 ? 's' : ''}). Runner-up: ${runnerup} (${prizes[1]} point${prizes[1] !== 1 ? 's' : ''})${semifinalists.length ? `. Semi-finalists: ${semifinalists.join(', ')} (${prizes[0]} point${prizes[0] !== 1 ? 's' : ''})` : ''}`);
+
+			let db = redis.useDatabase('tours');
+
+			const prizelist = [[runnerup, prizes[1]], [winner, prizes[2]]];
+			if (semifinalists.length) {
+				prizelist.push([semifinalists[0], prizes[0]]);
+				prizelist.push([semifinalists[1], prizes[0]]);
+			}
+			for (let [username, prize] of prizelist) {
+				const userid = toId(username);
+				if (!(await db.exists(`${roomid}:${userid}`))) {
+					await db.hmset(`${roomid}:${userid}`, 'username', username, 'points', 0, 'total', 0);
+				}
+
+				db.hincrby(`${roomid}:${userid}`, 'points', prize);
+				db.hincrby(`${roomid}:${userid}`, 'total', prize);
+			}
+		},
+	},
 	commands: {
 		tour: {
 			rooms: [WIFI_ROOM],
