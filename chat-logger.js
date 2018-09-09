@@ -3,7 +3,7 @@
 const redis = require('./redis.js');
 
 const MINUTE = 1000 * 60;
-const MAX_PRUNE_AMOUNT = 2500;
+const MAX_PRUNE_AMOUNT = 2000;
 
 let leftpad = val => (val < 10 ? `0${val}`: `${val}`);
 
@@ -236,7 +236,7 @@ class ChatLogger {
 		}
 
 		let rest = keys.slice(MAX_PRUNE_AMOUNT);
-		if (rest.length) setTimeout(() => this.prune(rest), 30 * 1000);
+		if (rest.length) setTimeout(() => this.prune(rest), MINUTE);
 	}
 
 	async pruneAll() {
