@@ -10,7 +10,7 @@ const bodyParser = require('body-parser');
 
 class Server {
 	constructor(host, port) {
-		statusMsg('Setting up server.');
+		Output.log('status', 'Setting up server.');
 
 		let protocol = (port === 443) ? 'https' : 'http';
 		this.protocol = protocol;
@@ -29,7 +29,7 @@ class Server {
 
 		this.init();
 
-		statusMsg('Server started successfully.');
+		Output.log('status', 'Server started successfully.');
 	}
 
 	// Returns either the HTTP or the HTTPS module depending on whether or not
@@ -74,7 +74,7 @@ class Server {
 				cert: Config.sslCert,
 				ca: Config.sslCa,
 			};
-			if (!(opts.key && opts.cert && opts.ca)) return errorMsg("Invalid SSL certs.");
+			if (!(opts.key && opts.cert && opts.ca)) return Output.log('ssl', "Invalid SSL certs.");
 
 			if (!this.httpApp) {
 				this.httpApp = connect();

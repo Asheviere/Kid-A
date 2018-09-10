@@ -15,7 +15,7 @@ function parseConsole(req, res) {
 	if (!data) return res.end('Invalid access token.');
 	if (data.console) {
 		if (data.ip && req.ip !== data.ip) server.removeAccessToken(token);
-		res.end(stdout);
+		res.end(Output.stdout);
 	} else {
 		res.end('Permission denied.');
 	}
@@ -141,7 +141,7 @@ module.exports = {
 
 				cache.write();
 
-				consoleMsg(`Declare made: ${msg}`);
+				Output.log('declare', `Declare made: ${msg}`);
 				this.reply("Declare added");
 			},
 		},

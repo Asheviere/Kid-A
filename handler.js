@@ -49,7 +49,7 @@ module.exports = {
 
 		this.extraJoin = this.toJoin.slice(11);
 
-		statusMsg('Setup done.');
+		Output.log('status', 'Setup done.');
 	},
 
 	addUser(user, room) {
@@ -119,7 +119,7 @@ module.exports = {
 		}
 		switch (split[1]) {
 		case 'challstr':
-			statusMsg('Received challstr, logging in...');
+			Output.log('status', 'Received challstr, logging in...');
 
 			let challstr = split.slice(2).join('|');
 
@@ -137,10 +137,12 @@ module.exports = {
 						if (body.assertion && body.assertion[0] !== ';') {
 							this.setup(body.assertion);
 						} else {
-							forceQuit('Couldn\'t log in.');
+							Output.log('client', "Can't log in.");
+							process.exit(0);
 						}
 					} else {
-						forceQuit('Incorrect request.');
+						Output.log('client', "Invalid login request.");
+						process.exit(0);
 					}
 				}
 			});
@@ -148,10 +150,10 @@ module.exports = {
 		case 'updateuser':
 			if (split[2] !== Config.username) return false;
 
-			statusMsg('Logged in as ' + split[2] + '.');
+			Output.log('status', 'Logged in as ' + split[2] + '.');
 
 			if (this.toJoin.length > 11) {
-				statusMsg('Joining additional rooms...');
+				Output.log('status', 'Joining additional rooms...');
 
 				this.tryJoin();
 			}

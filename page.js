@@ -52,7 +52,7 @@ let header;
 try {
 	header = fs.readFileSync('./templates/header.html', "utf8");
 } catch (e) {
-	errorMsg(`Could not load header template.`);
+	Output.errorMsg(e, `Could not load header template.`);
 }
 handlebars.registerPartial('header', header);
 
@@ -66,7 +66,7 @@ class Page {
 			let data = fs.readFileSync(`./templates/${template}`, "utf8");
 			this.template = handlebars.compile(data);
 		} catch (e) {
-			errorMsg(`Could not load template '${template}'.`);
+			Output.errorMsg(e, `Could not load template '${template}'.`);
 		}
 
 		this.token = options.token;

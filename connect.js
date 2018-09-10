@@ -8,19 +8,19 @@ function connect() {
 	const client = new WebSocketClient();
 
 	client.on('connectFailed', error => {
-		errorMsg('Connection failed with error: ' + error + '. Retrying in ' + RETRY_TIME + 's.');
+		Output.errorMsg(error, 'Connection failed. Retrying in ' + RETRY_TIME + 's.');
 		setTimeout(connect, RETRY_TIME * 1000);
 	});
 
 	client.on('connect', connection => {
 		Connection = connection;
-		statusMsg('WebSocket Client Connected');
+		Output.log('status', 'WebSocket Client Connected');
 		connection.on('error', error => {
-			errorMsg(error + '. Reconnecting in ' + RETRY_TIME + 's.');
+			Output.errorMsg(error, 'Error connecting. Retrying in ' + RETRY_TIME + 's.');
 			setTimeout(connect, RETRY_TIME * 1000);
 		});
 		connection.on('close', () => {
-			statusMsg('Closed connection, reconnecting in ' + RETRY_TIME + 's.');
+			Output.log('client', 'Connection closed. Retrying in ' + RETRY_TIME + 's.');
 			setTimeout(connect, RETRY_TIME * 1000);
 		});
 		connection.on('message', message => {
@@ -28,7 +28,7 @@ function connect() {
 		});
 	});
 
-	statusMsg('Connecting...');
+	Output.log('status', 'WebSocket Client Connecting...');
 	client.connect('ws://' + Config.host + ':' + Config.port + '/showdown/websocket');
 }
 

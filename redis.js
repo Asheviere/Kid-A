@@ -33,7 +33,7 @@ module.exports = {
 
 		let client = redis.createClient({database: i, usePromise: true});
 		client.on('error', async error => {
-			errorMsg(`Received ${error} from redis, restarting.`);
+			Output.errorMsg(error, 'Received error from redis, restarting.');
 			if (!this.restarting) await this.restart();
 			client.clientConnect();
 		});

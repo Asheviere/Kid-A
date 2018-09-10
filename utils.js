@@ -31,15 +31,17 @@ function and(val1, val2) {
 function pad(num, size){ return ('000000000' + num).substr(-size); }
 
 
-module.exports = {
-	generateTempFile(content, time, html) {
-		let extension = (html ? '.html' : '.txt');
-		let filename = crypto.randomBytes(10).toString('hex');
-		let path = './public/' + filename + extension;
-		fs.writeFileSync(path, content);
-		setTimeout(() => fs.unlinkSync(path), 1000 * 60 * time);
-		return filename + extension;
+global.Utils = module.exports = {
+	// Basic utility functions
+	toId(text) {
+		return text.toLowerCase().replace(/[^a-z0-9]/g, '');
 	},
+
+	sanitize(text) {
+		return ('' + text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;').replace(/\//g, '&#x2f;');
+	},
+
+	// FC validation
 	validateFc(cleanedfc) {
 		let fc = parseInt(cleanedfc.replace(/-/g, ''));
 		if (fc > 0x7FFFFFFFFF) {
@@ -56,3 +58,5 @@ module.exports = {
 		return (sha1bin(binPrincipalId)[0] >> 1) === checksum;
 	},
 };
+
+global.toId = Utils.toId;

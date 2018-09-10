@@ -16,7 +16,7 @@ module.exports = {
 		lastfm: {
 			permission: 1,
 			async action(message) {
-				if (!Config.lastfmKey) return errorMsg("No last.fm API key found.");
+				if (!Config.lastfmKey) return Output.log('lastfm', "No last.fm API key found.");
 
 				let accountname = message || this.username;
 				if (!message && (await db.exists(this.userid))) message = await db.get(this.userid);
@@ -30,7 +30,7 @@ module.exports = {
 				let req = new Promise(function(resolve, reject) {
 					request(url, function(error, response, body) {
 						if (error) {
-							errorMsg(error);
+							Output.errorMsg(error, 'Error in last.fm request', {url: url});
 							reject(error);
 						} else {
 							resolve(JSON.parse(body));
@@ -74,7 +74,7 @@ module.exports = {
 						let yt = new Promise(function(resolve, reject) {
 							request(yturl, function(error, response, body) {
 								if (error) {
-									errorMsg(error);
+									Output.errorMsg(error, 'Error in YouTube request', {url: yturl});
 									reject(error);
 								} else {
 									resolve(JSON.parse(body));
@@ -84,7 +84,7 @@ module.exports = {
 
 						return yt.then(video => {
 							if (video.error) {
-								errorMsg(video.error.message);
+								Output.log('ytapi', video.error.message);
 								msg = 'Something went wrong with the youtube API.';
 							} else if (video.items && video.items.length && video.items[0].id) {
 								if (htmlbox) {
@@ -113,7 +113,7 @@ module.exports = {
 		track: {
 			permission: 1,
 			async action(message) {
-				if (!Config.lastfmKey) return errorMsg("No last.fm API key found.");
+				if (!Config.lastfmKey) return Output.log('lastfm', "No last.fm API key found.");
 
 				let parts = message.split('-').map(param => encodeURIComponent(param.trim()));
 				if (parts.length !== 2) return this.pmreply("Invalid syntax. Format: ``.track Artist - Song name``");
@@ -126,7 +126,7 @@ module.exports = {
 				let req = new Promise(function(resolve, reject) {
 					request(url, function(error, response, body) {
 						if (error) {
-							errorMsg(error);
+							Output.errorMsg(error, 'Error in last.fm request', {url: url});
 							reject(error);
 						} else {
 							resolve(JSON.parse(body));
@@ -162,7 +162,7 @@ module.exports = {
 						let yt = new Promise(function(resolve, reject) {
 							request(yturl, function(error, response, body) {
 								if (error) {
-									errorMsg(error);
+									Output.errorMsg(error, 'Error in YouTube request', {url: yturl});
 									reject(error);
 								} else {
 									resolve(JSON.parse(body));
@@ -171,7 +171,7 @@ module.exports = {
 						});
 						return yt.then(video => {
 							if (video.error) {
-								errorMsg(video.error.message);
+								Output.log('ytapi', video.error.message);
 								msg = 'Something went wrong with the youtube API.';
 							} else if (video.items && video.items.length && video.items[0].id) {
 								if (htmlbox) {

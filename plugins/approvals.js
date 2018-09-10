@@ -77,7 +77,7 @@ async function getYoutubeVideoInfo(id) {
 	let yt = new Promise(function(resolve, reject) {
 		request(yturl, function(error, response, body) {
 			if (error) {
-				errorMsg(error);
+				Output.errorMsg(error, 'Error in YouTube request', {url: yturl});
 				reject(error);
 			} else {
 				resolve(JSON.parse(body));
@@ -88,7 +88,7 @@ async function getYoutubeVideoInfo(id) {
 	let video = await yt;
 
 	if (video.error) {
-		errorMsg(video.error.message);
+		Output.log('ytapi', video.error.message);
 		return false;
 	} else if (video.items && video.items.length && video.items[0].id) {
 		video = video.items[0];

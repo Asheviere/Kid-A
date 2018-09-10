@@ -75,7 +75,7 @@ class CommandWrapper {
 		if (room && room.includes('groupchat') && !command.allowGroupchats) return this.pmreply("This command cannot be used in groupchats.");
 		if (room && command.rooms && !command.rooms.includes(room)) return;
 
-		command.action.apply(this, [message]).catch(err => errorMsg(`${err.stack}\nuser: ${userstr}\nroom: ${room}\nmessage: ${message}`));
+		command.action.apply(this, [message]).catch(err => Output.errorMsg(err, 'Error in Command', {user: this.username, room: this.room}));
 	}
 
 	reply(message) {
@@ -98,8 +98,8 @@ class CommandWrapper {
 			this.reply(`You need to be in the ${room} room to use this command.`);
 			return false;
 		}
-		errorMsg(`Someone tried to use a ${room} room command without the bot being in the ${room} room. Either make the bot join ${room}, or remove the command.`);
-		this.reply("Something went wrong! The bot's owner has been notified.");
+		Debug.log(2, `Someone tried to use a ${room} room command without the bot being in the ${room} room. Either make the bot join ${room}, or remove the command.`);
+		this.reply("Tried to use a command for a room the bot isn't in! PANIC");
 		return false;
 	}
 }
@@ -136,7 +136,7 @@ class AnalyzerWrapper {
 			this.userid = toId(userstr);
 			this.room = room;
 
-			analyzer.parser.apply(this, [message]).catch(err => errorMsg(`${err.stack}\nuser: ${userstr}\nroom: ${room}\nmessage: ${message}`));
+			analyzer.parser.apply(this, [message]).catch(err => Output.errorMsg(err, 'Error in analyzer', {user: this.username, room: this.room}));
 		}
 	}
 }
@@ -266,7 +266,7 @@ class ChatHandler {
 				}
 			}
 			if (message.startsWith('/') || message.startsWith('!')) return;
-			pmMsg('PM from ' + (userstr[0] === ' ' ? userstr.substr(1) : userstr) + ': ' + message);
+			Output.log('pm', 'PM from ' + (userstr[0] === ' ' ? userstr.substr(1) : userstr) + ': ' + message);
 			sendPM(userstr, "Hi I'm a chatbot made by bumbadadabum. I moderate rooms, provide chat analytics, and have a few other neat features. For help with using the bot, use ``.help`` for a list of available topics.");
 		}
 	}
@@ -332,7 +332,7 @@ class ChatHandler {
 
 		for (let i in this.plugins) {
 			if (this.plugins[i].onUserJoin && (!this.plugins[i].onUserJoin.rooms || this.plugins[i].onUserJoin.rooms.includes(room))) {
-				this.plugins[i].onUserJoin.action.apply(this, [user, room]).catch(err => errorMsg(`${err.stack}\nuser: ${user}\nroom: ${room}`));
+				this.plugins[i].onUserJoin.action.apply(this, [user, room]).catch(err => Output.errorMsg(err, 'Error in userJoin', {user: user, room: room}));
 			}
 		}
 	}
@@ -343,7 +343,7 @@ class ChatHandler {
 			const data = JSON.parse(rest);
 			for (let i in this.plugins) {
 				if (this.plugins[i].onTourEnd && (!this.plugins[i].onTourEnd.rooms || this.plugins[i].onTourEnd.rooms.includes(roomid))) {
-					this.plugins[i].onTourEnd.action.apply(this, [roomid, data]).catch(err => errorMsg(`${err.stack}\ncommand: |tournament|end| \nroom: ${roomid}`));
+					this.plugins[i].onTourEnd.action.apply(this, [roomid, data]).catch(err => Output.errorMsg(err, 'Error in tour End', {data: data, room: roomid}));
 				}
 			}
 		default:

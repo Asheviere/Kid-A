@@ -91,7 +91,7 @@ class YoutubePlugin {
 		const query = new Promise(function(resolve, reject) {
 			request(queryUrl, function(error, response, body) {
 				if (error) {
-					errorMsg(error);
+					Output.errorMsg(error, 'Error in YouTube query request', {url: queryUrl});
 					reject(error);
 				} else {
 					resolve(JSON.parse(body));
@@ -101,7 +101,7 @@ class YoutubePlugin {
 
 		const res = await query.catch(() => {});
 		if (res.error) {
-			errorMsg(res.error.message);
+			Output.log('ytapi', res.error.message);
 			return false;
 		}
 		if (!res.items.length) return false;
