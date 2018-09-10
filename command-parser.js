@@ -360,6 +360,35 @@ class ChatHandler {
 		this.mail.write();
 		return true;
 	}
+
+	setupREPL() {
+		const readline = require('readline');
+
+		const repl = readline.createInterface({
+			input: process.stdin,
+			output: process.stdout,
+		});
+
+		repl.setPrompt(`${Output.getTimeStamp()} ${Config.username}> `);
+
+		repl.prompt();
+		repl.on('line', input => {
+			// Only command currently supported is /send, allowing you to send messages from the bot.
+			if (input.startsWith('/send ')) {
+				Connection.send(input.slice(6));
+			} else {
+				let ret;
+				try {
+					ret = JSON.stringify(eval.bind(Handler.chatHandler)(input));
+					if (ret === undefined) return;
+					console.log(ret);
+				} catch (e) {
+					Output.errorMsg(e, 'Failed to eval:');
+				}
+			}
+			repl.prompt();
+		});
+	}
 }
 
 module.exports = {

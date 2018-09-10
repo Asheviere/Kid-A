@@ -158,6 +158,9 @@ module.exports = {
 				this.tryJoin();
 			}
 
+			// Set up REPL when bot is ready to receive messages.
+			this.chatHandler.setupREPL();
+
 			break;
 		case 'J':
 		case 'j':
