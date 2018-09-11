@@ -18,7 +18,7 @@ module.exports = {
 	chatHandler: commandParser.new(userlists, settings),
 
 	async setup(assertion) {
-		Connection.send('|/avatar ' + Config.avatar);
+		this.send(null, `/avatar ${Config.avatar}`);
 		this.userid = toId(Config.username);
 
 		Array.prototype.push.apply(this.toJoin, Config.rooms);
@@ -37,8 +37,8 @@ module.exports = {
 
 		Debug.log(3, `Joining rooms: ${this.toJoin.join(', ')}`);
 
-		Connection.send('|/autojoin ' + this.toJoin.slice(0, 11).join(','));
-		Connection.send('|/trn ' + Config.username + ',0,' + assertion);
+		this.send(null, `/autojoin ${this.toJoin.slice(0, 11).join(',')}`);
+		this.send(null, `/trn ${Config.username},0,${assertion}`);
 
 		this.extraJoin = this.toJoin.slice(11);
 
@@ -78,7 +78,7 @@ module.exports = {
 		}
 		if (!this.extraJoin.length) return;
 
-		setTimeout(() => Connection.send(`|/join ${this.extraJoin[0]}`), 500);
+		setTimeout(() => this.send(null, `/join ${this.extraJoin[0]}`), 500);
 	},
 
 	async parse(message) {
@@ -185,6 +185,10 @@ module.exports = {
 	},
 
 	sendPM(user, message) {
-		Connection.send('|/w ' + user + ', ' + message);
+		Connection.send(`|/w ${user}, ${message}`);
+	},
+
+	send(room, message) {
+		Connection.send(`${room || ''}|${message}`);
 	},
 };
