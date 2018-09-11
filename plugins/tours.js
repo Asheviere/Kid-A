@@ -306,7 +306,7 @@ module.exports = {
 			let semifinalists = data.bracketData.rootNode.children[0].children.map(val => val.team).concat(data.bracketData.rootNode.children[1].children.map(val => val.team)).filter(name => ![finalist1, finalist2].includes(name));
 
 			// Get the list of players to determine amount of prize points.
-			const getPlayers = node => node.children.length ? getPlayers(node.children[0]).concat(getPlayers(node.children[1])) : node.team;
+			const getPlayers = node => node.children.length ? getPlayers(node.children[0]).concat(getPlayers(node.children[1])) : [node.team];
 			const players = getPlayers(data.bracketData.rootNode);
 			let rounds = Math.floor(Math.log2(players.length));
 
