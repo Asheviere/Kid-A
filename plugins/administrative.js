@@ -85,17 +85,8 @@ module.exports = {
 			hidden: true,
 			permission: 6,
 			async action() {
-				if (Config.checkIps) {
-					let [, ips] = await Handler.checkIp(this.userid);
-
-					let data = {console: true};
-					if (ips) data.ip = ips[0];
-					let token = server.createAccessToken(data, 15);
-					this.pmreply(`Console output: ${server.url}console?token=${token}`);
-				} else {
-					let token = server.createAccessToken({console: true}, 15);
-					this.pmreply(`Console output: ${server.url}console?token=${token}`);
-				}
+				let token = server.createAccessToken({console: true}, 15);
+				this.pmreply(`Console output: ${server.url}console?token=${token}`);
 			},
 		},
 

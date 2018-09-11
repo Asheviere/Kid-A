@@ -1,7 +1,6 @@
 'use strict';
 
 const request = require('request');
-const cheerio = require('cheerio');
 
 const redis = require('./redis.js');
 const commandParser = require('./command-parser.js');
@@ -13,18 +12,10 @@ let settings = redis.useDatabase('settings');
 const userlists = {};
 
 module.exports = {
-	ipQueue: [],
 	toJoin: [],
 	privateRooms: Config.privateRooms,
 	userlists: userlists,
 	chatHandler: commandParser.new(userlists, settings),
-
-	checkIp(userid) {
-		return new Promise((resolve, reject) => {
-			Connection.send(`|/ip ${userid}`);
-			this.ipQueue.push({query: userid, resolve: resolve, reject: reject});
-		});
-	},
 
 	async setup(assertion) {
 		Connection.send('|/avatar ' + Config.avatar);
@@ -72,27 +63,6 @@ module.exports = {
 	removeUser(user, room) {
 		if (!(room in this.userlists)) return false;
 		delete this.userlists[room][toId(user)];
-	},
-
-	parseIP(html) {
-		let userid = toId(html('strong[class=username]').text());
-		let split = html.root().html().split('>');
-		let ips;
-		let previousNames;
-		for (let i = 0; i < split.length; i++) {
-			if (split[i].trim().startsWith('IP:')) {
-				ips = split[i].trim().substr(4).split('<')[0].split(', ');
-				break;
-			}
-			if (split[i].trim().startsWith('Previous names:')) {
-				previousNames = split[i].trim().substr(4).split('<')[0].split(', ');
-				break;
-			}
-		}
-		let idx = this.ipQueue.findIndex(elem => elem.query === userid);
-		if (idx < 0 && previousNames) idx = this.ipQueue.findIndex(elem => previousNames.includes(elem.query));
-		if (idx < 0) return;
-		return this.ipQueue.splice(idx, 1)[0].resolve([userid, ips]);
 	},
 
 	async tryJoin(roomid, remove) {
@@ -198,12 +168,6 @@ module.exports = {
 			let msg = split.splice(4).join('|').trim().split('\n')[0];
 			ChatLogger.log(split[2], roomid, toId(split[3]), msg);
 			this.chatHandler.parse(split[3], roomid, msg);
-			break;
-		case 'html':
-			let html = cheerio.load(split.slice(2).join('|'));
-			if (html('strong[class=username]').text().trim() && Config.checkIps && split[0].substr(1).trim() !== 'staff') {
-				this.parseIP(html);
-			}
 			break;
 		case 'tournament':
 			let cmds = ('|' + split.slice(1).join('|')).split('\n'); // This is very gross voodoo and there must be a better way to tackle this but I was lazy when writing this.

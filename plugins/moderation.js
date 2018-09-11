@@ -22,31 +22,16 @@ function getPunishment(val) {
 }
 
 let mutes = new Set();
-let mutedIps = new Set();
 let punishments = new Map();
 
 async function checkMuted(roomid, userid) {
-	let thisid, ips;
-
-	if (Config.checkIps) {
-		[thisid, ips] = await Handler.checkIp(userid);
-	} else {
-		thisid = userid;
-	}
+	let thisid = userid;
 
 	let muted = false;
 
 	muted = mutes.has(`${roomid}:${thisid}`) || muted;
 	mutes.add(`${roomid}:${thisid}`);
 	setTimeout(() => mutes.delete(`${roomid}:${thisid}`), HOUR);
-
-	if (Config.checkIps && ips) {
-		for (let ip of ips) {
-			muted = mutedIps.has(`${roomid}:${ip}`) || muted;
-			mutedIps.add(`${roomid}:${ip}`);
-			setTimeout(() => mutedIps.delete(`${roomid}:${ip}`), HOUR);
-		}
-	}
 
 	return muted;
 }

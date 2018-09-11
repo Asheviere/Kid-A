@@ -31,9 +31,6 @@ exports.blacklistedPlugins = new Set();
 // Rooms that shouldn't show up in on public pages.
 exports.privateRooms = new Set();
 
-// Whether the bot can (and should) check IPs instead of usernames for room moderation.
-exports.checkIps = 'true';
-
 // Last.fm API key, used for the lastfm feature.
 exports.lastfmKey = '';
 
