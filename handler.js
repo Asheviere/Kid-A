@@ -35,6 +35,8 @@ module.exports = {
 
 		if (privateRooms) privateRooms.forEach(val => this.privateRooms.add(val));
 
+		Debug.log(3, `Joining rooms: ${this.toJoin.join(', ')}`);
+
 		Connection.send('|/autojoin ' + this.toJoin.slice(0, 11).join(','));
 		Connection.send('|/trn ' + Config.username + ',0,' + assertion);
 
@@ -49,6 +51,7 @@ module.exports = {
 		}
 
 		if (Array.isArray(user)) {
+			Debug.log(3, `Adding array of users to userlist of ${room}: ${user}`);
 			this.userlists[room] = {};
 			for (let i = 0; i < user.length; i++) {
 				this.userlists[room][toId(user[i])] = [user[i][0], toId(user[i])];
@@ -176,6 +179,8 @@ module.exports = {
 				const cmdsplit = cmd.split('|');
 				this.chatHandler.parseTourCommand(roomid, cmdsplit[2], cmdsplit.slice(3));
 			}
+		default:
+			Debug.log(5, `Unsupported message type: ${split[1]}`);
 		}
 	},
 
