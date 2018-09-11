@@ -38,7 +38,7 @@ global.Debug = {
 	 * @param {string} msg
 	 */
 	log(logLvl, msg) {
-		if (logLvl > this.logLevel) return;
+		if (logLvl > this.logLvl) return;
 		Output.log('debug', msg);
 	},
 };
