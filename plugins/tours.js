@@ -305,23 +305,27 @@ module.exports = {
 			let runnerup = winner === finalist1 ? finalist2 : finalist1;
 			let semifinalists = data.bracketData.rootNode.children[0].children.map(val => val.team).concat(data.bracketData.rootNode.children[1].children.map(val => val.team)).filter(name => ![finalist1, finalist2].includes(name));
 
-			// Use the fibonacci sequence and number of rounds to determine how many points the winners receive.
-			let prizes = [0, 0, 1];
-			let children = data.bracketData.rootNode.children;
-			while (children.length) {
-				prizes = [prizes[1], prizes[2], prizes[2] + prizes[1]];
-				children = children[0].children;
-			}
-			if (prizes[0] === prizes[1]) prizes[0]--;
+			// Get the list of players to determine amount of prize points.
+			const getPlayers = node => node.children.length ? getPlayers(node.children[0]).concat(getPlayers(node.children[1])) : node.team;
+			const players = getPlayers(data.bracketData.rootNode);
+			let rounds = Math.floor(Math.log2(players.length));
 
-			Connection.send(`${roomid}|/wall Winner: ${winner} (${prizes[2]} point${prizes[2] !== 1 ? 's' : ''}). Runner-up: ${runnerup} (${prizes[1]} point${prizes[1] !== 1 ? 's' : ''})${semifinalists.length ? `. Semi-finalists: ${semifinalists.join(', ')} (${prizes[0]} point${prizes[0] !== 1 ? 's' : ''})` : ''}`);
+			// If more than half of the players has to play another game, round up.
+			if (players * 1.5 > 2 ** (rounds + 1)) rounds++;
+
+			// 1 point per round for top 4, plus an additional 1 point for the winner for every round past 4.
+			let prizes = [rounds, rounds - 1, rounds - 2];
+			if (prizes[2] < 0) prizes[2] = 0;
+			if (rounds >= 5) prizes[0] += rounds - 4;
+
+			Connection.send(`${roomid}|/wall Winner: ${winner} (${prizes[0]} point${prizes[0] !== 1 ? 's' : ''}). Runner-up: ${runnerup} (${prizes[1]} point${prizes[1] !== 1 ? 's' : ''})${semifinalists.length ? `. Semi-finalists: ${semifinalists.join(', ')} (${prizes[2]} point${prizes[2] !== 1 ? 's' : ''})` : ''}`);
 
 			let db = redis.useDatabase('tours');
 
-			const prizelist = [[runnerup, prizes[1]], [winner, prizes[2]]];
+			const prizelist = [[runnerup, prizes[1]], [winner, prizes[0]]];
 			if (semifinalists.length) {
-				prizelist.push([semifinalists[0], prizes[0]]);
-				prizelist.push([semifinalists[1], prizes[0]]);
+				prizelist.push([semifinalists[0], prizes[2]]);
+				prizelist.push([semifinalists[1], prizes[2]]);
 			}
 			for (let [username, prize] of prizelist) {
 				const userid = toId(username);
