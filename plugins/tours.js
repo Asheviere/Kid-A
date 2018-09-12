@@ -171,35 +171,6 @@ module.exports = {
 				return this.reply("User successfully removed from the whitelist.");
 			},
 		},
-		tourban: {
-			rooms: [WIFI_ROOM],
-			async action(message) {
-				if (!this.room) {
-					if (!this.getRoomAuth(WIFI_ROOM)) return;
-				}
-				if (!(this.canUse(2) || await this.settings.hexists('whitelist:tourhelpers', this.userid))) return this.pmreply("Permission denied.");
-
-				let [userid, fc] = message.split(',').map(param => param.trim());
-				if (!userid || !fc || !FC_REGEX.test(fc)) return this.pmreply("Syntax error. ``.tourban username, fc``");
-				userid = toId(userid);
-				fc = `${fc.substr(0, 4)}-${fc.substr(4, 4)}-${fc.substr(8, 4)}`;
-
-				const bans = await getBan(userid, fc);
-				if ('userid' in bans) {
-					this.reply("Username is already banned. Extending.");
-					this.settings.hincrby(`tourbans:userids`, userid, BAN_DURATION);
-				} else {
-					this.settings.hset(`tourbans:userids`, userid, Date.now() + BAN_DURATION);
-				}
-				if ('fc' in bans) {
-					this.reply("FC is already banned. Extending.");
-					this.settings.hincrby(`tourbans:fcs`, fc, BAN_DURATION);
-				} else {
-					this.settings.hset(`tourbans:fcs`, fc, Date.now() + BAN_DURATION);
-				}
-				return this.reply("User successfully tourbanned.");
-			},
-		},
 		addtp: {
 			rooms: [WIFI_ROOM],
 			async action(message) {
