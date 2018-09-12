@@ -313,8 +313,9 @@ module.exports = {
 			// If more than half of the players has to play another game, round up.
 			if (players.length * 1.5 > 2 ** (rounds + 1)) rounds++;
 
-			// 1 point per round for top 4, plus an additional 1 point for the winner for every round past 4.
-			let prizes = [rounds, rounds - 1, rounds - 2];
+			// 1 point per round for top 4, plus an additional 1 point for the winner for every round past 4. 2 people tours don't count.
+			let prizes = [rounds - 1, rounds - 2, rounds - 3];
+			if (prizes[1] < 0) prizes[1] = 0;
 			if (prizes[2] < 0) prizes[2] = 0;
 			if (rounds >= 5) prizes[0] += rounds - 4;
 
