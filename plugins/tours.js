@@ -311,7 +311,7 @@ module.exports = {
 			let rounds = Math.floor(Math.log2(players.length));
 
 			// If more than half of the players has to play another game, round up.
-			if (players * 1.5 > 2 ** (rounds + 1)) rounds++;
+			if (players.length * 1.5 > 2 ** (rounds + 1)) rounds++;
 
 			// 1 point per round for top 4, plus an additional 1 point for the winner for every round past 4.
 			let prizes = [rounds, rounds - 1, rounds - 2];
