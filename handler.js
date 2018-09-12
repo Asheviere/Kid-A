@@ -190,3 +190,6 @@ module.exports = {
 		Connection.send(`${room || ''}|${message}`);
 	},
 };
+
+chatHandler.send = module.exports.send;
+chatHandler.sendPM = module.exports.sendPM;

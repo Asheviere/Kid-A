@@ -107,6 +107,35 @@ module.exports = {
 				switch (cmd) {
 				case 'new':
 				case 'create':
+					if (!(this.canUse(2) || await this.settings.hexists('whitelist:tourhelpers', this.userid))) return this.pmreply("Permission denied.");
+					let format = rest;
+					let rated = false;
+					if (toId(format) === 'leaderboard') {
+						const leaderboardFormat = await settings.hget(`${WIFI_ROOM}:leaderboard`, 'format');
+						if (!leaderboardFormat) return this.reply("This room doesn't have a leaderboard format set. Set with ``.tour leaderboard``");
+
+						rated = true;
+						format = leaderboardFormat;
+					}
+					ChatHandler.send(WIFI_ROOM, `/tour new ${format}, elimination`);
+					ChatHandler.send(WIFI_ROOM, `/tour autostart 5`);
+					ChatHandler.send(WIFI_ROOM, `/tour autodq 2`);
+					ChatHandler.send(WIFI_ROOM, `/tour forcetimer`);
+					if (rated) {
+						ChatHandler.send(WIFI_ROOM, `/tour name ${format} Leaderboard Tournament`);
+						ChatHandler.send(WIFI_ROOM, `/tour scouting disallow`);
+					}
+					return;
+				case 'leaderboard':
+					if (!rest) {
+						const leaderboardFormat = await settings.hget(`${WIFI_ROOM}:leaderboard`, 'format');
+						if (leaderboardFormat) return this.reply(`The current ranked format is: ${leaderboardFormat}`);
+						return this.pmreply("No ranked format set.");
+					}
+					if (!(this.canUse(5) || await this.settings.hexists('whitelist:tourhelpers', this.userid))) return this.pmreply("Permission denied.");
+
+					await settings.hset(`${WIFI_ROOM}:leaderboard`, 'format', rest.trim());
+					return this.reply(`The ranked format was set to ${rest}`);
 				default:
 					return this.pmreply(`Unknown command.`);
 				}
