@@ -317,9 +317,26 @@ module.exports = {
 			let prizes = [rounds - 1, rounds - 2, rounds - 3];
 			if (prizes[1] < 0) prizes[1] = 0;
 			if (prizes[2] < 0) prizes[2] = 0;
-			if (rounds >= 5) prizes[0] += rounds - 4;
+			if (rounds > 5) prizes[0] += rounds - 4;
 
 			Connection.send(`${roomid}|/wall Winner: ${winner} (${prizes[0]} point${prizes[0] !== 1 ? 's' : ''}). Runner-up: ${runnerup} (${prizes[1]} point${prizes[1] !== 1 ? 's' : ''})${semifinalists.length ? `. Semi-finalists: ${semifinalists.join(', ')} (${prizes[2]} point${prizes[2] !== 1 ? 's' : ''})` : ''}`);
+
+			const top8 = [];
+			if (rounds > 4) {
+				for (let final of data.bracketData.rootNode.children) {
+					for (let semifinal of final.children) {
+						for (let quarterfinal of semifinal.children) {
+							if (quarterfinal.result === 'win') {
+								top8.push(quarterfinal.children[1].team);
+							} else {
+								top8.push(quarterfinal.children[0].team);
+							}
+						}
+					}
+				}
+
+				Connection.send(`${roomid}|/wall Quarterfinalists (1 point): ${top8.join(', ')}`);
+			}
 
 			let db = redis.useDatabase('tours');
 
@@ -327,6 +344,11 @@ module.exports = {
 			if (semifinalists.length) {
 				prizelist.push([semifinalists[0], prizes[2]]);
 				prizelist.push([semifinalists[1], prizes[2]]);
+			}
+			if (top8.length) {
+				for (let name of top8) {
+					prizelist.push([name, 1]);
+				}
 			}
 			for (let [username, prize] of prizelist) {
 				const userid = toId(username);
