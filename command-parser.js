@@ -369,7 +369,7 @@ class ChatHandler {
 			output: process.stdout,
 		});
 
-		repl.setPrompt(`${Output.getTimeStamp()} ${Config.username}> `);
+		repl.setPrompt(`${Config.username}> `);
 
 		repl.prompt();
 		repl.on('line', input => {
