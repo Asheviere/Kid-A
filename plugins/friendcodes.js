@@ -50,7 +50,7 @@ module.exports = {
 				}
 				await friendcodes.append(name, fcstr);
 
-				if (room) Connection.send(`${room}|/modnote ${this.username} added a friend code for ${name}: ${fc}`);
+				if (room) ChatHandler.send(room, `/modnote ${this.username} added a friend code for ${name}: ${fc}`);
 				this.reply("Friend Code successfully added.");
 			},
 		},
@@ -88,7 +88,7 @@ module.exports = {
 					} else {
 						await friendcodes.del(name);
 					}
-					if (room) Connection.send(`${room}|/modnote ${this.username} deleted ${name}'s friend code.`);
+					if (room) ChatHandler.send(room, `/modnote ${this.username} deleted ${name}'s friend code.`);
 					this.reply("Friend Code successfully deleted.");
 				} else {
 					this.pmreply("This person doesn't have a friend code registered.");

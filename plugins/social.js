@@ -72,7 +72,7 @@ function runRepeat(id) {
 	let obj = cache.get('repeats')[id];
 	if (!obj) return; // failsafe
 	if (obj.timesLeft--) {
-		Connection.send(`${obj.room}|${obj.msg}`);
+		ChatHandler.send(obj.room, obj.msg);
 		repeatTimers[id] = setTimeout(() => runRepeat(id), obj.interval * MINUTE);
 	} else {
 		cache.deleteProperty('repeats', id);

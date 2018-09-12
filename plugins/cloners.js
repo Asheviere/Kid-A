@@ -66,7 +66,7 @@ class WifiList {
 					this.data[i][key] = elem;
 				}
 				if (!this.data[i].date) this.data[i].date = Date.now();
-				Connection.send(`${WIFI_ROOM}|/modnote ${tokenData.user} updated ${i}'s ${this.name.slice(0, -1)} info.`);
+				ChatHandler.send(WIFI_ROOM, `/modnote ${tokenData.user} updated ${i}'s ${this.name.slice(0, -1)} info.`);
 			}
 
 			this.writeList();
@@ -141,7 +141,7 @@ class WifiList {
 		this.data[key] = data;
 		fs.appendFile(this.file, this.renderEntry(key), () => {});
 
-		Connection.send(`${WIFI_ROOM}|/modnote ${user} added ${key} to the ${this.name.slice(0, -1)} list.`);
+		ChatHandler.send(WIFI_ROOM, `/modnote ${user} added ${key} to the ${this.name.slice(0, -1)} list.`);
 		if (this.name === 'cloners') {
 			if (!notes[key]) notes[key] = {};
 			notes[key][Date.now()] = ['', "Added to the list."];
@@ -155,7 +155,7 @@ class WifiList {
 		if (!(target in this.data)) return `${target} is not on the ${this.name.slice(0, -1)} list.`;
 		delete this.data[target];
 		this.writeList();
-		Connection.send(`${WIFI_ROOM}|/modnote ${user} deleted ${target} from the ${this.name.slice(0, -1)} list.`);
+		ChatHandler.send(WIFI_ROOM, `/modnote ${user} deleted ${target} from the ${this.name.slice(0, -1)} list.`);
 		if (this.name === 'cloners') {
 			if (!notes[target]) notes[target] = {};
 			notes[target][Date.now()] = ['', `Removed from the list by ${user}.`];
@@ -205,7 +205,7 @@ class WifiList {
 		}
 
 		this.writeList();
-		Connection.send(`${WIFI_ROOM}|/modnote ${user} updated ${(toId(user) === identifier ? 'their' : `${identifier}'s`)} ${this.name.slice(0, -1)} info.`);
+		ChatHandler.send(WIFI_ROOM, `/modnote ${user} updated ${(toId(user) === identifier ? 'their' : `${identifier}'s`)} ${this.name.slice(0, -1)} info.`);
 		return `${identifier} successfully updated.`;
 	}
 
@@ -403,17 +403,17 @@ class ClonerLog {
 			if (!('cloner' in this.pendingRequests[confirmkey] && 'client' in this.pendingRequests[confirmkey])) return;
 
 			this.log(this.pendingRequests[confirmkey]);
-			Connection.send(`|/pm ${user}, Cloning confirmed successfully.`);
-			Connection.send(`|/pm ${target}, ${user} has confirmed the cloning.`);
+			ChatHandler.sendPM(user, `Cloning confirmed successfully.`);
+			ChatHandler.sendPM(target, `${user} has confirmed the cloning.`);
 			clonerList.updateScore(this.pendingRequests[confirmkey].cloner);
 			delete this.pendingRequests[confirmkey];
 		} else {
-			if (role !== 'cloner') return Connection.send(`|/pm ${user}, Only cloners can initiate a confirmation.`);
+			if (role !== 'cloner') return ChatHandler.sendPM(user, `Only cloners can initiate a confirmation.`);
 			let key = `${target}:${user}`;
 			let obj = {timestamp: Date.now(), cloner: user};
 			this.pendingRequests[key] = obj;
-			Connection.send(`|/pm ${user}, Confirmation request sent to ${target}.`);
-			Connection.send(`|/pm ${target}, ${user} wants you to confirm they cloned for you. If this is indeed the case, respond with \`\`.cloned ${user}\`\`. If you received this message randomly, please report this to a staff member.`);
+			ChatHandler.sendPM(user, `Confirmation request sent to ${target}.`);
+			ChatHandler.sendPM(target, `${user} wants you to confirm they cloned for you. If this is indeed the case, respond with \`\`.cloned ${user}\`\`. If you received this message randomly, please report this to a staff member.`);
 		}
 	}
 
@@ -456,19 +456,19 @@ module.exports = {
 			// Autoban permabanned scammers
 			if (scammer) {
 				if (typeof(scammerList.data[scammer].date) === "string" && scammerList.data[scammer].date.startsWith("PERMA")) {
-					Connection.send(`${WIFI_ROOM}|/rb ${user}, Permabanned scammer.`);
+					ChatHandler.send(WIFI_ROOM, `/rb ${user}, Permabanned scammer.`);
 				} else if (parseInt(scammerList.data[scammer].date)) {
 					let date = new Date(parseInt(scammerList.data[scammer].date));
 
 					if (!(date.getUTCFullYear() < now.getUTCFullYear() - 1 || (date.getUTCFullYear() < now.getUTCFullYear() && (date.getUTCMonth() < now.getUTCMonth() || (date.getUTCMonth() === now.getUTCMonth() && date.getUTCDate() < now.getUTCDate()))))) {
-						Connection.send(`${WIFI_ROOM}|/rb ${user}, Scammer.`);
+						ChatHandler.send(WIFI_ROOM, `/rb ${user}, Scammer.`);
 					}
 				}
 			}
 
 			if (clonerList.data[user]) {
 				if (cache.get('messages').cloners && !cache.get('notified').hasOwnProperty(user)) {
-					Connection.send(`|/pm ${user}, ${cache.get('messages').cloners}`);
+					ChatHandler.sendPM(user, cache.get('messages').cloners);
 					cache.setProperty('notified', user, 1);
 					cache.write();
 				}
@@ -478,7 +478,7 @@ module.exports = {
 					if (date.getUTCMonth !== now.getUTCMonth) {
 						if (cache.get('reminded').hasOwnProperty(user) && cache.get('reminded')[user] > Date.now() - 4 * HOUR) return;
 
-						Connection.send(`|/pm ${user}, Reminder: You have not done your cloner giveaway this month. If you fail to do this before the start of the new month, you will be purged from the list. NB: It's required to notify an editor of the cloner list that you've done your cloner GA.`);
+						ChatHandler.sendPM(user, `Reminder: You have not done your cloner giveaway this month. If you fail to do this before the start of the new month, you will be purged from the list. NB: It's required to notify an editor of the cloner list that you've done your cloner GA.`);
 						cache.setProperty('reminded', user, Date.now());
 						cache.write();
 					}
@@ -539,7 +539,7 @@ module.exports = {
 				let removed = clonerList.purgeList();
 				// Do 10 names per time. Max length for a modnote is 300, assuming all names are the max length (19 characters), plus 2 for the ', ' sep. This would fit 14 names, but doing 10 since I need space for the rest of the message.
 				for (let i = 0; i < removed.length; i += 10) {
-					Connection.send(`${WIFI_ROOM}|/modnote ${removed.slice(i, i + 10)} ${i === removed.length - 1 ? 'was' : 'were'} removed from the cloner list`);
+					ChatHandler.send(WIFI_ROOM, `/modnote ${removed.slice(i, i + 10)} ${i === removed.length - 1 ? 'was' : 'were'} removed from the cloner list`);
 				}
 				cache.set('reminded', {});
 				return this.reply(`${removed.length} user${(removed.length === 1 ? ' was' : 's were')} removed from the cloner list.`);
@@ -556,7 +556,7 @@ module.exports = {
 				if (await settings.hexists('whitelist:cloners', toId(message))) return this.reply("This user is already whitelisted.");
 
 				await settings.hset('whitelist:cloners', toId(message), message);
-				Connection.send(`${WIFI_ROOM}|/modnote ${toId(message)} was whitelisted for the cloner list by ${this.username}.`);
+				ChatHandler.send(WIFI_ROOM, `/modnote ${toId(message)} was whitelisted for the cloner list by ${this.username}.`);
 				return this.reply("User successfully whitelisted.");
 			},
 		},
@@ -571,7 +571,7 @@ module.exports = {
 				if (!await settings.hexists('whitelist:cloners', toId(message))) return this.reply("This user isn't whitelisted.");
 
 				await settings.hdel('whitelist:cloners', toId(message));
-				Connection.send(`${WIFI_ROOM}|/modnote ${toId(message)} was unwhitelisted for the cloner list by ${this.username}.`);
+				ChatHandler.send(WIFI_ROOM, `/modnote ${toId(message)} was unwhitelisted for the cloner list by ${this.username}.`);
 				return this.reply("User successfully removed from the whitelist.");
 			},
 		},
@@ -594,12 +594,12 @@ module.exports = {
 					clonerList.data[user].date = flag;
 
 					clonerList.writeList();
-					Connection.send(`${WIFI_ROOM}|/modnote ${user}'s cloner flag was set to ${flag} by ${this.username}.`);
+					ChatHandler.send(WIFI_ROOM, `/modnote ${user}'s cloner flag was set to ${flag} by ${this.username}.`);
 				} else {
 					clonerList.data[user].date = Date.now();
 					clonerList.writeList();
 
-					Connection.send(`${WIFI_ROOM}|/modnote ${user}'s cloner flag was removed by ${this.username}.`);
+					ChatHandler.send(WIFI_ROOM, `/modnote ${user}'s cloner flag was removed by ${this.username}.`);
 				}
 
 				return this.reply("User's flag has been successfully updated.");
@@ -720,7 +720,7 @@ module.exports = {
 
 				if (!notes[username]) notes[username] = {};
 				notes[username][Date.now()] = [this.username, note];
-				Connection.send(`${WIFI_ROOM}|/modnote ${username}: ${note} -${this.username}`);
+				ChatHandler.send(WIFI_ROOM, `/modnote ${username}: ${note} -${this.username}`);
 				fs.writeFile(`./data/${NOTES_FILE}`, JSON.stringify(notes), () => this.reply("Note created."));
 			},
 		},
@@ -854,12 +854,12 @@ module.exports = {
 					scammerList.data[user].date = flag;
 
 					scammerList.writeList();
-					Connection.send(`${WIFI_ROOM}|/modnote ${user}'s scammer flag was set to ${flag} by ${this.username}.`);
+					ChatHandler.send(WIFI_ROOM, `/modnote ${user}'s scammer flag was set to ${flag} by ${this.username}.`);
 				} else {
 					scammerList.data[user].date = Date.now();
 					scammerList.writeList();
 
-					Connection.send(`${WIFI_ROOM}|/modnote ${user}'s scammer flag was removed by ${this.username}.`);
+					ChatHandler.send(WIFI_ROOM, `/modnote ${user}'s scammer flag was removed by ${this.username}.`);
 				}
 
 				return this.reply("User's flag has been successfully updated.");
@@ -912,7 +912,7 @@ module.exports = {
 			let match = /^(.+?) started a (.+?) giveaway for (.+?)$/.exec(message);
 
 			if (match) {
-				if (match[2] !== 'GTS') Connection.send(`${WIFI_ROOM}|It's Giveaway Time!`);
+				if (match[2] !== 'GTS') ChatHandler.send(WIFI_ROOM, `It's Giveaway Time!`);
 				if (clonerList.data[toId(match[3])]) {
 					clonerList.data[toId(match[3])].date = Date.now();
 					clonerList.writeList();

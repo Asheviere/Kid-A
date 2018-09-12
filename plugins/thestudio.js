@@ -49,7 +49,7 @@ module.exports = {
 
 				await db.hmset(key, 'artist', artist, 'title', title, 'link', link, 'user', this.username, 'tags', tagStr);
 
-				Connection.send(`${THE_STUDIO}|/modnote ${this.username} added a song rec for '${artist} - ${title}'`);
+				ChatHandler.send(THE_STUDIO, `/modnote ${this.username} added a song rec for '${artist} - ${title}'`);
 				return this.reply("Song recommendation added.");
 			},
 		},
@@ -78,7 +78,7 @@ module.exports = {
 
 				await db.del(key);
 
-				Connection.send(`${THE_STUDIO}|/modnote ${this.username} removed the song rec for '${artist} - ${title}'`);
+				ChatHandler.send(THE_STUDIO, `/modnote ${this.username} removed the song rec for '${artist} - ${title}'`);
 				return this.reply("Song recommendation deleted.");
 			},
 		},

@@ -269,10 +269,10 @@ class ChatHandler {
 				let autojoin = await this.settings.lrange('autojoin', 0, -1);
 
 				if (!(Config.rooms.includes(toJoin) || (autojoin && autojoin.includes(toJoin)))) {
-					if (toJoin.includes('groupchat')) return Connection.send(`|/pm ${userstr.substr[1]}, Kid A is currently unsupported in groupchats.`);
+					if (toJoin.includes('groupchat')) return this.sendPM(userstr.substr[1], `Kid A is currently unsupported in groupchats.`);
 					this.settings.rpush('autojoin', toJoin);
-					Connection.send(`|/join ${toJoin}`);
-					Connection.send(`|/pm ${userstr.substr[1]}, For an introduction on how to use Kid A in your room, see ${server.url}intro.html`);
+					this.send(null, `/join ${toJoin}`);
+					this.sendPM(userstr.substr[1], `For an introduction on how to use Kid A in your room, see ${server.url}intro.html`);
 					return;
 				}
 			}
@@ -335,7 +335,7 @@ class ChatHandler {
 		let inbox = this.mail.get(userid);
 		if (Array.isArray(inbox)) {
 			for (let {sender, message, time} of inbox) {
-				Connection.send(`|/pm ${userid}, [${toDurationString(Date.now() - time)} ago] **${sender}**: ${message}`);
+				this.sendPM(userid, `[${toDurationString(Date.now() - time)} ago] **${sender}**: ${message}`);
 			}
 			delete this.mail.data[userid];
 			this.mail.write();
@@ -386,7 +386,7 @@ class ChatHandler {
 		repl.on('line', input => {
 			// Only command currently supported is /send, allowing you to send messages from the bot.
 			if (input.startsWith('/send ')) {
-				Connection.send(input.slice(6));
+				this.send(...input.slice(6).split(','));
 			} else {
 				let ret;
 				try {
@@ -402,7 +402,7 @@ class ChatHandler {
 	}
 
 	sendPM(user, message) {
-		Connection.send(`|/w ${user}, ${message}`);
+		Connection.send(`|/pm ${user}, ${message}`);
 	}
 
 	send(room, message) {

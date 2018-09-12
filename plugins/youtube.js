@@ -29,7 +29,7 @@ class YoutubePlugin {
 		setInterval(async () => {
 			if (!this.cache.size) return;
 			const html = await this.getHTML(this.getRandomId());
-			Connection.send(`${YOUTUBE_ROOM}|/adduhtml channelrepeat, ${html}`);
+			ChatHandler.send(YOUTUBE_ROOM, `/adduhtml channelrepeat, ${html}`);
 		}, REPEAT_INTERVAL);
 	}
 
@@ -149,7 +149,7 @@ module.exports = {
 				if (!username) username = 'false';
 				if (!(await plugin.addChannel(channelId, username))) return this.reply(`Invalid channel id: ${channelId}`);
 
-				Connection.send(`${YOUTUBE_ROOM}|/modnote ${this.username} added a youtube channel${username !== 'false' ? ` for ${username}` : ''}: ${YT_ROOT}channel/${channelId}`);
+				ChatHandler.send(YOUTUBE_ROOM, `/modnote ${this.username} added a youtube channel${username !== 'false' ? ` for ${username}` : ''}: ${YT_ROOT}channel/${channelId}`);
 				return this.reply("Channel successfully added.");
 			},
 		},
@@ -163,7 +163,7 @@ module.exports = {
 
 				if (!(await plugin.removeChannel(message))) return this.reply("Channel not found in database.");
 
-				Connection.send(`${YOUTUBE_ROOM}|/modnote ${this.username} removed a youtube channel: ${YT_ROOT}channel/${message}`);
+				ChatHandler.send(YOUTUBE_ROOM, `/modnote ${this.username} removed a youtube channel: ${YT_ROOT}channel/${message}`);
 				return this.reply("Channel successfully removed.");
 			},
 		},
@@ -188,7 +188,7 @@ module.exports = {
 			async action() {
 				if (!plugin.cache.size) return this.reply("There are no channels in the database.");
 				const html = await plugin.getHTML(plugin.getRandomId());
-				Connection.send(`${YOUTUBE_ROOM}|/${this.room ? 'addhtmlbox' : `pminfobox ${this.userid},`} ${html}`);
+				ChatHandler.send(YOUTUBE_ROOM, `/${this.room ? 'addhtmlbox' : `pminfobox ${this.userid},`} ${html}`);
 			},
 		},
 		viewchannels: {
@@ -201,7 +201,7 @@ module.exports = {
 		channelhelp: {
 			rooms: [YOUTUBE_ROOM],
 			async action() {
-				Connection.send(`${YOUTUBE_ROOM}|/${this.canUse(1) ? `addhtmlbox` : `pminfobox ${this.userid},`} <p style="font-weight:bold;">Youtube channel plugin commands:</p>` +
+				ChatHandler.send(YOUTUBE_ROOM, `/${this.canUse(1) ? `addhtmlbox` : `pminfobox ${this.userid},`} <p style="font-weight:bold;">Youtube channel plugin commands:</p>` +
 					`<p><code>.addchannel channel id, [username]</code> - Adds a channel to the database. Username is the PS username of the channel owner. Omit the username argument if this is a channel that isn't owned by a PS user. Requires @ or #.</p>` +
 					`<p><code>.removechannel channel id</code> - Removes the channel with this channel id from the database. Requires @ or #.</p>` +
 					`<p><code>.updatechannel channel id, new username</code> - Updates the PS username attached to the channel with the given channel id. Requires @ or #.</p>` +

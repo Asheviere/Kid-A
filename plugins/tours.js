@@ -53,7 +53,7 @@ module.exports = {
 			if (prizes[2] < 0) prizes[2] = 0;
 			if (rounds > 5) prizes[0] += rounds - 4;
 
-			Connection.send(`${roomid}|/wall Winner: ${winner} (${prizes[0]} point${prizes[0] !== 1 ? 's' : ''}). Runner-up: ${runnerup} (${prizes[1]} point${prizes[1] !== 1 ? 's' : ''})${semifinalists.length ? `. Semi-finalists: ${semifinalists.join(', ')} (${prizes[2]} point${prizes[2] !== 1 ? 's' : ''})` : ''}`);
+			ChatHandler.send(roomid, `/wall Winner: ${winner} (${prizes[0]} point${prizes[0] !== 1 ? 's' : ''}). Runner-up: ${runnerup} (${prizes[1]} point${prizes[1] !== 1 ? 's' : ''})${semifinalists.length ? `. Semi-finalists: ${semifinalists.join(', ')} (${prizes[2]} point${prizes[2] !== 1 ? 's' : ''})` : ''}`);
 
 			const top8 = [];
 			if (rounds > 4) {
@@ -69,7 +69,7 @@ module.exports = {
 					}
 				}
 
-				Connection.send(`${roomid}|/wall Quarterfinalists (1 point): ${top8.join(', ')}`);
+				ChatHandler.send(roomid, `/wall Quarterfinalists (1 point): ${top8.join(', ')}`);
 			}
 
 			let db = redis.useDatabase('tours');
@@ -157,7 +157,7 @@ module.exports = {
 				if (await this.settings.hexists('whitelist:tourhelpers', toId(message))) return this.reply("This user is already whitelisted.");
 
 				await this.settings.hset('whitelist:tourhelpers', toId(message), message);
-				Connection.send(`${WIFI_ROOM}|/modnote ${toId(message)} was whitelisted as a tour helper by ${this.username}.`);
+				ChatHandler.send(WIFI_ROOM, `/modnote ${toId(message)} was whitelisted as a tour helper by ${this.username}.`);
 				return this.reply("User successfully whitelisted.");
 			},
 		},
@@ -172,7 +172,7 @@ module.exports = {
 				if (!await this.settings.hexists('whitelist:tourhelpers', toId(message))) return this.reply("This user isn't whitelisted.");
 
 				await this.settings.hdel('whitelist:tourhelpers', toId(message));
-				Connection.send(`${WIFI_ROOM}|/modnote ${toId(message)} was unwhitelisted as a tour helper by ${this.username}.`);
+				ChatHandler.send(WIFI_ROOM, `/modnote ${toId(message)} was unwhitelisted as a tour helper by ${this.username}.`);
 				return this.reply("User successfully removed from the whitelist.");
 			},
 		},
@@ -255,7 +255,7 @@ module.exports = {
 
 				await Promise.all(promises);
 
-				Connection.send(`${WIFI_ROOM}|/modnote ${this.username} reset the tour points.`);
+				ChatHandler.send(WIFI_ROOM, `/modnote ${this.username} reset the tour points.`);
 				return this.reply(`Points reset.`);
 			},
 		},

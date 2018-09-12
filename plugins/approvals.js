@@ -181,8 +181,8 @@ module.exports = {
 
 				pendingApprovals.set(room, data);
 
-				Connection.send(`${room}|${this.username} wishes to have a link approved!`);
-				Connection.send(`${room}|/modnote ${this.username} wishes to get approval to post '${url}' in the room${description ? ` (${description})` : ''}. Type .approve or .reject to handle the request.`);
+				ChatHandler.send(room, `${this.username} wishes to have a link approved!`);
+				ChatHandler.send(room, `/modnote ${this.username} wishes to get approval to post '${url}' in the room${description ? ` (${description})` : ''}. Type .approve or .reject to handle the request.`);
 			},
 		},
 		approve: {
@@ -228,7 +228,7 @@ module.exports = {
 				let {user} = pendingApprovals.get(this.room);
 				pendingApprovals.delete(this.room);
 
-				Connection.send(`|/pm ${user}, Your link was rejected.`);
+				ChatHandler.sendPM(user, `Your link was rejected.`);
 				return this.reply(`/modnote ${this.username} rejected ${user}'s link.`);
 			},
 		},
@@ -250,7 +250,7 @@ module.exports = {
 				if (await settings.hexists(`whitelist:${room}`, toId(user))) return this.reply("This user is already whitelisted.");
 
 				await settings.hset(`whitelist:${room}`, toId(user), user);
-				Connection.send(`${room}|/modnote ${toId(user)} was whitelisted for links by ${this.username}.`);
+				ChatHandler.send(room, `/modnote ${toId(user)} was whitelisted for links by ${this.username}.`);
 				return this.reply("User successfully whitelisted.");
 			},
 		},
@@ -272,7 +272,7 @@ module.exports = {
 				if (!(await settings.hexists(`whitelist:${room}`, toId(user)))) return this.reply("This user isn't whitelisted.");
 
 				await settings.hdel(`whitelist:${room}`, toId(user));
-				Connection.send(`${room}|/modnote ${toId(user)} was unwhitelisted for links list by ${this.username}.`);
+				ChatHandler.send(room, `/modnote ${toId(user)} was unwhitelisted for links list by ${this.username}.`);
 				return this.reply("User successfully removed from the whitelist.");
 			},
 		},
@@ -299,7 +299,7 @@ module.exports = {
 					if (toId(rest[0]) === 'clear') {
 						dailyCache.deleteProperty(room, key);
 						dailyCache.write();
-						return Connection.send(`${room}|/modnote The daily ${key} was cleared by ${this.username}`);
+						return ChatHandler.send(room, `/modnote The daily ${key} was cleared by ${this.username}`);
 					}
 					if (validUrl.isWebUri(rest[0].trim())) {
 						image = rest[0].trim();
@@ -308,7 +308,7 @@ module.exports = {
 					text = rest.join(',').trim();
 					dailyCache.setProperty(room, key, {text: text, image: image});
 					dailyCache.write();
-					Connection.send(`${room}|/modnote ${this.username} set the daily ${key} to '${text}'${image ? ` (${image})` : ''}`);
+					ChatHandler.send(room, `/modnote ${this.username} set the daily ${key} to '${text}'${image ? ` (${image})` : ''}`);
 				} else {
 					if (this.canUse(1)) permission = true;
 					if (!(key in dailyCache.get(room))) return this.pmreply("Invalid topic");
@@ -338,7 +338,7 @@ module.exports = {
 
 				if (this.room && permission) return this.reply(`/addhtmlbox ${html}`);
 
-				return Connection.send(`${room}|/pminfobox ${this.userid}, ${html}`);
+				return ChatHandler.send(room, `/pminfobox ${this.userid}, ${html}`);
 			},
 		},
 	},
@@ -351,7 +351,7 @@ module.exports = {
 				if (validUrl.isWebUri(match[0])) {
 					if (match[0].includes("deviantart.com")) continue; // dA links render as images for some reason
 					let dimensions = await fitImage(match[0], 120, 500).catch(() => {});
-					if (dimensions) return Connection.send(`${this.room}|/addhtmlbox <a href="${match[0]}"><img src="${match[0]}" width="${dimensions[0]}" height="${dimensions[1]}"/></a>`);
+					if (dimensions) return ChatHandler.send(this.room, `/addhtmlbox <a href="${match[0]}"><img src="${match[0]}" width="${dimensions[0]}" height="${dimensions[1]}"/></a>`);
 				}
 			}
 		},

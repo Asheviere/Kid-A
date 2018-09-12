@@ -39,7 +39,7 @@ module.exports = {
 			user = toId(user);
 
 			if (cache.get('declare').msg && !cache.get('notified').hasOwnProperty(user) && this.userlists[room] && this.userlists[room][user][0] === '#') {
-				Connection.send(`|/pm ${user}, ${cache.get('declare').msg}`);
+				ChatHandler.sendPM(user, cache.get('declare').msg);
 				cache.setProperty('notified', user, 1);
 				cache.write();
 			}

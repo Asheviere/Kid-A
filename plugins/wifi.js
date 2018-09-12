@@ -29,8 +29,8 @@ function renderEditor(room, query) {
 
 function saveEdits(data, room, tokenData, query) {
 	fs.writeFile(`./public/${room}/${query.name}.html`, data, err => {
-		if (err) return Connection.send(`|/pm ${tokenData.user}, Something went wrong saving the file.`);
-		Connection.send(`${room}|/modnote ${tokenData.user} updated ${query.name}.html`);
+		if (err) return ChatHandler.sendPM(tokenData.user, `Something went wrong saving the file.`);
+		ChatHandler.send(room, `/modnote ${tokenData.user} updated ${query.name}.html`);
 	});
 }
 
@@ -76,7 +76,7 @@ module.exports = {
 
 				await tsvs.append(name, tsv);
 
-				Connection.send(`${WIFI_ROOM}|/modnote ${this.username} added a TSV for ${name}: ${tsv}`);
+				ChatHandler.send(WIFI_ROOM, `/modnote ${this.username} added a TSV for ${name}: ${tsv}`);
 				this.reply("TSV successfully added.");
 			},
 		},
@@ -116,7 +116,7 @@ module.exports = {
 					await tsvs.del(name);
 				}
 
-				Connection.send(`${WIFI_ROOM}|/modnote ${this.username} deleted a TSV for ${name}`);
+				ChatHandler.send(WIFI_ROOM, `/modnote ${this.username} deleted a TSV for ${name}`);
 				this.reply("TSV successfully deleted.");
 			},
 		},

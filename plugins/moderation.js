@@ -51,13 +51,13 @@ async function punish(username, room, val, msg) {
 	}
 
 	if (points >= 3 && (await checkMuted(room, userid))) {
-		return Connection.send(`${room}|/rb ${userid}, Bot moderation: repeated offenses.${extraMsg}`);
+		return ChatHandler.send(room, `/rb ${userid}, Bot moderation: repeated offenses.${extraMsg}`);
 	}
 
 	if (points === 1) {
-		Connection.send(`${room}|${username}, ${msg}`);
+		ChatHandler.send(room, `${username}, ${msg}`);
 	} else {
-		Connection.send(`${room}|/${getPunishment(points)} ${userid}, Bot moderation: ${msg}${extraMsg}`);
+		ChatHandler.send(room, `/${getPunishment(points)} ${userid}, Bot moderation: ${msg}${extraMsg}`);
 	}
 
 	if (punishments.has(`${room}:${userid}`)) {
@@ -147,7 +147,7 @@ module.exports = {
 				if (notol.includes(userid)) return this.pmreply("This user is already marked as zero tolerance.");
 
 				this.settings.rpush(`${this.room}:notol`, userid);
-				Connection.send(`${this.room}|/modnote ${userid} was marked as zero tolerance by ${this.username}.`);
+				ChatHandler.send(this.room, `/modnote ${userid} was marked as zero tolerance by ${this.username}.`);
 			},
 		},
 		removenotol: {
@@ -158,7 +158,7 @@ module.exports = {
 				if (!userid) return this.pmreply("No username entered. Syntax: ``.removenotol <username>``");
 
 				if ((await this.settings.lrem(`${this.room}:notol`, 0, userid))) {
-					Connection.send(`${this.room}|/modnote ${userid} was unmarked as zero tolerance by ${this.username}.`);
+					ChatHandler.send(this.room, `/modnote ${userid} was unmarked as zero tolerance by ${this.username}.`);
 				} else {
 					this.pmreply("This user isn't marked as zero tolerance.");
 				}
