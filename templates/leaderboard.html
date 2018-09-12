@@ -8,11 +8,14 @@
     
     <body>
         <div class="container">
+            {{#if tourHelpers}}
+                <h3><b>Tour Helpers:</b> {{tourHelpers}}</h3>
+            {{/if}}
 			<table>
                 <tr class="header">
                     <th>Username</th><th>Points to Spend</th><th>Total Points Earned</th>
                 </tr>
-                {{#each this}}
+                {{#each data}}
                     <tr>
                     {{#each this}}
                         <td>

@@ -264,7 +264,7 @@ async function leaderboardGenerator() {
 		data.push([entry.username, entry.points, entry.total]);
 	}
 	data = data.sort((a, b) => a[0].localeCompare(b[0]));
-	return data;
+	return {tourHelpers: (await settings.hvals('whitelist:tourhelpers')).join(', '), data: data};
 }
 
 new Page('tournament', tournamentGenerator, 'tournament.html', {rooms: [WIFI_ROOM]});
