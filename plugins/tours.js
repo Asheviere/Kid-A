@@ -124,8 +124,13 @@ module.exports = {
 					if (rated) {
 						ChatHandler.send(WIFI_ROOM, `/tour name ${format} Leaderboard Tournament`);
 						ChatHandler.send(WIFI_ROOM, `/tour scouting disallow`);
+						ChatHandler.send(WIFI_ROOM, `/wall Tournament Points will be awarded this tournament, these can be spent on tournament prizes throughout the month!`);
 					}
 					return;
+				case 'end':
+					if (!(this.canUse(2) || await this.settings.hexists('whitelist:tourhelpers', this.userid))) return this.pmreply("Permission denied.");
+
+					return ChatHandler.send(WIFI_ROOM, `/tour end`);
 				case 'leaderboard':
 					if (!rest) {
 						const leaderboardFormat = await settings.hget(`${WIFI_ROOM}:leaderboard`, 'format');
