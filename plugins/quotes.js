@@ -26,7 +26,7 @@ async function editQuotes(data, room) {
 
 async function quoteGenerator(room, query, tokenData) {
 	let quotes = await quotedata.lrange(room, 0, -1);
-	if (!tokenData && Handler.privateRooms.has(room)) return 'Private Room quotes require an access token to be viewed.';
+	if (!tokenData && ChatHandler.privateRooms.has(room)) return 'Private Room quotes require an access token to be viewed.';
 
 	return {room: room, data: quotes, permission: tokenData.quotes};
 }
@@ -93,7 +93,7 @@ module.exports = {
 				}
 				if (await quotedata.exists(this.room)) {
 					const permission = (pm && this.canUse(5));
-					const url = quotePage.getUrl(this.room, this.userid, permission, {}, !(Handler.privateRooms.has(this.room) || permission));
+					const url = quotePage.getUrl(this.room, this.userid, permission, {}, !(ChatHandler.privateRooms.has(this.room) || permission));
 					if (pm) {
 						return this.pmreply(`Quote page for ${this.room}: ${url}`);
 					}

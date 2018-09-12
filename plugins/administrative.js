@@ -148,15 +148,15 @@ module.exports = {
 					if (!this.getRoomAuth(room)) return;
 				}
 
-				if (Handler.privateRooms.has(room)) {
+				if (ChatHandler.privateRooms.has(room)) {
 					if (!(await this.settings.lrem('privaterooms', 0, room))) return this.reply("This room is set as private in the bot's config files. Please contact the bot owner if you wish to unprivate your room.");
 
-					Handler.privateRooms.delete(room);
+					ChatHandler.privateRooms.delete(room);
 					return this.reply(`The room ${room} was successfully unprivated.`);
 				}
 
 				await this.settings.rpush('privaterooms', room);
-				Handler.privateRooms.add(room);
+				ChatHandler.privateRooms.add(room);
 				return this.reply(`The room ${room} was successfully made private.`);
 			},
 		},

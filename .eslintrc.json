@@ -4,7 +4,7 @@
 		"node": true
 	},
 	"globals": {
-		"Config": false, "toId": false, "Tools": false, "Output": false, "Debug": false, "Handler": false, "Utils": false,
+		"Config": false, "toId": false, "Tools": false, "Output": false, "Debug": false, "ChatHandler": false, "Utils": false,
 		"Connection": false, "canUse": false, "Commands": false, "Server": false, "ChatLogger": false
 	},
 	"parserOptions": {

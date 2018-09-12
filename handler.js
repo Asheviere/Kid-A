@@ -11,11 +11,12 @@ let settings = redis.useDatabase('settings');
 
 const userlists = {};
 
+const chatHandler = global.ChatHandler = commandParser.new(userlists, settings);
+
 module.exports = {
 	toJoin: [],
-	privateRooms: Config.privateRooms,
 	userlists: userlists,
-	chatHandler: commandParser.new(userlists, settings),
+	chatHandler: chatHandler,
 
 	async setup(assertion) {
 		this.send(null, `/avatar ${Config.avatar}`);
@@ -24,7 +25,6 @@ module.exports = {
 		Array.prototype.push.apply(this.toJoin, Config.rooms);
 
 		let autojoin = await settings.lrange('autojoin', 0, -1);
-		let privateRooms = await settings.lrange('privaterooms', 0, -1);
 
 		if (autojoin && autojoin.length) {
 			Array.prototype.push.apply(
@@ -32,8 +32,6 @@ module.exports = {
 				autojoin.filter(r => !this.toJoin.includes(r))
 			);
 		}
-
-		if (privateRooms) privateRooms.forEach(val => this.privateRooms.add(val));
 
 		Debug.log(3, `Joining rooms: ${this.toJoin.join(', ')}`);
 

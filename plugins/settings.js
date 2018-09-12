@@ -14,7 +14,7 @@ async function changeSettings(settings, room) {
 	let options = await db.lrange(`${room}:options`, 0, -1);
 	let disabled = await db.lrange(`${room}:disabledCommands`, 0, -1);
 	for (let key in settings) {
-		if (key in Handler.chatHandler.commands && !Handler.chatHandler.commands[key].hidden) {
+		if (key in ChatHandler.commands && !ChatHandler.commands[key].hidden) {
 			if (settings[key]) {
 				if (!disabled.includes(key)) {
 					disabled.push(key);
@@ -29,7 +29,7 @@ async function changeSettings(settings, room) {
 					changed = true;
 				}
 			}
-		} else if (Handler.chatHandler.options.has(key)) {
+		} else if (ChatHandler.options.has(key)) {
 			if (settings[key]) {
 				if (!options.includes(key)) {
 					options.push(key);
@@ -58,17 +58,17 @@ async function changeSettings(settings, room) {
 }
 
 async function settingsGenerator(room) {
-	if (!(room && room in Handler.chatHandler.settings)) return `Room '${room}' has no available settings.`;
+	if (!(room && room in ChatHandler.settings)) return `Room '${room}' has no available settings.`;
 
 	let enabledOptions = await db.lrange(`${room}:options`, 0, -1);
 	let disabled = await db.lrange(`${room}:disabledCommands`, 0, -1);
 
 	let options = [];
-	Handler.chatHandler.options.forEach(val => {
+	ChatHandler.options.forEach(val => {
 		options.push({name: val, checked: enabledOptions.includes(val)});
 	});
 
-	let commands = Object.keys(Handler.chatHandler.commands).filter(cmd => !(Handler.chatHandler.commands[cmd].hidden || (Handler.chatHandler.commands[cmd].rooms && !Handler.chatHandler.commands[cmd].rooms.includes(room)))).map(val => ({name: val, checked: disabled.includes(val)}));
+	let commands = Object.keys(ChatHandler.commands).filter(cmd => !(ChatHandler.commands[cmd].hidden || (ChatHandler.commands[cmd].rooms && !ChatHandler.commands[cmd].rooms.includes(room)))).map(val => ({name: val, checked: disabled.includes(val)}));
 
 	return {room: room, options: options, commands: commands};
 }

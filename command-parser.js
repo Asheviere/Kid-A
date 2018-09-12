@@ -152,10 +152,15 @@ class ChatHandler {
 		this.commandQueue = [];
 		this.parsing = false;
 		this.mail = new Cache('mail');
+		this.privateRooms = Config.privateRooms;
+
+		settings.lrange('privaterooms', 0, -1).then(prooms => {
+			if (prooms) prooms.forEach(val => this.privateRooms.add(val));
+		});
 
 		this.dataResolver = async (req, res) => {
 			let room = req.originalUrl.split('/')[1];
-			if (Handler.privateRooms.has(room)) {
+			if (this.privateRooms.has(room)) {
 				let query = Page.parseURL(req.url);
 				let token = query.token;
 				if (!token) return res.end('Private room data requires an access token to be viewed.');
@@ -379,7 +384,7 @@ class ChatHandler {
 			} else {
 				let ret;
 				try {
-					ret = JSON.stringify(eval.bind(Handler.chatHandler)(input));
+					ret = JSON.stringify(eval.bind(this)(input));
 					if (ret === undefined) return;
 					console.log(ret);
 				} catch (e) {

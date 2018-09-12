@@ -2,6 +2,8 @@
 
 const WebSocketClient = require('websocket').client;
 
+const handler = require('./handler.js');
+
 const RETRY_TIME = 10; // Time (in seconds) before the bot retries a failed connection.
 
 function connect() {
@@ -24,7 +26,7 @@ function connect() {
 			setTimeout(connect, RETRY_TIME * 1000);
 		});
 		connection.on('message', message => {
-			Handler.parse(message.utf8Data);
+			handler.parse(message.utf8Data);
 		});
 	});
 

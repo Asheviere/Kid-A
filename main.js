@@ -32,11 +32,11 @@ if (process.argv.length > 2) {
 }
 
 global.ChatLogger = require('./chat-logger.js');
-global.Handler = require('./handler.js');
+require('./handler.js');
 
 // After bootstrapping our databases, start serving our public data over
 // HTTP/HTTPS.
-const server = require('./server.js'); // eslint-disable-line no-unused-vars
+require('./server.js');
 
 // Finally, open the connection to the Pokemon Showdown server.
 global.Connection = null;

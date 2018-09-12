@@ -104,7 +104,7 @@ class WifiList {
 					if (parseInt(this.data[a].score) < parseInt(this.data[b].score)) return 1;
 				}
 				return a.localeCompare(b);
-			}).map(val => ({data: this.data[val], online: (!this.noOnlinePage && (Handler.userlists[WIFI_ROOM] && (val in Handler.userlists[WIFI_ROOM] || (this.data[val].alts && this.data[val].alts.split(',').map(val => toId(val)).filter(val => val in Handler.userlists[WIFI_ROOM]).length))))}));
+			}).map(val => ({data: this.data[val], online: (!this.noOnlinePage && (ChatHandler.userlists[WIFI_ROOM] && (val in ChatHandler.userlists[WIFI_ROOM] || (this.data[val].alts && this.data[val].alts.split(',').map(val => toId(val)).filter(val => val in ChatHandler.userlists[WIFI_ROOM]).length))))}));
 
 			return data;
 		};
@@ -253,7 +253,7 @@ class WifiList {
 							db.hincrby(`${WIFI_ROOM}:${i}`, 'total', tp);
 						}
 
-						Handler.chatHandler.sendMail('Kid A', i, `You have received ${tp} TP for your cloning efforts this month.`);
+						ChatHandler.sendMail('Kid A', i, `You have received ${tp} TP for your cloning efforts this month.`);
 					});
 				}
 
@@ -262,7 +262,7 @@ class WifiList {
 			let date = parseInt(this.data[i].date);
 			if (!isNaN(date) && date < limit) {
 				removed.push(i);
-				Handler.chatHandler.sendMail('Kid A', i, `You have been removed from the ${this.name} list due to inactivity.`);
+				ChatHandler.sendMail('Kid A', i, `You have been removed from the ${this.name} list due to inactivity.`);
 				if (this.name === 'cloners') {
 					if (!notes[i]) notes[i] = {};
 					notes[i][Date.now()] = ['', "Purged from the list."];
