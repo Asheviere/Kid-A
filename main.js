@@ -1,7 +1,7 @@
 'use strict';
 
-process.on('uncaughtException', err => Output.errorMsg(err.stack));
-process.on('unhandledRejection', err => Output.errorMsg(err.stack));
+process.on('uncaughtException', err => Output.errorMsg(err, "Uncaught Exception"));
+process.on('unhandledRejection', err => Output.errorMsg(err, "Uncaught Rejection"));
 
 global.Config = require('./config.js');
 

@@ -19,7 +19,7 @@ module.exports = {
 	chatHandler: chatHandler,
 
 	async setup(assertion) {
-		this.send(null, `/avatar ${Config.avatar}`);
+		chatHandler.send(null, `/avatar ${Config.avatar}`);
 		this.userid = toId(Config.username);
 
 		Array.prototype.push.apply(this.toJoin, Config.rooms);
@@ -35,8 +35,8 @@ module.exports = {
 
 		Debug.log(3, `Joining rooms: ${this.toJoin.join(', ')}`);
 
-		this.send(null, `/autojoin ${this.toJoin.slice(0, 11).join(',')}`);
-		this.send(null, `/trn ${Config.username},0,${assertion}`);
+		chatHandler.send(null, `/autojoin ${this.toJoin.slice(0, 11).join(',')}`);
+		chatHandler.send(null, `/trn ${Config.username},0,${assertion}`);
 
 		this.extraJoin = this.toJoin.slice(11);
 
@@ -76,7 +76,7 @@ module.exports = {
 		}
 		if (!this.extraJoin.length) return;
 
-		setTimeout(() => this.send(null, `/join ${this.extraJoin[0]}`), 500);
+		setTimeout(() => chatHandler.send(null, `/join ${this.extraJoin[0]}`), 500);
 	},
 
 	async parse(message) {
@@ -181,15 +181,4 @@ module.exports = {
 			Debug.log(5, `Unsupported message type: ${split[1]}`);
 		}
 	},
-
-	sendPM(user, message) {
-		Connection.send(`|/w ${user}, ${message}`);
-	},
-
-	send(room, message) {
-		Connection.send(`${room || ''}|${message}`);
-	},
 };
-
-chatHandler.send = module.exports.send;
-chatHandler.sendPM = module.exports.sendPM;

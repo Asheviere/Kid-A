@@ -15,10 +15,6 @@ const MONTH = 31 * 24 * 60 * 60 * 1000;
 
 const dataCache = {};
 
-function sendPM(userid, message) {
-	Connection.send(`|/pm ${userid}, ${message}`);
-}
-
 function canUse(permission, userid, auth, pm = false) {
 	if (Config.admins.has(userid)) return true;
 	switch (auth) {
@@ -68,25 +64,35 @@ class CommandWrapper {
 		this.userid = toId(userstr);
 		this.room = room;
 		this.options = await this.settings.lrange(`${room}:options`, 0, -1);
+		this.pm = !room;
 		let command = this.commands[cmd];
 
 		if (command.permission && !this.canUse(command.permission)) return this.pmreply("Permission denied.");
-		if (command.disallowPM && !room) return this.pmreply("This command cannot be used in PMs.");
+		if (command.disallowPM && this.pm) return this.pmreply("This command cannot be used in PMs.");
 		if (room && room.includes('groupchat') && !command.allowGroupchats) return this.pmreply("This command cannot be used in groupchats.");
 		if (room && command.rooms && !command.rooms.includes(room)) return;
+
+		if (command.requireRoom && this.pm) {
+			let [roomid, ...rest] = message.split(',');
+			roomid = toId(roomid);
+			if (!roomid || !this.userlists[roomid]) return this.reply(`Invalid room supplied: ${roomid}`);
+			this.room = roomid;
+			if (!this.getRoomAuth(this.room)) return;
+			message = rest.join(',').trim();
+		}
 
 		command.action.apply(this, [message]).catch(err => Output.errorMsg(err, 'Error in Command', {user: this.username, room: this.room}));
 	}
 
 	reply(message) {
-		if (!this.room) {
+		if (this.pm) {
 			return this.pmreply(message);
 		}
-		Connection.send(this.room + '|' + message.replace(/trigger/g, 't⁠igger'));
+		global.ChatHandler.send(this.room, `|${message}`);
 	}
 
 	pmreply(message) {
-		sendPM(this.userid, message);
+		global.ChatHandler.sendPM(this.userid, message);
 	}
 
 	getRoomAuth(room) {
@@ -272,7 +278,7 @@ class ChatHandler {
 			}
 			if (message.startsWith('/') || message.startsWith('!')) return;
 			Output.log('pm', 'PM from ' + (userstr[0] === ' ' ? userstr.substr(1) : userstr) + ': ' + message);
-			sendPM(userstr, "Hi I'm a chatbot made by bumbadadabum. I moderate rooms, provide chat analytics, and have a few other neat features. For help with using the bot, use ``.help`` for a list of available topics.");
+			this.sendPM(userstr, "Hi I'm a chatbot made by bumbadadabum. I moderate rooms, provide chat analytics, and have a few other neat features. For help with using the bot, use ``.help`` for a list of available topics.");
 		}
 	}
 
@@ -306,7 +312,7 @@ class ChatHandler {
 				this.parsing = false;
 			}
 			if (room) return;
-			return sendPM(username, 'Invalid command.');
+			return this.sendPM(username, 'Invalid command.');
 		}
 
 		let disabled = await this.settings.lrange(`${room}:disabledCommands`, 0, -1);
@@ -393,6 +399,14 @@ class ChatHandler {
 			}
 			repl.prompt();
 		});
+	}
+
+	sendPM(user, message) {
+		Connection.send(`|/w ${user}, ${message}`);
+	}
+
+	send(room, message) {
+		Connection.send(`${room || ''}|${message}`);
 	}
 }
 

@@ -171,7 +171,7 @@ module.exports = {
 				}
 				labels.push(i);
 			}
-			output = `<h3>Average lines of chat per hour of the day (Times are GMT):</h3><div id="activity"></div>`;
+			let output = `<h3>Average lines of chat per hour of the day (Times are GMT):</h3><div id="activity"></div>`;
 			output += `<script>createBarGraph(${JSON.stringify(labels)}, ${JSON.stringify(data)}, '#activity', 10)</script>`;
 			output += `<h3>Total number of unique users in the past 30 days: <u>${await ChatLogger.getUniqueUsers(room)}</u></h3>`;
 

@@ -29,6 +29,7 @@ module.exports = {
 			},
 		},
 		data: {
+			requireRoom: true,
 			async action() {
 				if ((await this.data.keys(`*:${this.room}`)).length) {
 					let fname = `${this.room}/data`;
