@@ -2,10 +2,10 @@
 
 const Page = require('../page.js');
 const redis = require('../redis.js');
-const server = require('../server.js');
-const utils = require('../utils.js');
 
 const WIFI_ROOM = 'wifi';
+const DECAY_CAP = 50;
+const EXPIRATION_TIMER = 2 * 30 * 24 * 60 * 60 * 1000;
 
 const settings = redis.useDatabase('settings');
 
@@ -92,6 +92,7 @@ module.exports = {
 
 				db.hincrby(`${roomid}:${userid}`, 'points', prize);
 				db.hincrby(`${roomid}:${userid}`, 'total', prize);
+				db.hset(`${roomid}:${userid}`, 'timestamp', Date.now());
 			}
 		},
 	},
@@ -198,6 +199,7 @@ module.exports = {
 
 				await db.hincrby(`${WIFI_ROOM}:${userid}`, 'points', points);
 				await db.hincrby(`${WIFI_ROOM}:${userid}`, 'total', points);
+				db.hset(`${WIFI_ROOM}:${userid}`, 'timestamp', Date.now());
 
 				return this.reply(`${points} points added for ${username}.`);
 			},
@@ -241,14 +243,17 @@ module.exports = {
 				}
 				if (!(this.canUse(5))) return this.pmreply("Permission denied.");
 
-				let db = redis.useDatabase('tours');
+				const db = redis.useDatabase('tours');
 				let keys = await db.keys(`${WIFI_ROOM}:*`);
 
 				let promises = keys.map(async key => {
 					const entry = await db.hgetall(key);
-					if (entry.points > 50) {
-						await db.hset(key, 'points', 50);
-						this.sendMail('Kid A', key.split(':')[1], `Your tournament points have been reset. You now have 50 points.`);
+					if (entry.points > DECAY_CAP) {
+						db.hset(key, 'points', DECAY_CAP);
+						this.sendMail('Kid A', key.split(':')[1], `Your tournament points have decayed! You now have ${DECAY_CAP} points.`);
+					} else if (entry.timestamp && entry.timestamp + EXPIRATION_TIMER) {
+						db.del(key);
+						this.sendMail('Kid A', key.split(':')[1], `Your tournament points have expired.`);
 					}
 					return true;
 				});
