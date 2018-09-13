@@ -88,7 +88,7 @@ class CommandWrapper {
 		if (this.pm) {
 			return this.pmreply(message);
 		}
-		global.ChatHandler.send(this.room, `|${message}`);
+		global.ChatHandler.send(this.room, message);
 	}
 
 	pmreply(message) {
