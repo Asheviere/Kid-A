@@ -33,7 +33,7 @@ class Cache {
 	}
 
 	write() {
-		fs.writeFileSync(`./cache/${this.name}.json`, JSON.stringify(this.data));
+		fs.writeFile(`./cache/${this.name}.json`, JSON.stringify(this.data), () => {});
 	}
 }
 

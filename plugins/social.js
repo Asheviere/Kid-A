@@ -28,6 +28,7 @@ async function editRepeats(data) {
 		clearTimeout(repeatTimers[key]);
 		cache.deleteProperty('repeats', key);
 		delete repeatTimers[key];
+		Debug.log(1, `Deleting repeat ${key}, all keys: ${Object.keys(cache.get('repeats')).join(', ')}`);
 	}
 
 	cache.write();
@@ -77,6 +78,7 @@ function runRepeat(id) {
 	} else {
 		cache.deleteProperty('repeats', id);
 		delete repeatTimers[id];
+		Debug.log(1, `Finished repeat ${id}, all keys: ${Object.keys(cache.get('repeats')).join(', ')}`);
 	}
 
 	cache.write();
@@ -161,6 +163,7 @@ module.exports = {
 				let repeatObj = {msg: repeatMsg, timesLeft: times, interval: interval, room: this.room};
 				cache.setProperty('repeats', id, repeatObj);
 				repeatTimers[id] = setTimeout(() => runRepeat(id), MINUTE * interval);
+				Debug.log(1, `Adding repeat with key ${id}, all keys: ${Object.keys(cache.get('repeats')).join(', ')}`);
 				cache.write();
 				return this.reply(repeatMsg);
 			},
@@ -176,6 +179,7 @@ module.exports = {
 				if (id in cache.get('repeats')) {
 					clearTimeout(repeatTimers[id]);
 					cache.deleteProperty('repeats', id);
+					Debug.log(1, `Deleting repeat with key ${id}, all keys: ${Object.keys(cache.get('repeats')).join(', ')}`);
 					delete repeatTimers[id];
 					this.reply("Stopped repeating this message.");
 					cache.write();
@@ -198,6 +202,8 @@ module.exports = {
 						delete repeatTimers[id];
 					}
 				}
+
+				Debug.log(1, `Deleting all repeats repeat in room ${this.room}, all keys: ${Object.keys(cache.get('repeats')).join(', ')}`);
 
 				cache.write();
 				this.reply("Cleared all repeated messages in this room.");
