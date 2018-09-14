@@ -33,6 +33,7 @@ class Cache {
 	}
 
 	write() {
+		Debug.log(2, `Writing /cache/${this.name}.json. Content: ${JSON.stringify(this.data)}`);
 		fs.writeFile(`./cache/${this.name}.json`, JSON.stringify(this.data), () => {});
 	}
 }
