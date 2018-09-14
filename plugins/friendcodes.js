@@ -6,8 +6,6 @@ const utils = require('../utils.js');
 const WIFI_ROOM = 'wifi';
 const INGAME_ROOM = 'pokemongames';
 
-const FC_REGEX = /[0-9]{4}[- ]?[0-9]{4}[- ]?[0-9]{4}/;
-
 let friendcodes = redis.useDatabase('friendcodes');
 
 const getFCs = async key => (await friendcodes.get(key)).split(':');
@@ -37,9 +35,8 @@ module.exports = {
 				if (!(name && fc)) return this.pmreply("Syntax: ``.addfc name, fc``");
 
 				name = toId(name);
-				if (!FC_REGEX.test(fc.trim())) return this.pmreply("Invalid formatting for Friend Code. format: ``1111-2222-3333``");
-				fc = toId(fc);
-				fc = fc.substr(0, 4) + '-' + fc.substr(4, 4) + '-' + fc.substr(8, 4);
+				fc = Utils.toFc(fc);
+				if (!fc) return this.pmreply("Invalid formatting for Friend Code. format: ``1111-2222-3333``");
 				if (!utils.validateFc(fc)) return this.pmreply("The Friend code you entered is invalid");
 
 				let fcstr = fc;
@@ -77,7 +74,7 @@ module.exports = {
 
 				let [name, ...fcs] = message.split(',').map(param => toId(param));
 
-				fcs = fcs.map(fc => fc.substr(0, 4) + '-' + fc.substr(4, 4) + '-' + fc.substr(8, 4));
+				fcs = fcs.map(fc => Utils.toFc(fc)).filter(fc => !!fc);
 
 				if (await friendcodes.exists(name)) {
 					if (fcs.length) {

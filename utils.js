@@ -1,5 +1,6 @@
 const crypto = require('crypto');
-const fs = require('fs');
+
+const FC_REGEX = /[0-9]{4}[- ]?[0-9]{4}[- ]?[0-9]{4}/;
 
 // Code for FC validation written by Scotteh.
 
@@ -42,6 +43,13 @@ global.Utils = module.exports = {
 	},
 
 	// FC validation
+
+	toFc(text) {
+		if (!FC_REGEX.test(text.trim())) return false;
+		text = toId(text);
+		return `${text.substr(0, 4)}-${text.substr(4, 4)}-${text.substr(8, 4)}`;
+	},
+
 	validateFc(cleanedfc) {
 		let fc = parseInt(cleanedfc.replace(/-/g, ''));
 		if (fc > 0x7FFFFFFFFF) {

@@ -11,8 +11,6 @@ const HOUR = 60 * 60 * 1000;
 const DAY = 24 * HOUR;
 const MONTH = 30 * DAY;
 
-const FC_REGEX = /[0-9]{4}[- ]?[0-9]{4}[- ]?[0-9]{4}/;
-
 const WIFI_ROOM = 'wifi';
 const NOTES_FILE = 'clonernotes.json';
 
@@ -58,9 +56,8 @@ class WifiList {
 					let elem = edits[i][key];
 					if (key === 'fc') {
 						if (!tokenData.permission) continue;
-						if (!FC_REGEX.test(elem)) continue;
-						elem = toId(elem);
-						elem = elem.substr(0, 4) + '-' + elem.substr(4, 4) + '-' + elem.substr(8, 4);
+						elem = Utils.toFc(elem);
+						if (!elem) continue;
 						if (!utils.validateFc(elem)) continue;
 					}
 					this.data[i][key] = elem;
@@ -128,9 +125,9 @@ class WifiList {
 				let split = params[i].split(',').map(param => param.trim());
 
 				for (let [i, fc] of split.entries()) {
-					if (!FC_REGEX.test(fc)) return "Invalid formatting for Friend Code. format: ``1111-2222-3333``";
-					fc = toId(fc);
-					split[i] = `${fc.substr(0, 4)}-${fc.substr(4, 4)}-${fc.substr(8, 4)}`;
+					fc = Utils.toFc(fc);
+					if (!fc) return "Invalid formatting for Friend Code. format: ``1111-2222-3333``";
+					split[i] = fc;
 					if (!utils.validateFc(fc)) return "The Friend code you entered is invalid";
 				}
 
@@ -184,9 +181,9 @@ class WifiList {
 				let split = value.split(',').map(param => param.trim());
 
 				for (let [i, fc] of split.entries()) {
-					if (!FC_REGEX.test(fc)) return "Invalid formatting for Friend Code. format: ``1111-2222-3333``";
-					fc = toId(fc);
-					split[i] = fc.substr(0, 4) + '-' + fc.substr(4, 4) + '-' + fc.substr(8, 4);
+					fc = Utils.toFc(fc);
+					if (!fc) return "Invalid formatting for Friend Code. format: ``1111-2222-3333``";
+					split[i] = fc;
 					if (!utils.validateFc(fc)) return "The Friend code you entered is invalid";
 				}
 
@@ -796,10 +793,9 @@ module.exports = {
 			rooms: [WIFI_ROOM],
 			permission: 1,
 			async action(message) {
-				let id = toId(message);
-				if (!(id.length === 12 && parseInt(id))) return this.reply("Invalid input.");
+				const fc = Utils.toFc(message);
 
-				let fc = `${id.substr(0, 4)}-${id.substr(4, 4)}-${id.substr(8, 4)}`;
+				if (!fc) return this.reply("Syntax error: ``.checkfc friend code``");
 
 				if (!utils.validateFc(fc)) return this.reply("This FC is invalid.");
 
