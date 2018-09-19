@@ -60,11 +60,7 @@ module.exports = {
 				for (let final of data.bracketData.rootNode.children) {
 					for (let semifinal of final.children) {
 						for (let quarterfinal of semifinal.children) {
-							if (quarterfinal.result === 'win') {
-								top8.push(quarterfinal.children[1].team);
-							} else {
-								top8.push(quarterfinal.children[0].team);
-							}
+							top8.push(quarterfinal.team);
 						}
 					}
 				}
