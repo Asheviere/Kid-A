@@ -386,7 +386,8 @@ class ChatHandler {
 		repl.on('line', input => {
 			// Only command currently supported is /send, allowing you to send messages from the bot.
 			if (input.startsWith('/send ')) {
-				this.send(...input.slice(6).split(','));
+				let [room, ...message] = input.slice(6).split(',');
+				this.send(toId(room), message.join(',').trim());
 			} else {
 				let ret;
 				try {
