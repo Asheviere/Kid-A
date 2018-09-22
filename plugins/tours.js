@@ -16,7 +16,7 @@ async function leaderboardGenerator() {
 	for (let key of keys) {
 		let entry = await db.hgetall(key);
 		if (!entry.username) {
-			Debug.log(`No name found for ${key}`);
+			Debug.log(2, `No name found for ${key}`);
 			continue;
 		}
 		if (entry.points === '0' && entry.total === '0') {
