@@ -2,6 +2,7 @@
 
 const server = require('../server.js');
 const page = require('../page.js');
+const redis = require('../redis.js');
 const Cache = require('../cache.js');
 
 const DAY = 24 * 60 * 60 * 1000;
@@ -78,6 +79,33 @@ module.exports = {
 				default:
 					return this.pmreply("Invalid option.");
 				}
+			},
+		},
+
+		movenamespace: {
+			permission: 6,
+			hidden: true,
+			async action(message) {
+				if (!Config.admins.has(this.userid)) return;
+
+				const [table, oldnamespace, newnamespace] = message.split(',').map(param => toId(param));
+				if (!(table || oldnamespace || newnamespace)) return this.reply("Syntax: ``.movenamespace table, old, new``");
+
+				if (!redis.tables.includes(table)) return this.reply(`Invalid value for table: ${table}`);
+
+				const db = redis.useDatabase(table);
+				const keys = await db.keys(`${oldnamespace}:*`);
+
+				await db.multi();
+
+				for (let key of keys) {
+					const newkey = `${newnamespace}:${key.split(':')[1]}`;
+					db.rename(key, newkey);
+				}
+
+				await db.exec();
+
+				return this.reply(`Renamed namespace ${oldnamespace} to ${newnamespace} in ${table}`);
 			},
 		},
 
