@@ -188,6 +188,7 @@ module.exports = {
 				let [username, points] = message.split(',').map(param => param.trim());
 				points = parseInt(points);
 				let userid = toId(username);
+				if (userid === this.userid) return this.reply("You cannot give yourself points.");
 				if (!userid || !points || points < 0) return this.pmreply("Syntax error. ``.addtp username, amount``");
 				userid = toId(userid);
 
