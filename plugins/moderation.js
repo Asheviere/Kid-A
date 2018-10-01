@@ -79,7 +79,7 @@ function addBuffer(userid, room, message) {
 }
 
 module.exports = {
-	options: ['disablemoderation', 'allowbold', 'allowcaps', 'allowstretching', 'allowflooding'],
+	options: ['disablemoderation', 'allowbold', 'allowcaps', 'allowstretching', 'allowflooding', 'disallowbattlelinks'],
 
 	analyzer: {
 		async parser(message) {
@@ -130,6 +130,13 @@ module.exports = {
 
 				if (/(.)\1{7,}/gi.test(stretchString) || (/(..+)\1{4,}/gi.test(stretchString) && !/(\d+\/)+/gi.test(stretchString))) {
 					return punish(this.username, this.room, 1, 'Do not stretch.');
+				}
+			}
+
+			if (this.options.includes('disallowbattlelinks')) {
+				if (/replay.pokemonshowdown\.com\//gi.test(message) || /play\.pokemonshowdown\.com\/battle-/gi.test(message) ||
+				/<<battle-[a-z\-0-9]+>>/gi.test(message)) {
+					return punish(this.username, this.room, 1, 'Do not post battle or replay links.');
 				}
 			}
 		},
