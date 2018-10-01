@@ -359,7 +359,7 @@ class WifiList {
 
 const clonerList = new WifiList('cloners', './data/cloners.tsv', ['PS Username', 'Friend code', 'IGN', 'Notes', 'Monthly Score', 'Total Score', 'Date of last giveaway'], ['username', 'fc', 'ign', 'notes', 'score', 'totalscore']);
 const scammerList = new WifiList('scammers', './data/scammers.tsv', ['PS Username', 'Alts', 'IGN', 'Friend code', 'Reason', 'Added by', 'Date added'], ['username', 'alts', 'ign', 'fc', 'reason', 'addedby']);
-const hackmonList = new WifiList('hackmons', './data/hackmons.tsv', ['Pokémon', 'OT', 'TID', 'Details', 'Reasoning', 'Notes', 'Added By', 'Date Added'], ['species', 'ot', 'tid', 'details', 'reasoning', 'notes', 'addedby'], true);
+const hackmonList = new WifiList('hackmons', './data/hackmons.tsv', ['Pokémon', 'OT', 'TID', 'Details', 'Reasoning', 'Added By', 'Date Added'], ['species', 'ot', 'tid', 'details', 'reasoning', 'addedby'], true);
 
 class ClonerLog {
 	constructor() {
