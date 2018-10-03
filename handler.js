@@ -76,7 +76,7 @@ module.exports = {
 		}
 		if (!this.extraJoin.length) return;
 
-		setTimeout(() => chatHandler.send(null, `/join ${this.extraJoin[0]}`), 500);
+		setTimeout(() => chatHandler.send(null, `/join ${this.extraJoin[0]}`), 200);
 	},
 
 	async parse(message) {
