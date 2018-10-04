@@ -827,7 +827,8 @@ module.exports = {
 					if (entry.split(':').includes(fc)) results.push(fcs[i]);
 				}
 
-				if (results.length) return this.reply(`This FC belongs to ${results.join(', ')}.`);
+				const shitters = await this.settings.lrange(`${WIFI_ROOM}:shitters`, 0, -1);
+				if (results.length) return this.reply(`This FC belongs to ${results.join(', ')}${shitters.includes(fc) ? `, who is a bad user. Please notify a staff member right away`: ''}.`);
 				return this.reply("This FC was not found.");
 			},
 		},

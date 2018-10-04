@@ -79,8 +79,6 @@ module.exports = {
 				if (await friendcodes.exists(name)) {
 					if (fcs.length) {
 						const userFCs = await getFCs(name);
-						console.log(userFCs);
-						console.log(fcs);
 						await friendcodes.set(name, userFCs.filter(fc => !fcs.includes(fc)).join(':'));
 					} else {
 						await friendcodes.del(name);
@@ -111,6 +109,59 @@ module.exports = {
 				} else {
 					this.pmreply(`${self ? "Your" : message + "'s"} friend code${fcs.length > 1 ? 's' : ''}: ${fcs.join(', ')}`);
 				}
+			},
+		},
+		markshitter: {
+			rooms: [WIFI_ROOM],
+			async action(message) {
+				if (!this.room) {
+					if (!this.getRoomAuth(WIFI_ROOM)) return;
+				}
+				if (!this.canUse(4)) return this.pmreply("Permission denied.");
+
+				const fc = Utils.toFc(message);
+				if (!fc) return this.pmreply("Please enter a valid fc.");
+
+				let found = false;
+
+				const fcs = await friendcodes.keys('*');
+				for (let i = 0; i < fcs.length; i++) {
+					const entry = await friendcodes.get(fcs[i]);
+					if (entry.split(':').includes(fc)) {
+						found = true;
+						break;
+					}
+				}
+
+				if (!found) return this.pmreply("This friend code isn't in the friend code database.");
+
+				const shitters = await this.settings.lrange(`${WIFI_ROOM}:shitters`, 0, -1);
+
+				if (shitters.includes(fc)) return this.reply("This FC is already marked as a shitter.");
+
+				await this.settings.lpush(`${WIFI_ROOM}:shitters`, fc);
+				ChatHandler.send(WIFI_ROOM, `/modnote the FC '${fc}' was marked as a shitter by ${this.username}.`);
+				return this.reply("FC successfully marked.");
+			},
+		},
+		unmarkshitter: {
+			rooms: [WIFI_ROOM],
+			async action(message) {
+				if (!this.room) {
+					if (!this.getRoomAuth(WIFI_ROOM)) return;
+				}
+				if (!this.canUse(4)) return this.pmreply("Permission denied.");
+
+				const fc = Utils.toFc(message);
+				if (!fc) return this.pmreply("Please enter a valid fc.");
+
+				const shitters = await this.settings.lrange(`${WIFI_ROOM}:shitters`, 0, -1);
+
+				if (!shitters.includes(fc)) return this.reply("This FC isn't marked as a shitter.");
+
+				await this.settings.lrem(`${WIFI_ROOM}:shitters`, 0, fc);
+				ChatHandler.send(WIFI_ROOM, `/modnote the FC '${fc}' was unmarked as a shitter by ${this.username}.`);
+				return this.reply("FC successfully unmarked.");
 			},
 		},
 	},
