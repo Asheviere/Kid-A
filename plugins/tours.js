@@ -111,12 +111,14 @@ module.exports = {
 					if (!(this.canUse(2) || await this.settings.hexists('whitelist:tourhelpers', this.userid))) return this.pmreply("Permission denied.");
 					let format = rest;
 					let rated = false;
+					let rules = '';
 					if (toId(format) === 'leaderboard') {
-						const leaderboardFormat = await settings.hget(`${WIFI_ROOM}:leaderboard`, 'format');
+						const {format: leaderboardFormat, rules: leaderboardRules} = await settings.hgetall(`${WIFI_ROOM}:leaderboard`);
 						if (!leaderboardFormat) return this.reply("This room doesn't have a leaderboard format set. Set with ``.tour leaderboard``");
 
 						rated = true;
 						format = leaderboardFormat;
+						rules = leaderboardRules || '';
 					}
 					ChatHandler.send(WIFI_ROOM, `/tour new ${format}, elimination`);
 					ChatHandler.send(WIFI_ROOM, `/tour autostart 5`);
@@ -125,6 +127,7 @@ module.exports = {
 					if (rated) {
 						ChatHandler.send(WIFI_ROOM, `/tour name ${format} Leaderboard Tournament`);
 						ChatHandler.send(WIFI_ROOM, `/tour scouting disallow`);
+						ChatHandler.send(WIFI_ROOM, `/tour rules ${rules}`);
 						ChatHandler.send(WIFI_ROOM, `/wall Tournament Points will be awarded this tournament, these can be spent on tournament prizes throughout the month!`);
 					}
 					return;
