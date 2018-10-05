@@ -138,10 +138,20 @@ module.exports = {
 						if (leaderboardFormat) return this.reply(`The current ranked format is: ${leaderboardFormat}`);
 						return this.pmreply("No ranked format set.");
 					}
-					if (!(this.canUse(5) || await this.settings.hexists('whitelist:tourhelpers', this.userid))) return this.pmreply("Permission denied.");
+					if (!this.canUse(5)) return this.pmreply("Permission denied.");
 
 					await settings.hset(`${WIFI_ROOM}:leaderboard`, 'format', rest.trim());
 					return this.reply(`The ranked format was set to ${rest}`);
+				case 'rules':
+					if (!rest) {
+						const rules = await settings.hget(`${WIFI_ROOM}:leaderboard`, 'rules');
+						if (rules) return this.reply(`The current ranked rules are: ${rules}`);
+						return this.pmreply("No ranked rules set.");
+					}
+					if (!this.canUse(5)) return this.pmreply("Permission denied.");
+
+					await settings.hset(`${WIFI_ROOM}:leaderboard`, 'rules', rest.trim());
+					return this.reply(`The ranked rules were set to ${rest}`);
 				default:
 					return this.pmreply(`Unknown command.`);
 				}
