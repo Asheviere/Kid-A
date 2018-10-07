@@ -4,7 +4,6 @@ const redis = require('../redis.js');
 const utils = require('../utils.js');
 
 const WIFI_ROOM = 'wifi';
-const INGAME_ROOM = 'pokemongames';
 
 let friendcodes = redis.useDatabase('friendcodes');
 
@@ -13,23 +12,13 @@ const getFCs = async key => (await friendcodes.get(key)).split(':');
 module.exports = {
 	commands: {
 		addfc: {
-			rooms: [WIFI_ROOM, INGAME_ROOM],
+			rooms: [WIFI_ROOM],
 			async action(message) {
-				let room = this.room;
-				let hasPermission = false;
-				if (this.userlists[WIFI_ROOM] && this.userid in this.userlists[WIFI_ROOM]) {
-					this.auth = this.userlists[WIFI_ROOM][this.userid][0];
-					room = WIFI_ROOM;
-					hasPermission = this.canUse(2);
+				if (!this.room) {
+					if (!this.getRoomAuth(WIFI_ROOM)) return;
 				}
-				if (!hasPermission && this.userlists[INGAME_ROOM] && this.userid in this.userlists[INGAME_ROOM]) {
-					this.auth = this.userlists[INGAME_ROOM][this.userid][0];
-					room = INGAME_ROOM;
-					hasPermission = this.canUse(2);
-				}
-				if (!hasPermission) {
-					return this.pmreply(`You need to be in either the ${WIFI_ROOM} or ${INGAME_ROOM} room and have % or above in that room to use this command.`);
-				}
+
+				if (!(this.canUse(2))) return this.pmreply("Permission denied.");
 
 				let [name, fc] = message.split(',');
 				if (!(name && fc)) return this.pmreply("Syntax: ``.addfc name, fc``");
@@ -47,30 +36,18 @@ module.exports = {
 				}
 				await friendcodes.append(name, fcstr);
 
-				if (room) ChatHandler.send(room, `/modnote ${this.username} added a friend code for ${name}: ${fc}`);
+				ChatHandler.send(WIFI_ROOM, `/modnote ${this.username} added a friend code for ${name}: ${fc}`);
 				this.reply("Friend Code successfully added.");
 			},
 		},
 		deletefc: {
-			rooms: [WIFI_ROOM, INGAME_ROOM],
+			rooms: [WIFI_ROOM],
 			async action(message) {
-				let room = this.room;
-				if (!this.canUse(2)) {
-					let hasPermission = false;
-					if (this.userlists[WIFI_ROOM] && this.userid in this.userlists[WIFI_ROOM]) {
-						this.auth = this.userlists[WIFI_ROOM][this.userid][0];
-						room = WIFI_ROOM;
-						hasPermission = this.canUse(2);
-					}
-					if (!hasPermission && this.userlists[INGAME_ROOM] && this.userid in this.userlists[INGAME_ROOM]) {
-						this.auth = this.userlists[INGAME_ROOM][this.userid][0];
-						room = INGAME_ROOM;
-						hasPermission = this.canUse(2);
-					}
-					if (!hasPermission) {
-						return this.pmreply(`You need to be in either the <<${WIFI_ROOM}>> or <<${INGAME_ROOM}>> room and have % or above in that room to use this command.`);
-					}
+				if (!this.room) {
+					if (!this.getRoomAuth(WIFI_ROOM)) return;
 				}
+
+				if (!(this.canUse(2))) return this.pmreply("Permission denied.");
 
 				let [name, ...fcs] = message.split(',').map(param => toId(param));
 
@@ -83,7 +60,7 @@ module.exports = {
 					} else {
 						await friendcodes.del(name);
 					}
-					if (room) ChatHandler.send(room, `/modnote ${this.username} deleted ${name}'s friend code.`);
+					ChatHandler.send(WIFI_ROOM, `/modnote ${this.username} deleted ${name}'s friend code.`);
 					this.reply("Friend Code successfully deleted.");
 				} else {
 					this.pmreply("This person doesn't have a friend code registered.");
@@ -100,7 +77,7 @@ module.exports = {
 
 				let self = message === this.userid;
 
-				if (!(await friendcodes.exists(message))) return this.pmreply((self ? "You don't" : "This person doesn't") + " have a friend code registered." + (self ? ` PM a staff member in the <<${WIFI_ROOM}>> or <<${INGAME_ROOM}>> room to have your FC added.` : ""));
+				if (!(await friendcodes.exists(message))) return this.pmreply((self ? "You don't" : "This person doesn't") + " have a friend code registered." + (self ? ` PM a staff member in the <<${WIFI_ROOM}>> room to have your FC added.` : ""));
 
 				const fcs = await getFCs(message);
 
