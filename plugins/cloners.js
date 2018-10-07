@@ -336,7 +336,7 @@ class WifiList {
 		this.writeList();
 	}
 
-	getBannedFCs() {
+	async getBannedFCs() {
 		let fcs = [];
 		let now = new Date();
 
@@ -353,7 +353,9 @@ class WifiList {
 			}
 		}
 
-		return fcs;
+		const shitters = await settings.lrange(`${WIFI_ROOM}:shitters`, 0, -1);
+
+		return fcs.concat(shitters);
 	}
 }
 
@@ -439,7 +441,7 @@ function getScammerEntry(userid) {
 	return false;
 }
 
-new Page('bannedfcs.xml', async () => scammerList.getBannedFCs.bind(scammerList), 'bannedfcs.xml', {rooms: [WIFI_ROOM]});
+new Page('bannedfcs.xml', scammerList.getBannedFCs.bind(scammerList), 'bannedfcs.xml', {rooms: [WIFI_ROOM]});
 
 module.exports = {
 	onUserJoin: {
