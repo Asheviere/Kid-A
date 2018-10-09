@@ -5,6 +5,7 @@ const fs = require('fs');
 class Cache {
 	constructor(plugin) {
 		this.name = toId(plugin);
+		this.changed = false;
 
 		try {
 			this.data = JSON.parse(fs.readFileSync(`./cache/${this.name}.json`));
@@ -34,7 +35,15 @@ class Cache {
 
 	write() {
 		Debug.log(2, `Writing /cache/${this.name}.json. Content: ${JSON.stringify(this.data)}`);
-		fs.writeFile(`./cache/${this.name}.json`, JSON.stringify(this.data), () => {});
+		if (!this.changed) {
+			fs.unlink(`./cache/${this.name}.json.old`, () => {
+				fs.rename(`./cache/${this.name}.json`, `./cache/${this.name}.json.old`, () => {
+					fs.writeFile(`./cache/${this.name}.json`, JSON.stringify(this.data), () => {});
+				});
+			});
+		} else {
+			fs.writeFile(`./cache/${this.name}.json`, JSON.stringify(this.data), () => {});
+		}
 	}
 }
 
