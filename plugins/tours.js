@@ -61,10 +61,11 @@ module.exports = {
 
 			const top8 = [];
 			if (rounds > 4) {
+				const top4 = semifinalists.concat([winner, runnerup]);
 				for (let final of data.bracketData.rootNode.children) {
 					for (let semifinal of final.children) {
 						for (let quarterfinal of semifinal.children) {
-							top8.push(quarterfinal.team);
+							if (!top4.includes(quarterfinal.team)) top8.push(quarterfinal.team);
 						}
 					}
 				}
