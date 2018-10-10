@@ -39,6 +39,7 @@ class Cache {
 			fs.unlink(`./cache/${this.name}.json.old`, () => {
 				fs.rename(`./cache/${this.name}.json`, `./cache/${this.name}.json.old`, () => {
 					fs.writeFile(`./cache/${this.name}.json`, JSON.stringify(this.data), () => {});
+					this.changed = true;
 				});
 			});
 		} else {
