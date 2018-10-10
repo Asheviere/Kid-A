@@ -39,7 +39,7 @@ async function repeatGenerator(room) {
 
 	for (let i in cache.get('repeats')) {
 		let repeatObj = cache.get('repeats')[i];
-		if (repeatObj.room === room) repeats.push({id: i, msg: repeatObj.msg, times: repeatObj.timesLeft});
+		if (repeatObj.room === room) repeats.push({id: i, msg: repeatObj.msg, times: repeatObj.timesLeft, interval: repeatObj.interval});
 	}
 	return {room: room, data: repeats};
 }

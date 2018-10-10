@@ -17,7 +17,7 @@
 					{{#each data}}
 						<li class="quote">
 							<input type="checkbox" name="{{id}}" onclick="this.parentElement.style.background = (this.checked ? 'red' : 'white');">
-							{{msg}} ({{times}} times left)
+							{{msg}} ({{times}} times left every {{interval}} minutes)
 						</li>
 					{{/each}}
 				</ul>
