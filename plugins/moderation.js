@@ -67,42 +67,45 @@ async function punish(username, room, val, msg) {
 	punishments.set(`${room}:${userid}`, [points, setTimeout(() => punishments.delete(`${room}:${userid}`), FIFTEEN_MINS)]);
 }
 
-let buffers = {};
-let timers = {};
+const buffers = {};
 
-function addBuffer(userid, room, message) {
+function addBuffer(userid, room, message, timestamp) {
 	if (!buffers[room]) buffers[room] = [];
-	buffers[room].push([userid, message]);
+	buffers[room].push([userid, message, timestamp]);
 	if (buffers[room].length > 7) buffers[room].splice(0, 1);
-	if (timers[room]) clearTimeout(timers[room]);
-	timers[room] = setTimeout(() => buffers[room] = [], 1000 * 3);
 }
 
 module.exports = {
 	options: ['disablemoderation', 'allowbold', 'allowcaps', 'allowstretching', 'allowflooding', 'disallowbattlelinks'],
 
 	analyzer: {
-		async parser(message) {
+		async parser(message, timestamp) {
 			if (this.options.includes('disablemoderation')) return;
-			if (this.canUse(1)) return;
 
 			if (!this.options.includes('allowflooding')) {
-				addBuffer(this.userid, this.room, message);
+				addBuffer(this.userid, this.room, message, timestamp);
+				if (this.canUse(1)) return;
 
 				let msgs = 0;
 				let identical = 0;
+				let first = 0;
+				let last = 0;
 
 				for (let i = 0; i < buffers[this.room].length; i++) {
 					if (buffers[this.room][i][0] === this.userid) {
+						if (!first) first = buffers[this.room][2];
+						last = buffers[this.room][2];
 						msgs++;
 						if (buffers[this.room][i][1] === message) identical++;
 					}
 				}
 
-				if (msgs >= 5 || identical >= 3) {
+				if ((msgs >= 5 || identical >= 3) && last - first < 3500) {
 					return punish(this.username, this.room, 2, 'Do not flood the chat.');
 				}
 			}
+
+			if (this.canUse(1)) return;
 
 			if (!this.options.includes('allowbold')) {
 				let boldString = message.match(/\*\*([^< ](?:[^<]*?[^< ])??)\*\*/g);

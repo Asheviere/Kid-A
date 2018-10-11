@@ -168,7 +168,7 @@ module.exports = {
 			if (toId(split[3]) === this.userid) return;
 			let msg = split.splice(4).join('|').trim().split('\n')[0];
 			ChatLogger.log(split[2], roomid, toId(split[3]), msg);
-			this.chatHandler.parse(split[3], roomid, msg);
+			this.chatHandler.parse(split[3], roomid, msg, parseInt(split[1]));
 			break;
 		case 'tournament':
 			let cmds = ('|' + split.slice(1).join('|')).split('\n'); // This is very gross voodoo and there must be a better way to tackle this but I was lazy when writing this.

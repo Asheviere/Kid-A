@@ -125,7 +125,7 @@ class AnalyzerWrapper {
 		return await analyzer.display.apply(this, [room]);
 	}
 
-	async run(analyzer, userstr, room, message, options) {
+	async run(analyzer, userstr, room, message, options, timestamp) {
 		this.options = options;
 
 		if (analyzer.rooms && !(analyzer.rooms.includes(room))) return;
@@ -142,7 +142,7 @@ class AnalyzerWrapper {
 			this.userid = toId(userstr);
 			this.room = room;
 
-			analyzer.parser.apply(this, [message]).catch(err => Output.errorMsg(err, 'Error in analyzer', {user: this.username, room: this.room}));
+			analyzer.parser.apply(this, [message, timestamp]).catch(err => Output.errorMsg(err, 'Error in analyzer', {user: this.username, room: this.room}));
 		}
 	}
 }
@@ -257,11 +257,11 @@ class ChatHandler {
 		Promise.all(inits).then(() => server.restart());
 	}
 
-	async parse(userstr, room, message) {
+	async parse(userstr, room, message, timestamp) {
 		if (COMMAND_REGEX.test(message)) {
 			this.parseCommand(userstr, room, message);
 		} else if (room) {
-			if (!room.includes('groupchat')) this.analyze(userstr, room, message);
+			if (!room.includes('groupchat')) this.analyze(userstr, room, message, timestamp * 1000 || Date.now());
 		} else {
 			if (canUse(2, toId(userstr), userstr[0]) && message.startsWith('/invite')) {
 				let toJoin = message.substr(8);
@@ -286,12 +286,12 @@ class ChatHandler {
 		this.analyze(null, room, message);
 	}
 
-	async analyze(userstr, room, message) {
+	async analyze(userstr, room, message, timestamp) {
 		let wrapper = new AnalyzerWrapper(this.userlists, this.settings);
 		let options = await this.settings.lrange(`${room}:options`, 0, -1);
 
 		for (let i in this.analyzers) {
-			wrapper.run(this.analyzers[i], userstr, room, message, options);
+			wrapper.run(this.analyzers[i], userstr, room, message, options, timestamp);
 		}
 	}
 
