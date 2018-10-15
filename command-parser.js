@@ -12,6 +12,8 @@ const analytics = redis.useDatabase('analytics');
 const COMMAND_TOKEN = Config.commandSymbol || '.';
 const COMMAND_REGEX = new RegExp(`^${".^$*+?()[{\\|-]".includes(COMMAND_TOKEN) ? '\\' : ''}${COMMAND_TOKEN}[\\w]+\\b`, "i");
 const MONTH = 31 * 24 * 60 * 60 * 1000;
+const THROTTLE_DELAY = 300;
+const THROTTLE_BUFFER_LIMIT = 6;
 
 const dataCache = {};
 
@@ -159,6 +161,13 @@ class ChatHandler {
 		this.parsing = false;
 		this.mail = new Cache('mail');
 		this.privateRooms = Config.privateRooms;
+
+		this.sendQueue = [];
+		this.sendQueueTimer = setInterval(() => {
+			this.processQueue();
+		}, THROTTLE_DELAY);
+		this.lastMessage = 0;
+		this.throttled = 0;
 
 		settings.lrange('privaterooms', 0, -1).then(prooms => {
 			if (prooms) prooms.forEach(val => this.privateRooms.add(val));
@@ -402,12 +411,37 @@ class ChatHandler {
 		});
 	}
 
+	trySend(message) {
+		let now = Date.now();
+
+		if (now < this.lastMessage + THROTTLE_DELAY) {
+			this.sendQueue.push(message);
+			Debug.log(3, `Pushing to queue {${this.sendQueue.length}}: ${message}`);
+		} else {
+			this.lastMessage = now;
+			Connection.send(message);
+		}
+	}
+
+	processQueue() {
+		let now = Date.now();
+
+		if (this.throttled) this.throttled--;
+		while (this.throttled < THROTTLE_BUFFER_LIMIT - 1 && this.sendQueue.length) {
+			const msg = this.sendQueue.shift();
+			Connection.send(msg);
+			this.throttled++;
+			this.lastMessage = now;
+			Debug.log(3, `Sending message from queue {${this.sendQueue.length}} PS has throttled ${this.throttled}: ${msg}`);
+		}
+	}
+
 	sendPM(user, message) {
-		Connection.send(`|/pm ${user}, ${message}`);
+		this.trySend(`|/pm ${user}, ${message}`);
 	}
 
 	send(room, message) {
-		Connection.send(`${room || ''}|${message}`);
+		this.trySend(`${room || ''}|${message}`);
 	}
 }
 
