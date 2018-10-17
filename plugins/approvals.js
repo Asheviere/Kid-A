@@ -45,6 +45,7 @@ const YT_ROOT = 'https://www.googleapis.com/youtube/v3/videos';
 const VIDEO_ROOT = 'https://youtu.be/';
 const CHANNEL_ROOT = 'https://www.youtube.com/channel/';
 const HOUR = 60 * 60 * 1000;
+const VOICES_CAN_LINK = ['youtube', 'thecafe'];
 
 const settings = redis.useDatabase('settings');
 const dailyCache = new Cache('daily');
@@ -201,7 +202,7 @@ module.exports = {
 			hidden: true,
 			disallowPM: true,
 			async action(message) {
-				if (!(this.canUse(this.room === YOUTUBE_ROOM ? 1 : 2))) {
+				if (!(this.canUse(VOICES_CAN_LINK.includes(this.room) ? 1 : 2))) {
 					if (!(await settings.hexists(`whitelist:${this.room}`, this.userid))) return this.pmreply("Permission denied.");
 					if (this.room === YOUTUBE_ROOM) {
 						if (selfLinkTimeouts.has(this.userid)) return this.reply("You are only allowed to post your own link once per two hours.");
