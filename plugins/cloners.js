@@ -846,7 +846,7 @@ module.exports = {
 					if (shitters.includes(fc)) output.push(`<b>This is a bad user. Notify a staff member right away.</b>`);
 				}
 
-				if (output.length) return this.replyHTML(output.join(', '));
+				if (output.length) return this.replyHTML(output.join('<br/>'));
 
 				return this.reply("This FC was not found.");
 			},
