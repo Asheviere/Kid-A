@@ -69,11 +69,6 @@ class CommandWrapper {
 		this.pm = !room;
 		let command = this.commands[cmd];
 
-		if (command.permission && !this.canUse(command.permission)) return this.pmreply("Permission denied.");
-		if (command.disallowPM && this.pm) return this.pmreply("This command cannot be used in PMs.");
-		if (room && room.includes('groupchat') && !command.allowGroupchats) return this.pmreply("This command cannot be used in groupchats.");
-		if (room && command.rooms && !command.rooms.includes(room)) return;
-
 		if (command.requireRoom && this.pm) {
 			let [roomid, ...rest] = message.split(',');
 			roomid = toId(roomid);
@@ -82,6 +77,11 @@ class CommandWrapper {
 			if (!this.getRoomAuth(this.room)) return;
 			message = rest.join(',').trim();
 		}
+
+		if (command.permission && !this.canUse(command.permission)) return this.pmreply("Permission denied.");
+		if (command.disallowPM && this.pm) return this.pmreply("This command cannot be used in PMs.");
+		if (this.room && this.room.includes('groupchat') && !command.allowGroupchats) return this.pmreply("This command cannot be used in groupchats.");
+		if (this.room && command.rooms && !command.rooms.includes(this.room)) return;
 
 		command.action.apply(this, [message]).catch(err => Output.errorMsg(err, 'Error in Command', {user: this.username, room: this.room}));
 	}
