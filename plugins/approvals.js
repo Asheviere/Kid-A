@@ -276,6 +276,21 @@ module.exports = {
 				return this.reply("User successfully removed from the whitelist.");
 			},
 		},
+		viewwhitelist: {
+			requireRoom: true,
+			permission: 2,
+			async action() {
+				const whitelist = await settings.hgetall(`whitelist:${this.room}`);
+
+				const values = Object.values(whitelist);
+
+				if (values.length) {
+					this.replyHTML(`Whitelisted user${values.length > 1 ? 's' : ''} in room ${this.room}: ${values.join(', ')}`, true);
+				} else {
+					this.pmreply("This room has no whitelist.");
+				}
+			},
+		},
 		daily: {
 			async action(message) {
 				let room = this.room;

@@ -97,6 +97,11 @@ class CommandWrapper {
 		global.ChatHandler.sendPM(this.userid, message);
 	}
 
+	replyHTML(html, pm = false) {
+		pm = pm || this.pm;
+		global.ChatHandler.send(this.room || '', `${pm ? `/pminfobox ${this.userid},` : '/addhtmlbox'} ${html}`);
+	}
+
 	getRoomAuth(room) {
 		if (this.userlists[room]) {
 			if (this.userid in this.userlists[room]) {
