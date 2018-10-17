@@ -164,12 +164,12 @@ module.exports = {
 						for (let match of matches[i]) {
 							let seenUser = await seen.get(match);
 							if (seenUser) seenUser = new Date(parseInt(seenUser));
-							strs.push(`${match}${seenUser ? ` (last seen ${seenUser.getUTCDate()}/${seenUser.getUTCMonth() + 1}/${seenUser.getUTCFullYear()})` : ''}`);
+							strs.push(`${match}${seenUser ? ` <small><i>last seen ${seenUser.getUTCDate()}/${seenUser.getUTCMonth() + 1}/${seenUser.getUTCFullYear()})` : ''}</i></small>`);
 						}
-						matchStrings.push(`${i}: ${strs.join(', ')}`);
+						matchStrings.push(`<b>${i}</b>: ${strs.join(', ')}`);
 					}
-					output += matchStrings.join(', ');
-					return this.reply(output);
+					output += matchStrings.join('<br/>');
+					return this.replyHTML(output);
 				}
 
 				return this.reply("No matches found.");

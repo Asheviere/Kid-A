@@ -801,36 +801,53 @@ module.exports = {
 
 				if (!utils.validateFc(fc)) return this.reply("This FC is invalid.");
 
+				let output = [];
+				let search = true;
+
 				// Firstly, check the scammer list
 				for (let i in scammerList.data) {
 					let split = scammerList.data[i].fc.split(',').map(param => param.trim());
 
 					for (let thisfc of split) {
 						if (thisfc === fc) {
-							this.reply(`This FC belongs to ${scammerList.data[i].username}, who ${scammerList.data[i].date.startsWith("PERMA") ? 'is a permabanned scammer' : `was added to the scammers list on ${(new Date(parseInt(scammerList.data[i].date))).toDateString()}`}.`);
-							this.reply(`Reason: ${scammerList.data[i].reason}`);
+							output.push(`This FC belongs to ${scammerList.data[i].username}, who <b>${scammerList.data[i].date.startsWith("PERMA") ? 'is a permabanned scammer' : `was added to the scammers list on ${(new Date(parseInt(scammerList.data[i].date))).toDateString()}`}</b>.`);
+							output.push(`Reason: ${scammerList.data[i].reason}`);
+							search = false;
+							break;
 						}
 					}
 				}
 
 				// Then, check all the other lists
-				for (let i in clonerList.data) {
-					if (clonerList.data[i].fc === fc) this.reply(`This FC belongs to ${clonerList.data[i].username}, who is an approved cloner.`);
+				if (search) {
+					for (let i in clonerList.data) {
+						if (clonerList.data[i].fc === fc) {
+							output.push(`This FC belongs to ${clonerList.data[i].username}, who is an approved cloner.`);
+							search = false;
+							break;
+						}
+					}
 				}
 
 				// Lastly, if available, check the .fc database
-				let db = redis.useDatabase('friendcodes');
+				if (search) {
+					let db = redis.useDatabase('friendcodes');
 
-				let fcs = await db.keys('*');
-				let results = [];
+					let fcs = await db.keys('*');
+					let results = [];
 
-				for (let i = 0; i < fcs.length; i++) {
-					const entry = await db.get(fcs[i]);
-					if (entry.split(':').includes(fc)) results.push(fcs[i]);
+					for (let i = 0; i < fcs.length; i++) {
+						const entry = await db.get(fcs[i]);
+						if (entry.split(':').includes(fc)) results.push(fcs[i]);
+					}
+					if (results.length) output.push(`This FC belongs to ${results.join(', ')}.`);
+
+					const shitters = await this.settings.lrange(`${WIFI_ROOM}:shitters`, 0, -1);
+					if (shitters.includes(fc)) output.push(`<b>This is a bad user. Notify a staff member right away.</b>`);
 				}
 
-				const shitters = await this.settings.lrange(`${WIFI_ROOM}:shitters`, 0, -1);
-				if (results.length) return this.reply(`This FC belongs to ${results.join(', ')}${shitters.includes(fc) ? `, who is a bad user. Please notify a staff member right away`: ''}.`);
+				if (output.length) return this.replyHTML(output.join(', '));
+
 				return this.reply("This FC was not found.");
 			},
 		},
