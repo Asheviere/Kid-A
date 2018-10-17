@@ -164,7 +164,7 @@ module.exports = {
 						for (let match of matches[i]) {
 							let seenUser = await seen.get(match);
 							if (seenUser) seenUser = new Date(parseInt(seenUser));
-							strs.push(`${match}${seenUser ? ` <small><i>last seen ${seenUser.getUTCDate()}/${seenUser.getUTCMonth() + 1}/${seenUser.getUTCFullYear()})` : ''}</i></small>`);
+							strs.push(`${match}${seenUser ? ` <small><i>last seen ${seenUser.getUTCDate()}/${seenUser.getUTCMonth() + 1}/${seenUser.getUTCFullYear()})</i>` : ''}</small>`);
 						}
 						matchStrings.push(`<b>${i}</b>: ${strs.join(', ')}`);
 					}
