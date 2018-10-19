@@ -100,7 +100,7 @@ module.exports = {
 					}
 				}
 
-				if ((msgs >= 5 || identical >= 3) && last - first < 3500) {
+				if ((msgs >= 5 || identical >= 3) && last - first < 7500) {
 					return punish(this.username, this.room, 2, 'Do not flood the chat.');
 				}
 			}
