@@ -31,6 +31,10 @@ async function setPage(roomid, pageid, title, content) {
 	if (!cache.has(roomid)) await getPage(roomid, pageid);
 
 	if (!cache.has(roomid)) cache.set(roomid, {});
+	if (!content) {
+		delete cache.get(roomid)[pageid];
+		return;
+	}
 	cache.get(roomid)[pageid] = {title: title, content: content};
 	fs.writeFile(`${BASE_PAGE_PATH}${roomid}.json`, JSON.stringify(cache.get(roomid)), () => {});
 }
@@ -48,7 +52,7 @@ const editPage = new Page('editpage', async (room, query) => {
 }, 'editpage.html', {token: 'editpage', postDataType: 'js', postHandler: async (data, room, tokenData, query) => {
 	const today = new Date();
 	await setPage(room, query.page, data.title, data.content + `\n###### Last edited by: ${tokenData.user} on ${today.getDate()}/${today.getMonth() + 1}/${today.getFullYear()}`);
-	ChatHandler.send(room, `/modnote ${tokenData.user} has updated ${query.page}.html`);
+	ChatHandler.send(room, `/modnote ${tokenData.user} has updated the page '${query.page}'.`);
 }});
 
 module.exports = {
@@ -68,6 +72,17 @@ module.exports = {
 				const pageid = toId(message);
 				if (!pageid) return this.reply("Invalid page name.");
 				this.reply(editPage.getUrl(this.room, this.userid, true, {page: pageid}));
+			},
+		},
+		deletepage: {
+			requireRoom: true,
+			permission: 4,
+			async action(message) {
+				const pageid = toId(message);
+				if (!pageid) return this.reply("Invalid page name.");
+				await setPage(this.room, pageid);
+				ChatHandler.send(this.room, `/modnote ${this.username} has deleted the page '${pageid}'`);
+				this.reply("Page deleted.");
 			},
 		},
 	},
