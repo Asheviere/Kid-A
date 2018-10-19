@@ -115,23 +115,25 @@ class Page {
 
 				if (req.method === "POST" && this.postHandler) {
 					if (!tokenData[this.token]) return res.end("Permission denied.");
-					if (!(req.body && req.body.data)) return res.end("Malformed request.");
+					if (!(req.body)) return res.end("Malformed request.");
 					let data;
 					if (this.postDataType === 'JSON') {
 						try {
-							data = JSON.parse(decodeURIComponent(req.body.data));
+							data = JSON.parse(decodeURIComponent(req.body.data || req.body));
 						} catch (e) {
 							return res.end("Malformed JSON.");
 						}
+					} else if (this.postDataType === 'js') {
+						data = req.body.data || req.body;
 					} else {
-						data = req.body.data;
+						data = req.body.data || req.body;
 					}
 					await this.postHandler(data, room, tokenData, query);
 				}
 			}
 		}
 
-		let content = await this.context(room, query, tokenData);
+		let content = await this.context(room, query, tokenData, req.url);
 		if (typeof content === 'string') return res.end(content);
 		return res.end(this.template(content));
 	}
