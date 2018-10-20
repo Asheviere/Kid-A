@@ -466,12 +466,6 @@ module.exports = {
 			}
 
 			if (clonerList.data[user]) {
-				if (cache.get('messages').cloners && !cache.get('notified').hasOwnProperty(user)) {
-					ChatHandler.sendPM(user, cache.get('messages').cloners);
-					cache.setProperty('notified', user, 1);
-					cache.write();
-				}
-
 				if (now.getUTCDate > 26 && parseInt(clonerList.data[user].date)) {
 					let date = new Date(parseInt(clonerList.data[user].date));
 					if (date.getUTCMonth !== now.getUTCMonth) {
