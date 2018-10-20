@@ -627,10 +627,9 @@ module.exports = {
 				if (!this.canUse(5)) return this.pmreply("Permission denied.");
 				if (!message) return this.pmreply("Please enter a message.");
 
-				cache.setProperty('messages', 'cloners', `${message.trim()} -${this.username}`);
-				cache.set('notified', {});
-
-				cache.write();
+				for (let i in clonerList.data) {
+					ChatHandler.sendMail(this.username, i, message);
+				}
 
 				return this.reply("New cloner notification set.");
 			},
