@@ -126,7 +126,7 @@ module.exports = {
 					ChatHandler.send(WIFI_ROOM, `/tour autodq 2`);
 					ChatHandler.send(WIFI_ROOM, `/tour forcetimer`);
 					if (rated) {
-						ChatHandler.send(WIFI_ROOM, `/tour name ${format} Leaderboard Tournament`);
+						ChatHandler.send(WIFI_ROOM, `/tour name ${format} Leaderboard`);
 						ChatHandler.send(WIFI_ROOM, `/tour scouting disallow`);
 						ChatHandler.send(WIFI_ROOM, `/tour rules ${rules}`);
 						ChatHandler.send(WIFI_ROOM, `/wall Tournament Points will be awarded this tournament, these can be spent on tournament prizes throughout the month!`);
