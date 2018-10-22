@@ -38,12 +38,24 @@ class Cache {
 		if (!this.changed) {
 			fs.unlink(`./cache/${this.name}.json.old`, () => {
 				fs.rename(`./cache/${this.name}.json`, `./cache/${this.name}.json.old`, () => {
-					fs.writeFile(`./cache/${this.name}.json`, JSON.stringify(this.data), () => {});
+					fs.open(`./cache/${this.name}.json`, 'w+', (err, fd) => {
+						if (err && err.code !== 'ENOENT') return Output.errorMsg(err, `Error opening cache file ${this.name}.json`);
+						fs.writeFile(fd, JSON.stringify(this.data), err => {
+							if (err) return Output.errorMsg(err, `Error writing cache file ${this.name}.json`);
+							if (!err) fs.fdatasync(fd, () => {});
+						});
+					});
 					this.changed = true;
 				});
 			});
 		} else {
-			fs.writeFile(`./cache/${this.name}.json`, JSON.stringify(this.data), () => {});
+			fs.open(`./cache/${this.name}.json`, 'w+', (err, fd) => {
+				if (err) return Output.errorMsg(err, `Error opening cache file ${this.name}.json`);
+				fs.writeFile(fd, JSON.stringify(this.data), err => {
+					if (err) return Output.errorMsg(err, `Error writing cache file ${this.name}.json`);
+					if (!err) fs.fdatasync(fd, () => {});
+				});
+			});
 		}
 	}
 }
