@@ -266,8 +266,8 @@ module.exports = {
 				if (amount < 0) return this.reply("Amount needs to be a positive number");
 
 				await this.settings.hmset(`${this.room}:repeatthrottle`, 'start', start, 'end', end, 'amount', amount);
-				this.reply(`Repeats now only show 1/${amount} times between ${start}:00 and ${end}:00`);
-				ChatHandler.send(this.room, `/modnote Repeats were throttled between ${start}:00 and ${end}:00 by ${amount} by ${this.username}`);
+				this.reply(`Repeats now only show 1/${amount} times between ${start}:00 and ${end}:00 UTC`);
+				ChatHandler.send(this.room, `/modnote Repeats were throttled between ${start}:00 and ${end}:00 UTC by ${amount} by ${this.username}`);
 			},
 		},
 	},
