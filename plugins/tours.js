@@ -1,5 +1,7 @@
 'use strict';
 
+const EventEmitter = require('events');
+
 const Page = require('../page.js');
 const redis = require('../redis.js');
 
@@ -31,71 +33,82 @@ async function leaderboardGenerator() {
 
 new Page('leaderboard', leaderboardGenerator, 'leaderboard.html', {rooms: [WIFI_ROOM]});
 
+const listener = new EventEmitter();
+
+listener.on('update', (roomid, data) => {
+	if (!data.bracketData || data.bracketData.type !== 'tree') return;
+	if (data.bracketData.rootNode.state === 'inprogress' && data.bracketData.rootNode.room) {
+		ChatHandler.send(roomid, `/wall Watch the finals of the tournament! <<${data.bracketData.rootNode.room}>>`);
+	}
+});
+
+listener.on('end', async (roomid, data) => {
+	if (data.generator === 'Round Robin') return; // This is currently not supported.
+	if (!toId(data.format).includes('leaderboard')) return; // TODO: better way to determine whether to give points for the tour.
+	let finalist1 = data.bracketData.rootNode.children[0].team;
+	let finalist2 = data.bracketData.rootNode.children[1].team;
+	let winner = data.bracketData.rootNode.result === 'win' ? finalist1 : finalist2;
+	let runnerup = winner === finalist1 ? finalist2 : finalist1;
+	let semifinalists = data.bracketData.rootNode.children[0].children.map(val => val.team).concat(data.bracketData.rootNode.children[1].children.map(val => val.team)).filter(name => ![finalist1, finalist2].includes(name));
+
+	// Get the list of players to determine amount of prize points.
+	const getPlayers = node => node.children.length ? getPlayers(node.children[0]).concat(getPlayers(node.children[1])) : [node.team];
+	const players = getPlayers(data.bracketData.rootNode);
+	let rounds = Math.floor(Math.log2(players.length));
+
+	// If more than half of the players has to play another game, round up.
+	if (players.length * 1.5 > 2 ** (rounds + 1)) rounds++;
+
+	// 1 point per round for top 4, plus an additional 1 point for the winner for every round past 4. 2 people tours don't count.
+	let prizes = [rounds - 1, rounds - 2, rounds - 3];
+	if (prizes[1] < 0) prizes[1] = 0;
+	if (prizes[2] < 0) prizes[2] = 0;
+	if (rounds > 5) prizes[0] += rounds - 4;
+
+	ChatHandler.send(roomid, `/wall Winner: ${winner} (${prizes[0]} point${prizes[0] !== 1 ? 's' : ''}). Runner-up: ${runnerup} (${prizes[1]} point${prizes[1] !== 1 ? 's' : ''})${semifinalists.length ? `. Semi-finalists: ${semifinalists.join(', ')} (${prizes[2]} point${prizes[2] !== 1 ? 's' : ''})` : ''}`);
+
+	const top8 = [];
+	if (rounds > 4) {
+		const top4 = semifinalists.concat([winner, runnerup]);
+		for (let final of data.bracketData.rootNode.children) {
+			for (let semifinal of final.children) {
+				for (let quarterfinal of semifinal.children) {
+					if (!top4.includes(quarterfinal.team)) top8.push(quarterfinal.team);
+				}
+			}
+		}
+
+		ChatHandler.send(roomid, `/wall Quarterfinalists (1 point): ${top8.join(', ')}`);
+	}
+
+	let db = redis.useDatabase('tours');
+
+	const prizelist = [[runnerup, prizes[1]], [winner, prizes[0]]];
+	if (semifinalists.length) {
+		prizelist.push([semifinalists[0], prizes[2]]);
+		prizelist.push([semifinalists[1], prizes[2]]);
+	}
+	if (top8.length) {
+		for (let name of top8) {
+			prizelist.push([name, 1]);
+		}
+	}
+	for (let [username, prize] of prizelist) {
+		const userid = toId(username);
+		if (!(await db.exists(`${roomid}:${userid}`))) {
+			await db.hmset(`${roomid}:${userid}`, 'username', username, 'points', 0, 'total', 0);
+		}
+
+		db.hincrby(`${roomid}:${userid}`, 'points', prize);
+		db.hincrby(`${roomid}:${userid}`, 'total', prize);
+		db.hset(`${roomid}:${userid}`, 'timestamp', Date.now());
+	}
+});
+
 module.exports = {
-	onTourEnd: {
+	tours: {
 		rooms: [WIFI_ROOM],
-		async action(roomid, data) {
-			if (data.generator === 'Round Robin') return; // This is currently not supported.
-			if (!toId(data.format).includes('leaderboard')) return; // TODO: better way to determine whether to give points for the tour.
-			let finalist1 = data.bracketData.rootNode.children[0].team;
-			let finalist2 = data.bracketData.rootNode.children[1].team;
-			let winner = data.bracketData.rootNode.result === 'win' ? finalist1 : finalist2;
-			let runnerup = winner === finalist1 ? finalist2 : finalist1;
-			let semifinalists = data.bracketData.rootNode.children[0].children.map(val => val.team).concat(data.bracketData.rootNode.children[1].children.map(val => val.team)).filter(name => ![finalist1, finalist2].includes(name));
-
-			// Get the list of players to determine amount of prize points.
-			const getPlayers = node => node.children.length ? getPlayers(node.children[0]).concat(getPlayers(node.children[1])) : [node.team];
-			const players = getPlayers(data.bracketData.rootNode);
-			let rounds = Math.floor(Math.log2(players.length));
-
-			// If more than half of the players has to play another game, round up.
-			if (players.length * 1.5 > 2 ** (rounds + 1)) rounds++;
-
-			// 1 point per round for top 4, plus an additional 1 point for the winner for every round past 4. 2 people tours don't count.
-			let prizes = [rounds - 1, rounds - 2, rounds - 3];
-			if (prizes[1] < 0) prizes[1] = 0;
-			if (prizes[2] < 0) prizes[2] = 0;
-			if (rounds > 5) prizes[0] += rounds - 4;
-
-			ChatHandler.send(roomid, `/wall Winner: ${winner} (${prizes[0]} point${prizes[0] !== 1 ? 's' : ''}). Runner-up: ${runnerup} (${prizes[1]} point${prizes[1] !== 1 ? 's' : ''})${semifinalists.length ? `. Semi-finalists: ${semifinalists.join(', ')} (${prizes[2]} point${prizes[2] !== 1 ? 's' : ''})` : ''}`);
-
-			const top8 = [];
-			if (rounds > 4) {
-				const top4 = semifinalists.concat([winner, runnerup]);
-				for (let final of data.bracketData.rootNode.children) {
-					for (let semifinal of final.children) {
-						for (let quarterfinal of semifinal.children) {
-							if (!top4.includes(quarterfinal.team)) top8.push(quarterfinal.team);
-						}
-					}
-				}
-
-				ChatHandler.send(roomid, `/wall Quarterfinalists (1 point): ${top8.join(', ')}`);
-			}
-
-			let db = redis.useDatabase('tours');
-
-			const prizelist = [[runnerup, prizes[1]], [winner, prizes[0]]];
-			if (semifinalists.length) {
-				prizelist.push([semifinalists[0], prizes[2]]);
-				prizelist.push([semifinalists[1], prizes[2]]);
-			}
-			if (top8.length) {
-				for (let name of top8) {
-					prizelist.push([name, 1]);
-				}
-			}
-			for (let [username, prize] of prizelist) {
-				const userid = toId(username);
-				if (!(await db.exists(`${roomid}:${userid}`))) {
-					await db.hmset(`${roomid}:${userid}`, 'username', username, 'points', 0, 'total', 0);
-				}
-
-				db.hincrby(`${roomid}:${userid}`, 'points', prize);
-				db.hincrby(`${roomid}:${userid}`, 'total', prize);
-				db.hset(`${roomid}:${userid}`, 'timestamp', Date.now());
-			}
-		},
+		listener: listener,
 	},
 	commands: {
 		tour: {

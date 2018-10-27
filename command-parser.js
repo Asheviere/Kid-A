@@ -363,17 +363,11 @@ class ChatHandler {
 	}
 
 	async parseTourCommand(roomid, command, rest) {
-		switch (command) {
-		case 'end':
-			const data = JSON.parse(rest);
-			for (let i in this.plugins) {
-				if (this.plugins[i].onTourEnd && (!this.plugins[i].onTourEnd.rooms || this.plugins[i].onTourEnd.rooms.includes(roomid))) {
-					this.plugins[i].onTourEnd.action.apply(this, [roomid, data]).catch(err => Output.errorMsg(err, 'Error in tour End', {data: data, room: roomid}));
-				}
+		const data = JSON.parse(rest);
+		for (let i in this.plugins) {
+			if (this.plugins[i].tours && (!this.plugins[i].tours.rooms || this.plugins[i].tours.rooms.includes(roomid))) {
+				this.plugins[i].tours.listener.emit(command, roomid, data);
 			}
-		default:
-			// Eventually I plan to make handlers for every single tour command, however that's currently not necessary with Kid A's tour features.
-			return;
 		}
 	}
 
