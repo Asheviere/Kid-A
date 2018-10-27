@@ -175,8 +175,8 @@ module.exports = {
 			for (const cmd of cmds) {
 				if (!cmd) continue;
 				const cmdsplit = cmd.split('|');
-				this.chatHandler.parseTourCommand(roomid, cmdsplit[2], cmdsplit.slice(3)).catch(err => {
-					Output.errorMsg(err, `Error during tour ${cmdsplit[2]} command`, {room: roomid, data: cmdsplit.slice(3)});
+				this.chatHandler.parseTourCommand(roomid, cmdsplit[2], cmdsplit.slice(3).join('|')).catch(err => {
+					Output.errorMsg(err, `Error during tour ${cmdsplit[2]} command`, {room: roomid, data: cmdsplit.slice(3).join('|')});
 				});
 			}
 		default:
