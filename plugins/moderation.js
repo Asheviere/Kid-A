@@ -93,8 +93,8 @@ module.exports = {
 
 				for (let i = 0; i < buffers[this.room].length; i++) {
 					if (buffers[this.room][i][0] === this.userid) {
-						if (!first) first = buffers[this.room][2];
-						last = buffers[this.room][2];
+						if (!first) first = buffers[this.room][i][2];
+						last = buffers[this.room][i][2];
 						msgs++;
 						if (buffers[this.room][i][1] === message) identical++;
 					}
