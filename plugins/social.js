@@ -6,6 +6,9 @@ const DAY = 24 * 60 * MINUTE;
 const server = require('../server.js');
 const Page = require('../page.js');
 const Cache = require('../cache.js');
+const redis = require('../redis.js');
+
+const settings = redis.useDatabase('settings');
 
 let motds = Object.create(null);
 let cache = new Cache('social');
@@ -69,9 +72,29 @@ function destroyMotd(room) {
 	cache.write();
 }
 
-function runRepeat(id) {
+async function runRepeat(id) {
 	let obj = cache.get('repeats')[id];
 	if (!obj) return; // failsafe
+	const throttle = await settings.hgetall(`${obj.room}:repeatthrottle`);
+	if (throttle) {
+		let shouldThrottle = false;
+		const now = new Date();
+		if (parseInt(throttle.start) > parseInt(throttle.end)) {
+			shouldThrottle = now.getUTCHours() >= parseInt(throttle.start) || now.getUTCHours() < parseInt(throttle.end);
+		} else if (parseInt(throttle.start) < parseInt(throttle.end)) {
+			shouldThrottle = now.getUTCHours() >= parseInt(throttle.start) && now.getUTCHours() < parseInt(throttle.end);
+		}
+		if (shouldThrottle) {
+			if (!obj.skipped) obj.skipped = 0;
+			if (obj.skipped++ < parseInt(throttle.amount)) {
+				repeatTimers[id] = setTimeout(() => runRepeat(id), obj.interval * MINUTE);
+				cache.write();
+				return;
+			}
+
+			obj.skipped = 0;
+		}
+	}
 	if (obj.timesLeft--) {
 		ChatHandler.send(obj.room, obj.msg);
 		repeatTimers[id] = setTimeout(() => runRepeat(id), obj.interval * MINUTE);
@@ -229,6 +252,22 @@ module.exports = {
 				}
 
 				this.reply("This room has no repeats.");
+			},
+		},
+
+		throttlerepeats: {
+			hidden: true,
+			permission: 5,
+			requireRoom: true,
+			async action(message) {
+				let [start, end, amount] = message.split(',').map(param => parseInt(param));
+				if (isNaN(start) || isNaN(end) || !amount) return this.reply("Syntax: ``.throttlerepeats start, end, amount``");
+				if (start < 0 || start > 23 || end < 0 || end > 23) return this.reply("A day only has 24 hours.");
+				if (amount < 0) return this.reply("Amount needs to be a positive number");
+
+				await this.settings.hmset(`${this.room}:repeatthrottle`, 'start', start, 'end', end, 'amount', amount);
+				this.reply(`Repeats now only show 1/${amount} times between ${start}:00 and ${end}:00`);
+				ChatHandler.send(this.room, `/modnote Repeats were throttled between ${start}:00 and ${end}:00 by ${amount} by ${this.username}`);
 			},
 		},
 	},
