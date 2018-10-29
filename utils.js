@@ -42,6 +42,10 @@ global.Utils = module.exports = {
 		return ('' + text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;').replace(/\//g, '&#x2f;');
 	},
 
+	abbreviate(text) {
+		return text.split(' ').map(str => str[0]).join('');
+	},
+
 	// FC validation
 
 	toFc(text) {

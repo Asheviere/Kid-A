@@ -160,6 +160,36 @@
                 </p>
             </div>
             <div>
+                <h2 id="tournaments">Tournaments:</h2>
+                <p class="helptopic">
+                    <span>whitelisttourhelper (room, user):</span> Whitelists a tour helper. Requires Room Owner.
+                </p>
+                <p class="helptopic">
+                    <span>unwhitelisttourhelper (room, user):</span> Unwhitelists a tour helper. Requires Room Owner.
+                </p>
+                <p class="helptopic">
+                    <span>tour simple|random|crazy:</span> Starts a standard tournament in a random format, chosen from a list of formats. Simple features common constructed formats as well as randbats. Random selects one of the randomized formats on PS, and is ideal for fast tours, since nobody is required to have a team. Crazy selects a random format from the list of crazy formats. These formats are intended to provide a creative and different way to play the game, while focusing less on having a fair and competitive tournament. These formats do often require a team to be built, so be prepared to give users some time to build before starting. Requires Tour helper.
+                </p>
+                <p class="helptopic">
+                    <span>tour leaderboard:</span> Starts a leaderboard tour which grants Arbitrary Points for people who do well. The format for leaderboard tours is set using <code>.tour set leaderboard, format</code> by a Room Owner. Additionally, adding "Leaderboard" to the name of a tour not created by Kid A using /tour name will make it count as a leaderboard tour, and give out points. Requires Tour helper.
+                </p>
+                <p class="helptopic">
+                    <span>tour set currency, (name):</span> Sets the name of the Arbitrary points used on the scoreboard. Requires Room Owner.
+                </p>
+                <p class="helptopic">
+                    <span>tour set shop, on|off:</span> Sets whether the scoreboard should indicate that points can be spent on prizes. Don't enable this if there are no prizes. Requires Room Owner.
+                </p>
+                <p class="helptopic">
+                    <span>addtp (user, amount[, total]):</span> Adds points to user and total points to the total. If left out, total defaults to the amount. Requires Tour helper.
+                </p>   
+                <p class="helptopic">
+                    <span>removetp (user, amount[, total]):</span> Removes points from user and total points from the total. If left out, total defaults to the amount. Requires Tour helper.
+                </p>
+                <p class="helptopic">
+                    <span>resettp:</span> Decays the points and deletes inactive users from the scoreboard. Requires Room Owner.
+                </p>                     
+            </div>
+            <div>
                 <h2 id="userlist">Userlist:</h2>
                 <p class="helptopic">
                     <span>addinfo (username), key:value[, key:value]:</span> Adds info to the userdata of the provided user. For example '.addinfo bumbadadabum, TCGO: bumbadadabum' will set 'bumbadadabum''s TCGO username to 'bumbadadabum', and will show

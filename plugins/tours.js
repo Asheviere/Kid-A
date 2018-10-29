@@ -5,9 +5,10 @@ const EventEmitter = require('events');
 const Page = require('../page.js');
 const redis = require('../redis.js');
 
-const WIFI_ROOM = 'wifi';
 const DECAY_CAP = 50;
 const EXPIRATION_TIMER = 2 * 30 * 24 * 60 * 60 * 1000;
+const CURRENCY_NAME = 'Arbitrary Points';
+const LEFT_COLUMN = ['Points to Spend', 'Current Points'];
 
 const TOURS = {
 	simple: [['gen7randombattle'], ['gen7randombattle'], ['gen7ou'], ['gen7ou'], ['gen7uu'], ['gen7pu'], ['gen7monotype'], ['gen7anythingoes'], ['gen7ubers'], ['gen7battlespotsingles'], ['gen7doublesou']],
@@ -16,10 +17,17 @@ const TOURS = {
 
 const settings = redis.useDatabase('settings');
 
+async function getCurrencyName(room) {
+	const name = await settings.hget(`${room}:leaderboard`, 'currency');
+	return name || CURRENCY_NAME;
+}
+
 async function leaderboardGenerator(room) {
 	let db = redis.useDatabase('tours');
 	let keys = await db.keys(`${room}:*`);
 	let data = [];
+	const currency = await getCurrencyName(room);
+	const shop = await settings.hget(`${room}:leaderboard`, 'shop');
 	for (let key of keys) {
 		let entry = await db.hgetall(key);
 		if (!entry.username) {
@@ -33,7 +41,7 @@ async function leaderboardGenerator(room) {
 		data.push([entry.username, entry.points, entry.total]);
 	}
 	data = data.sort((a, b) => a[0].localeCompare(b[0]));
-	return {tourHelpers: (await settings.hvals(`${room}:tourhelpers`)).join(', '), data: data};
+	return {tourHelpers: (await settings.hvals(`${room}:tourhelpers`)).join(', '), data: data, currency: currency, leftcolumn: LEFT_COLUMN[(shop ? 0 : 1)]};
 }
 
 const leaderboard = new Page('leaderboard', leaderboardGenerator, 'leaderboard.html');
@@ -70,7 +78,9 @@ listener.on('end', async (roomid, data) => {
 	if (prizes[2] < 0) prizes[2] = 0;
 	if (rounds > 5) prizes[0] += rounds - 4;
 
-	ChatHandler.send(roomid, `/wall Winner: ${winner} (${prizes[0]} point${prizes[0] !== 1 ? 's' : ''}). Runner-up: ${runnerup} (${prizes[1]} point${prizes[1] !== 1 ? 's' : ''})${semifinalists.length ? `. Semi-finalists: ${semifinalists.join(', ')} (${prizes[2]} point${prizes[2] !== 1 ? 's' : ''})` : ''}`);
+	const currency = await getCurrencyName(roomid);
+
+	ChatHandler.send(roomid, `/wall Winner: ${winner} (${prizes[0]}${Utils.abbreviate(currency)}). Runner-up: ${runnerup} (${prizes[1]}${Utils.abbreviate(currency)})${semifinalists.length ? `. Semi-finalists: ${semifinalists.join(', ')} (${prizes[2]}${Utils.abbreviate(currency)})` : ''}`);
 
 	const top8 = [];
 	if (rounds > 4) {
@@ -83,7 +93,7 @@ listener.on('end', async (roomid, data) => {
 			}
 		}
 
-		ChatHandler.send(roomid, `/wall Quarterfinalists (1 point): ${top8.join(', ')}`);
+		ChatHandler.send(roomid, `/wall Quarterfinalists (1${Utils.abbreviate(currency)}): ${top8.join(', ')}`);
 	}
 
 	let db = redis.useDatabase('tours');
@@ -159,7 +169,9 @@ module.exports = {
 					if (rules) ChatHandler.send(this.room, `/tour rules ${rules}`);
 					if (rated) {
 						ChatHandler.send(this.room, `/tour scouting disallow`);
-						ChatHandler.send(this.room, `/wall Tournament Points will be awarded this tournament, these can be spent on tournament prizes throughout the month!`);
+						const currency = await getCurrencyName(this.room);
+						const shop = await this.settings.hget(`${this.room}:leaderboard`, 'shop');
+						ChatHandler.send(this.room, `/wall ${currency} will be awarded this tournament${shop ? `, these can be spent on prizes throughout the month!` : ''}`);
 					}
 					return;
 				case 'end':
@@ -168,7 +180,9 @@ module.exports = {
 					return ChatHandler.send(this.room, `/tour end`);
 				case 'set':
 					let setting;
-					[setting, ...rest] = rest;
+					[setting, ...rest] = rest.split(',');
+					setting = setting.trim();
+					rest = rest.join(',').trim();
 					switch (setting) {
 					case 'leaderboard':
 						if (!rest) {
@@ -190,6 +204,24 @@ module.exports = {
 
 						await settings.hset(`${this.room}:leaderboard`, 'rules', rest.trim());
 						return this.reply(`The ranked rules were set to ${rest}`);
+					case 'shop':
+						if (!rest) {
+							const shop = await settings.hget(`${this.room}:leaderboard`, 'shop');
+							return this.reply(`This room is ${shop ? '' : 'not'} marked as having a shop.`);
+						}
+						if (!this.canUse(5)) return this.pmreply("Permission denied.");
+
+						await settings.hset(`${this.room}:leaderboard`, 'shop', rest === 'on');
+						return this.reply(`The scoreboard was marked as ${rest === 'on' ? '' : 'not'} having a shop.`);
+					case 'currency':
+						if (!rest) {
+							const currency = await getCurrencyName(this.room);
+							return this.reply(`This room's currency is called ${currency} (${Utils.abbreviate(currency)})`);
+						}
+						if (!this.canUse(5)) return this.pmreply("Permission denied.");
+
+						await settings.hset(`${this.room}:leaderboard`, 'currency', rest.trim());
+						return this.reply(`The room's currency was set to ${rest} (${Utils.abbreviate(rest)})`);
 					default:
 						return this.pmreply(`Unknown setting: ${setting}`);
 					}
@@ -235,6 +267,7 @@ module.exports = {
 				userid = toId(userid);
 
 				let db = redis.useDatabase('tours');
+				const currency = await getCurrencyName(this.room);
 
 				if (!(await db.exists(`${this.room}:${userid}`))) {
 					await db.hmset(`${this.room}:${userid}`, 'username', username, 'points', 0, 'total', 0);
@@ -244,7 +277,7 @@ module.exports = {
 				await db.hincrby(`${this.room}:${userid}`, 'total', points);
 				db.hset(`${this.room}:${userid}`, 'timestamp', Date.now());
 
-				return this.reply(`${points} points added for ${username}.`);
+				return this.reply(`${points} ${currency} added for ${username}.`);
 			},
 		},
 		removetp: {
@@ -262,17 +295,18 @@ module.exports = {
 
 				let db = redis.useDatabase('tours');
 				let entry = await db.hgetall(`${this.room}:${userid}`);
+				const currency = await getCurrencyName(this.room);
 
-				if (!entry) return this.reply("This person doesn't have any points.");
+				if (!entry) return this.reply(`This person doesn't have any ${currency}.`);
 				if (!removeFromTotal && (total === 'true' || total === 'yes')) removeFromTotal = points;
 
-				if (entry.points < points) return this.reply(`This user doesn't have ${points} points. You can only remove ${entry.points} points.`);
-				if (entry.total < removeFromTotal) return this.reply(`This user doesn't have ${removeFromTotal} total points. You can only remove ${entry.total} points.`);
+				if (entry.points < points) return this.reply(`This user doesn't have ${points}${Utils.abbreviate(currency)}. You can only remove ${entry.points}${Utils.abbreviate(currency)}.`);
+				if (entry.total < removeFromTotal) return this.reply(`This user doesn't have ${removeFromTotal}${Utils.abbreviate(currency)} total. You can only remove ${entry.total}${Utils.abbreviate(currency)}.`);
 
 				await db.hincrby(`${this.room}:${userid}`, 'points', -1 * points);
 				if (removeFromTotal) await db.hincrby(`${this.room}:${userid}`, 'total', -1 * removeFromTotal);
 
-				return this.reply(`${points} points removed from ${username}${removeFromTotal ? ` and ${removeFromTotal} total points` : ''}.`);
+				return this.reply(`${points} ${currency} removed from ${username}${removeFromTotal ? ` and ${removeFromTotal} total ${currency}` : ''}.`);
 			},
 		},
 		resettp: {
@@ -282,22 +316,23 @@ module.exports = {
 
 				const db = redis.useDatabase('tours');
 				let keys = await db.keys(`${this.room}:*`);
+				const currency = await getCurrencyName(this.room);
 
 				let promises = keys.map(async key => {
 					const entry = await db.hgetall(key);
 					if (entry.points > DECAY_CAP) {
 						db.hset(key, 'points', DECAY_CAP);
-						this.sendMail('Kid A', key.split(':')[1], `Your tournament points in ${this.room} have decayed! You now have ${DECAY_CAP} points.`);
+						this.sendMail('Kid A', key.split(':')[1], `Your ${currency} in ${this.room} have decayed! You now have ${DECAY_CAP} points.`);
 					} else if (entry.timestamp && entry.timestamp + EXPIRATION_TIMER) {
 						db.del(key);
-						this.sendMail('Kid A', key.split(':')[1], `Your tournament points ${this.room} have expired.`);
+						this.sendMail('Kid A', key.split(':')[1], `Your ${currency} ${this.room} have expired.`);
 					}
 					return true;
 				});
 
 				await Promise.all(promises);
 
-				ChatHandler.send(this.room, `/modnote ${this.username} reset the tour points.`);
+				ChatHandler.send(this.room, `/modnote ${this.username} reset the ${currency}.`);
 				return this.reply(`Points reset.`);
 			},
 		},
