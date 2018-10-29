@@ -16,9 +16,9 @@ const TOURS = {
 
 const settings = redis.useDatabase('settings');
 
-async function leaderboardGenerator() {
+async function leaderboardGenerator(room) {
 	let db = redis.useDatabase('tours');
-	let keys = await db.keys(`${WIFI_ROOM}:*`);
+	let keys = await db.keys(`${room}:*`);
 	let data = [];
 	for (let key of keys) {
 		let entry = await db.hgetall(key);
@@ -33,10 +33,10 @@ async function leaderboardGenerator() {
 		data.push([entry.username, entry.points, entry.total]);
 	}
 	data = data.sort((a, b) => a[0].localeCompare(b[0]));
-	return {tourHelpers: (await settings.hvals('whitelist:tourhelpers')).join(', '), data: data};
+	return {tourHelpers: (await settings.hvals(`${room}:tourhelpers`)).join(', '), data: data};
 }
 
-new Page('leaderboard', leaderboardGenerator, 'leaderboard.html', {rooms: [WIFI_ROOM]});
+const leaderboard = new Page('leaderboard', leaderboardGenerator, 'leaderboard.html');
 
 const listener = new EventEmitter();
 
@@ -111,6 +111,13 @@ listener.on('end', async (roomid, data) => {
 });
 
 module.exports = {
+	async init() {
+		let rooms = await ChatLogger.getRooms();
+
+		for (let i = 0; i < rooms.length; i++) {
+			leaderboard.addRoom(rooms[i]);
+		}
+	},
 	tours: {
 		listener: listener,
 	},
@@ -118,8 +125,6 @@ module.exports = {
 		tour: {
 			requireRoom: true,
 			async action(message) {
-				if (!this.getRoomAuth(WIFI_ROOM)) return;
-
 				let [cmd, ...rest] = message.split(' ');
 				rest = rest.join(' ');
 				let format = rest;
@@ -134,9 +139,9 @@ module.exports = {
 				case 'leaderboard':
 				case 'new':
 				case 'create':
-					if (!(this.canUse(2) || await this.settings.hexists('whitelist:tourhelpers', this.userid))) return this.pmreply("Permission denied.");
+					if (!(this.canUse(2) || await this.settings.hexists(`${this.room}:tourhelpers`, this.userid))) return this.pmreply("Permission denied.");
 					if (cmd === 'leaderboard') {
-						const {format: leaderboardFormat, rules: leaderboardRules} = await settings.hgetall(`${WIFI_ROOM}:leaderboard`);
+						const {format: leaderboardFormat, rules: leaderboardRules} = await settings.hgetall(`${this.room}:leaderboard`);
 						if (!leaderboardFormat) return this.reply("This room doesn't have a leaderboard format set. Set with ``.tour leaderboard``");
 
 						rated = true;
@@ -145,45 +150,45 @@ module.exports = {
 						name = `${format} Leaderboard`;
 					}
 
-					ChatHandler.send(WIFI_ROOM, `/tour new ${format}, elimination`);
-					ChatHandler.send(WIFI_ROOM, `/tour autostart 5`);
-					ChatHandler.send(WIFI_ROOM, `/tour autodq 2`);
-					ChatHandler.send(WIFI_ROOM, `/tour forcetimer`);
+					ChatHandler.send(this.room, `/tour new ${format}, elimination`);
+					ChatHandler.send(this.room, `/tour autostart 5`);
+					ChatHandler.send(this.room, `/tour autodq 2`);
+					ChatHandler.send(this.room, `/tour forcetimer`);
 
-					if (name) ChatHandler.send(WIFI_ROOM, `/tour name ${name}`);
-					if (rules) ChatHandler.send(WIFI_ROOM, `/tour rules ${rules}`);
+					if (name) ChatHandler.send(this.room, `/tour name ${name}`);
+					if (rules) ChatHandler.send(this.room, `/tour rules ${rules}`);
 					if (rated) {
-						ChatHandler.send(WIFI_ROOM, `/tour scouting disallow`);
-						ChatHandler.send(WIFI_ROOM, `/wall Tournament Points will be awarded this tournament, these can be spent on tournament prizes throughout the month!`);
+						ChatHandler.send(this.room, `/tour scouting disallow`);
+						ChatHandler.send(this.room, `/wall Tournament Points will be awarded this tournament, these can be spent on tournament prizes throughout the month!`);
 					}
 					return;
 				case 'end':
-					if (!(this.canUse(2) || await this.settings.hexists('whitelist:tourhelpers', this.userid))) return this.pmreply("Permission denied.");
+					if (!(this.canUse(2) || await this.settings.hexists(`${this.room}:tourhelpers`, this.userid))) return this.pmreply("Permission denied.");
 
-					return ChatHandler.send(WIFI_ROOM, `/tour end`);
+					return ChatHandler.send(this.room, `/tour end`);
 				case 'set':
 					let setting;
 					[setting, ...rest] = rest;
 					switch (setting) {
 					case 'leaderboard':
 						if (!rest) {
-							const leaderboardFormat = await settings.hget(`${WIFI_ROOM}:leaderboard`, 'format');
+							const leaderboardFormat = await settings.hget(`${this.room}:leaderboard`, 'format');
 							if (leaderboardFormat) return this.reply(`The current ranked format is: ${leaderboardFormat}`);
 							return this.pmreply("No ranked format set.");
 						}
 						if (!this.canUse(5)) return this.pmreply("Permission denied.");
 
-						await settings.hset(`${WIFI_ROOM}:leaderboard`, 'format', rest.trim());
+						await settings.hset(`${this.room}:leaderboard`, 'format', rest.trim());
 						return this.reply(`The ranked format was set to ${rest}`);
 					case 'rules':
 						if (!rest) {
-							const rules = await settings.hget(`${WIFI_ROOM}:leaderboard`, 'rules');
+							const rules = await settings.hget(`${this.room}:leaderboard`, 'rules');
 							if (rules) return this.reply(`The current ranked rules are: ${rules}`);
 							return this.pmreply("No ranked rules set.");
 						}
 						if (!this.canUse(5)) return this.pmreply("Permission denied.");
 
-						await settings.hset(`${WIFI_ROOM}:leaderboard`, 'rules', rest.trim());
+						await settings.hset(`${this.room}:leaderboard`, 'rules', rest.trim());
 						return this.reply(`The ranked rules were set to ${rest}`);
 					default:
 						return this.pmreply(`Unknown setting: ${setting}`);
@@ -194,42 +199,33 @@ module.exports = {
 			},
 		},
 		whitelisttourhelper: {
-			rooms: [WIFI_ROOM],
+			requireRoom: true,
 			async action(message) {
-				if (!this.room) {
-					if (!this.getRoomAuth(WIFI_ROOM)) return;
-				}
 				if (!this.canUse(4)) return this.pmreply("Permission denied.");
 
-				if (await this.settings.hexists('whitelist:tourhelpers', toId(message))) return this.reply("This user is already whitelisted.");
+				if (await this.settings.hexists(`${this.room}:tourhelpers`, toId(message))) return this.reply("This user is already whitelisted.");
 
-				await this.settings.hset('whitelist:tourhelpers', toId(message), message);
-				ChatHandler.send(WIFI_ROOM, `/modnote ${toId(message)} was whitelisted as a tour helper by ${this.username}.`);
+				await this.settings.hset(`${this.room}:tourhelpers`, toId(message), message);
+				ChatHandler.send(this.room, `/modnote ${toId(message)} was whitelisted as a tour helper by ${this.username}.`);
 				return this.reply("User successfully whitelisted.");
 			},
 		},
 		unwhitelisttourhelper: {
-			rooms: [WIFI_ROOM],
+			requireRoom: true,
 			async action(message) {
-				if (!this.room) {
-					if (!this.getRoomAuth(WIFI_ROOM)) return;
-				}
 				if (!this.canUse(4)) return this.pmreply("Permission denied.");
 
-				if (!await this.settings.hexists('whitelist:tourhelpers', toId(message))) return this.reply("This user isn't whitelisted.");
+				if (!await this.settings.hexists(`${this.room}:tourhelpers`, toId(message))) return this.reply("This user isn't whitelisted.");
 
-				await this.settings.hdel('whitelist:tourhelpers', toId(message));
-				ChatHandler.send(WIFI_ROOM, `/modnote ${toId(message)} was unwhitelisted as a tour helper by ${this.username}.`);
+				await this.settings.hdel(`${this.room}:tourhelpers`, toId(message));
+				ChatHandler.send(this.room, `/modnote ${toId(message)} was unwhitelisted as a tour helper by ${this.username}.`);
 				return this.reply("User successfully removed from the whitelist.");
 			},
 		},
 		addtp: {
-			rooms: [WIFI_ROOM],
+			requireRoom: true,
 			async action(message) {
-				if (!this.room) {
-					if (!this.getRoomAuth(WIFI_ROOM)) return;
-				}
-				if (!(this.canUse(2) || await this.settings.hexists('whitelist:tourhelpers', this.userid))) return this.pmreply("Permission denied.");
+				if (!(this.canUse(2) || await this.settings.hexists(`${this.room}:tourhelpers`, this.userid))) return this.pmreply("Permission denied.");
 
 				let [username, points] = message.split(',').map(param => param.trim());
 				points = parseInt(points);
@@ -240,24 +236,21 @@ module.exports = {
 
 				let db = redis.useDatabase('tours');
 
-				if (!(await db.exists(`${WIFI_ROOM}:${userid}`))) {
-					await db.hmset(`${WIFI_ROOM}:${userid}`, 'username', username, 'points', 0, 'total', 0);
+				if (!(await db.exists(`${this.room}:${userid}`))) {
+					await db.hmset(`${this.room}:${userid}`, 'username', username, 'points', 0, 'total', 0);
 				}
 
-				await db.hincrby(`${WIFI_ROOM}:${userid}`, 'points', points);
-				await db.hincrby(`${WIFI_ROOM}:${userid}`, 'total', points);
-				db.hset(`${WIFI_ROOM}:${userid}`, 'timestamp', Date.now());
+				await db.hincrby(`${this.room}:${userid}`, 'points', points);
+				await db.hincrby(`${this.room}:${userid}`, 'total', points);
+				db.hset(`${this.room}:${userid}`, 'timestamp', Date.now());
 
 				return this.reply(`${points} points added for ${username}.`);
 			},
 		},
 		removetp: {
-			rooms: [WIFI_ROOM],
+			requireRoom: true,
 			async action(message) {
-				if (!this.room) {
-					if (!this.getRoomAuth(WIFI_ROOM)) return;
-				}
-				if (!(this.canUse(2) || await this.settings.hexists('whitelist:tourhelpers', this.userid))) return this.pmreply("Permission denied.");
+				if (!(this.canUse(2) || await this.settings.hexists(`${this.room}:tourhelpers`, this.userid))) return this.pmreply("Permission denied.");
 
 				let [username, points, total] = message.split(',').map(param => param.trim());
 				points = parseInt(points);
@@ -268,7 +261,7 @@ module.exports = {
 				userid = toId(userid);
 
 				let db = redis.useDatabase('tours');
-				let entry = await db.hgetall(`${WIFI_ROOM}:${userid}`);
+				let entry = await db.hgetall(`${this.room}:${userid}`);
 
 				if (!entry) return this.reply("This person doesn't have any points.");
 				if (!removeFromTotal && (total === 'true' || total === 'yes')) removeFromTotal = points;
@@ -276,38 +269,35 @@ module.exports = {
 				if (entry.points < points) return this.reply(`This user doesn't have ${points} points. You can only remove ${entry.points} points.`);
 				if (entry.total < removeFromTotal) return this.reply(`This user doesn't have ${removeFromTotal} total points. You can only remove ${entry.total} points.`);
 
-				await db.hincrby(`${WIFI_ROOM}:${userid}`, 'points', -1 * points);
-				if (removeFromTotal) await db.hincrby(`${WIFI_ROOM}:${userid}`, 'total', -1 * removeFromTotal);
+				await db.hincrby(`${this.room}:${userid}`, 'points', -1 * points);
+				if (removeFromTotal) await db.hincrby(`${this.room}:${userid}`, 'total', -1 * removeFromTotal);
 
 				return this.reply(`${points} points removed from ${username}${removeFromTotal ? ` and ${removeFromTotal} total points` : ''}.`);
 			},
 		},
 		resettp: {
-			rooms: [WIFI_ROOM],
+			requireRoom: true,
 			async action() {
-				if (!this.room) {
-					if (!this.getRoomAuth(WIFI_ROOM)) return;
-				}
 				if (!(this.canUse(5))) return this.pmreply("Permission denied.");
 
 				const db = redis.useDatabase('tours');
-				let keys = await db.keys(`${WIFI_ROOM}:*`);
+				let keys = await db.keys(`${this.room}:*`);
 
 				let promises = keys.map(async key => {
 					const entry = await db.hgetall(key);
 					if (entry.points > DECAY_CAP) {
 						db.hset(key, 'points', DECAY_CAP);
-						this.sendMail('Kid A', key.split(':')[1], `Your tournament points have decayed! You now have ${DECAY_CAP} points.`);
+						this.sendMail('Kid A', key.split(':')[1], `Your tournament points in ${this.room} have decayed! You now have ${DECAY_CAP} points.`);
 					} else if (entry.timestamp && entry.timestamp + EXPIRATION_TIMER) {
 						db.del(key);
-						this.sendMail('Kid A', key.split(':')[1], `Your tournament points have expired.`);
+						this.sendMail('Kid A', key.split(':')[1], `Your tournament points ${this.room} have expired.`);
 					}
 					return true;
 				});
 
 				await Promise.all(promises);
 
-				ChatHandler.send(WIFI_ROOM, `/modnote ${this.username} reset the tour points.`);
+				ChatHandler.send(this.room, `/modnote ${this.username} reset the tour points.`);
 				return this.reply(`Points reset.`);
 			},
 		},
