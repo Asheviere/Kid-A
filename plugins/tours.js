@@ -9,6 +9,11 @@ const WIFI_ROOM = 'wifi';
 const DECAY_CAP = 50;
 const EXPIRATION_TIMER = 2 * 30 * 24 * 60 * 60 * 1000;
 
+const TOURS = {
+	simple: [['gen7randombattle'], ['gen7randombattle'], ['gen7ou'], ['gen7ou'], ['gen7uu'], ['gen7pu'], ['gen7monotype'], ['gen7anythingoes'], ['gen7ubers'], ['gen7battlespotsingles'], ['gen7doublesou']],
+	random: [['gen7randombattle'], ['gen7battlefactory'], ['gen7bssfactory'], ['gen7monotyperandombattle'], ['gen7challengecup1v1'], ['gen7challengecup2v2'], ['gen7hackmonscup'], ['gen7doubleshackmonscup'], ['gen6randombattle'], ['gen6battlefactory'], ['gen5randombattle'], ['gen4randombattle'], ['gen3randombattle'], ['gen2randombattle'], ['gen1randombattle'], ['gen1challengecup']],
+};
+
 const settings = redis.useDatabase('settings');
 
 async function leaderboardGenerator() {
@@ -107,41 +112,48 @@ listener.on('end', async (roomid, data) => {
 
 module.exports = {
 	tours: {
-		rooms: [WIFI_ROOM],
 		listener: listener,
 	},
 	commands: {
 		tour: {
-			rooms: [WIFI_ROOM],
+			requireRoom: true,
 			async action(message) {
 				if (!this.getRoomAuth(WIFI_ROOM)) return;
 
 				let [cmd, ...rest] = message.split(' ');
 				rest = rest.join(' ');
+				let format = rest;
+				let rated = false;
+				let rules = '';
+				let name = '';
 
 				switch (cmd) {
+				case 'simple':
+				case 'random':
+					[format, rules, name] = TOURS[cmd][Math.floor(Math.random() * TOURS[cmd].length)];
+				case 'leaderboard':
 				case 'new':
 				case 'create':
 					if (!(this.canUse(2) || await this.settings.hexists('whitelist:tourhelpers', this.userid))) return this.pmreply("Permission denied.");
-					let format = rest;
-					let rated = false;
-					let rules = '';
-					if (toId(format) === 'leaderboard') {
+					if (cmd === 'leaderboard') {
 						const {format: leaderboardFormat, rules: leaderboardRules} = await settings.hgetall(`${WIFI_ROOM}:leaderboard`);
 						if (!leaderboardFormat) return this.reply("This room doesn't have a leaderboard format set. Set with ``.tour leaderboard``");
 
 						rated = true;
 						format = leaderboardFormat;
 						rules = leaderboardRules || '';
+						name = `${format} Leaderboard`;
 					}
+
 					ChatHandler.send(WIFI_ROOM, `/tour new ${format}, elimination`);
 					ChatHandler.send(WIFI_ROOM, `/tour autostart 5`);
 					ChatHandler.send(WIFI_ROOM, `/tour autodq 2`);
 					ChatHandler.send(WIFI_ROOM, `/tour forcetimer`);
+
+					if (name) ChatHandler.send(WIFI_ROOM, `/tour name ${name}`);
+					if (rules) ChatHandler.send(WIFI_ROOM, `/tour rules ${rules}`);
 					if (rated) {
-						ChatHandler.send(WIFI_ROOM, `/tour name ${format} Leaderboard`);
 						ChatHandler.send(WIFI_ROOM, `/tour scouting disallow`);
-						ChatHandler.send(WIFI_ROOM, `/tour rules ${rules}`);
 						ChatHandler.send(WIFI_ROOM, `/wall Tournament Points will be awarded this tournament, these can be spent on tournament prizes throughout the month!`);
 					}
 					return;
@@ -149,26 +161,33 @@ module.exports = {
 					if (!(this.canUse(2) || await this.settings.hexists('whitelist:tourhelpers', this.userid))) return this.pmreply("Permission denied.");
 
 					return ChatHandler.send(WIFI_ROOM, `/tour end`);
-				case 'leaderboard':
-					if (!rest) {
-						const leaderboardFormat = await settings.hget(`${WIFI_ROOM}:leaderboard`, 'format');
-						if (leaderboardFormat) return this.reply(`The current ranked format is: ${leaderboardFormat}`);
-						return this.pmreply("No ranked format set.");
-					}
-					if (!this.canUse(5)) return this.pmreply("Permission denied.");
+				case 'set':
+					let setting;
+					[setting, ...rest] = rest;
+					switch (setting) {
+					case 'leaderboard':
+						if (!rest) {
+							const leaderboardFormat = await settings.hget(`${WIFI_ROOM}:leaderboard`, 'format');
+							if (leaderboardFormat) return this.reply(`The current ranked format is: ${leaderboardFormat}`);
+							return this.pmreply("No ranked format set.");
+						}
+						if (!this.canUse(5)) return this.pmreply("Permission denied.");
 
-					await settings.hset(`${WIFI_ROOM}:leaderboard`, 'format', rest.trim());
-					return this.reply(`The ranked format was set to ${rest}`);
-				case 'rules':
-					if (!rest) {
-						const rules = await settings.hget(`${WIFI_ROOM}:leaderboard`, 'rules');
-						if (rules) return this.reply(`The current ranked rules are: ${rules}`);
-						return this.pmreply("No ranked rules set.");
-					}
-					if (!this.canUse(5)) return this.pmreply("Permission denied.");
+						await settings.hset(`${WIFI_ROOM}:leaderboard`, 'format', rest.trim());
+						return this.reply(`The ranked format was set to ${rest}`);
+					case 'rules':
+						if (!rest) {
+							const rules = await settings.hget(`${WIFI_ROOM}:leaderboard`, 'rules');
+							if (rules) return this.reply(`The current ranked rules are: ${rules}`);
+							return this.pmreply("No ranked rules set.");
+						}
+						if (!this.canUse(5)) return this.pmreply("Permission denied.");
 
-					await settings.hset(`${WIFI_ROOM}:leaderboard`, 'rules', rest.trim());
-					return this.reply(`The ranked rules were set to ${rest}`);
+						await settings.hset(`${WIFI_ROOM}:leaderboard`, 'rules', rest.trim());
+						return this.reply(`The ranked rules were set to ${rest}`);
+					default:
+						return this.pmreply(`Unknown setting: ${setting}`);
+					}
 				default:
 					return this.pmreply(`Unknown command.`);
 				}
