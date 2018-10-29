@@ -440,6 +440,7 @@ class ChatHandler {
 	}
 
 	send(room, message) {
+		Debug.log(4, `sending to ${room}: ${message}`);
 		this.trySend(`${room || ''}|${message}`);
 	}
 }
