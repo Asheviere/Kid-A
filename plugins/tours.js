@@ -49,6 +49,8 @@ const leaderboard = new Page('leaderboard', leaderboardGenerator, 'leaderboard.h
 const listener = new EventEmitter();
 
 listener.on('update', (roomid, data) => {
+	if (this.options.includes('disabletours')) return;
+
 	if (!data.bracketData || data.bracketData.type !== 'tree') return;
 	if (data.bracketData.rootNode.state === 'inprogress' && data.bracketData.rootNode.room) {
 		ChatHandler.send(roomid, `/wall Watch the finals of the tournament! <<${data.bracketData.rootNode.room}>>`);
@@ -56,6 +58,8 @@ listener.on('update', (roomid, data) => {
 });
 
 listener.on('end', async (roomid, data) => {
+	if (this.options.includes('disabletours')) return;
+
 	if (data.generator === 'Round Robin') return; // This is currently not supported.
 	if (!toId(data.format).includes('leaderboard')) return; // TODO: better way to determine whether to give points for the tour.
 	let finalist1 = data.bracketData.rootNode.children[0].team;
@@ -121,6 +125,8 @@ listener.on('end', async (roomid, data) => {
 });
 
 module.exports = {
+	options: ['disabletours'],
+
 	async init() {
 		let rooms = await ChatLogger.getRooms();
 
