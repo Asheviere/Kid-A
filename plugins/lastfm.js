@@ -11,7 +11,7 @@ const YT_ROOT = 'https://www.googleapis.com/youtube/v3/search';
 const VIDEO_ROOT = 'https://youtu.be/';
 
 module.exports = {
-	options: ['lastfmhtmlbox'],
+	options: [['lastfmhtmlbox', "Use /htmlbox when showing output of .lastfm and .track"]],
 	commands: {
 		lastfm: {
 			permission: 1,

@@ -154,7 +154,7 @@ async function parse(room, url) {
 }
 
 module.exports = {
-	options: ['imagethumbnails'],
+	options: [['imagethumbnails', "Show thumbnails for images linked in chat"]],
 	commands: {
 		requestapproval: {
 			async action(message) {

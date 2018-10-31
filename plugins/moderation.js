@@ -76,7 +76,7 @@ function addBuffer(userid, room, message, timestamp) {
 }
 
 module.exports = {
-	options: ['disablemoderation', 'allowbold', 'allowcaps', 'allowstretching', 'allowflooding', 'disallowbattlelinks'],
+	options: [['disablemoderation', "Disable bot moderation"], ['allowbold', "Don't moderate for bold"], ['allowcaps', "Don't moderate for caps"], ['allowstretching', "Don't moderate for stretching"], ['allowflooding', "Don't moderate for flooding"], ['disallowbattlelinks', "Don't allow posting battle and replay links"]],
 
 	analyzer: {
 		async parser(message, timestamp) {

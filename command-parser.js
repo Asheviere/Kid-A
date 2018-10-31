@@ -160,6 +160,7 @@ class ChatHandler {
 		this.analyzers = {};
 		this.commands = {};
 		this.options = new Set();
+		this.optionLabels = new Map();
 		this.userlists = userlists;
 		this.settings = settings;
 		this.commandQueue = [];
@@ -234,8 +235,16 @@ class ChatHandler {
 					});
 				}
 				if (plugin.options) {
-					plugin.options.forEach((o) => {
-						this.options.add(o);
+					plugin.options.forEach(entry => {
+						let id, label;
+						if (typeof entry === 'string') {
+							id = entry;
+							label = entry;
+						} else {
+							[id, label] = entry;
+						}
+						this.options.add(id);
+						this.optionLabels.set(id, label);
 					});
 				}
 			});

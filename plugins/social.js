@@ -110,7 +110,6 @@ async function runRepeat(id) {
 const rooms = new Set();
 
 module.exports = {
-	options: ['announcemotd'],
 	async init() {
 		for (let i in cache.get('repeats')) {
 			let room = i.split('|')[0];
@@ -132,8 +131,7 @@ module.exports = {
 				if (!message) {
 					if (!(room in motds)) return this.reply("This room does not have a motd set.");
 
-					let options = await this.settings.lrange(`${room}:options`, 0, -1);
-					return this.reply((options && options.includes('announcemotd') ? '/wall ' : '') + "This room's motd is: " + motds[room]);
+					return this.reply(`/wall This room's motd is: ${motds[room]}`);
 				}
 
 				if (!this.canUse(3)) return this.pmreply("Permission denied.");

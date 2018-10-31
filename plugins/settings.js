@@ -64,8 +64,8 @@ async function settingsGenerator(room) {
 	let disabled = await db.lrange(`${room}:disabledCommands`, 0, -1);
 
 	let options = [];
-	ChatHandler.options.forEach(val => {
-		options.push({name: val, checked: enabledOptions.includes(val)});
+	ChatHandler.options.forEach(id => {
+		options.push({name: id, checked: enabledOptions.includes(id), label: ChatHandler.optionLabels.get(id)});
 	});
 
 	let commands = Object.keys(ChatHandler.commands).filter(cmd => !(ChatHandler.commands[cmd].hidden || (ChatHandler.commands[cmd].rooms && !ChatHandler.commands[cmd].rooms.includes(room)))).map(val => ({name: val, checked: disabled.includes(val)}));

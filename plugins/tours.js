@@ -125,7 +125,7 @@ listener.on('end', async (roomid, data) => {
 });
 
 module.exports = {
-	options: ['disabletours'],
+	options: [['disabletours', "Disable tournaments plugin"]],
 
 	async init() {
 		let rooms = await ChatLogger.getRooms();
