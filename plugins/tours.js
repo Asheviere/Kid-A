@@ -325,7 +325,7 @@ module.exports = {
 					if (entry.points > DECAY_CAP) {
 						db.hset(key, 'points', DECAY_CAP);
 						this.sendMail('Kid A', key.split(':')[1], `Your ${currency} in ${this.room} have decayed! You now have ${DECAY_CAP} points.`);
-					} else if (entry.timestamp && entry.timestamp + EXPIRATION_TIMER < Date.now()) {
+					} else if (!entry.timestamp || entry.timestamp + EXPIRATION_TIMER < Date.now()) {
 						db.del(key);
 						this.sendMail('Kid A', key.split(':')[1], `Your ${currency} ${this.room} have expired.`);
 					}
