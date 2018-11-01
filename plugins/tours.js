@@ -50,7 +50,7 @@ const listener = new EventEmitter();
 
 listener.on('update', (roomid, data) => {
 	if (!data.bracketData || data.bracketData.type !== 'tree') return;
-	if (data.bracket.rootNode && data.bracketData.rootNode.state === 'inprogress' && data.bracketData.rootNode.room) {
+	if (data.bracketData.rootNode && data.bracketData.rootNode.state === 'inprogress' && data.bracketData.rootNode.room) {
 		ChatHandler.send(roomid, `/wall Watch the finals of the tournament! <<${data.bracketData.rootNode.room}>>`);
 	}
 });
