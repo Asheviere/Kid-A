@@ -419,6 +419,9 @@ class ChatHandler {
 			}
 			repl.prompt();
 		});
+		repl.on('close', () => {
+			process.emit('SIGINT');
+		});
 	}
 
 	trySend(message) {
