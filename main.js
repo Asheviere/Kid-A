@@ -1,5 +1,11 @@
 'use strict';
 
+process.on('SIGINT', function() {
+	console.log("Caught Interrupt signal, exiting...");
+
+	process.exit();
+});
+
 process.on('uncaughtException', err => Output.errorMsg(err, "Uncaught Exception"));
 process.on('unhandledRejection', err => Output.errorMsg(err, "Uncaught Rejection"));
 
