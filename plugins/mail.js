@@ -30,5 +30,18 @@ module.exports = {
 				}
 			},
 		},
+		cancelmail: {
+			hidden: true,
+			permission: 6,
+			async action(message) {
+				const userid = toId(message);
+				for (let inbox in ChatHandler.mail.data) {
+					ChatHandler.mail.data[inbox] = ChatHandler.mail.data[inbox].filter(val => toId(val.sender) !== userid);
+				}
+				ChatHandler.mail.write();
+
+				this.reply(`Canceled all mail from ${userid}`);
+			},
+		},
 	},
 };
