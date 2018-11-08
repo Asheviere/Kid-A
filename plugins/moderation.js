@@ -82,6 +82,30 @@ module.exports = {
 		async parser(message, timestamp) {
 			if (this.options.includes('disablemoderation')) return;
 
+			if (message.startsWith('/log')) {
+				let array = /\/log (.+?) was muted by (.+?) for ([0-9]+?) minutes/g.exec(message);
+				if (array) {
+					let notol = await settings.lrange(`${this.room}:notol`, 0, -1);
+					if (notol.includes(toId(array[1]))) {
+						const duration = parseInt(array[3]);
+						if (duration === 7) {
+							return ChatHandler.send(this.room, `/hm ${array[1]}, Bot Moderation: Extending punishment for zero tolerance user.`);
+						} else if (duration === 60) {
+							return ChatHandler.send(this.room, `/rb ${array[1]}, Bot Moderation: Escalating punishment for zero tolerance user.`);
+						}
+					}
+				}
+
+				array = /\/log (.+?) was warned by (.+?)\./g.exec(message);
+
+				if (array) {
+					let notol = await settings.lrange(`${this.room}:notol`, 0, -1);
+					if (notol.includes(toId(array[1]))) {
+						return ChatHandler.send(this.room, `/m ${array[1]}, Bot Moderation: Escalating punishment for zero tolerance user.`);
+					}
+				}
+			}
+
 			if (!this.options.includes('allowflooding')) {
 				addBuffer(this.userid, this.room, message, timestamp);
 				if (this.canUse(1)) return;
