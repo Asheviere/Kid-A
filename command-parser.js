@@ -232,6 +232,11 @@ class ChatHandler {
 				if (plugin.commands) {
 					Object.keys(plugin.commands).forEach((c) => {
 						this.commands[c] = plugin.commands[c];
+						if (plugin.commands[c].aliases) {
+							for (const alias of plugin.commands[c].aliases) {
+								this.commands[alias] = plugin.commands[c];
+							}
+						}
 					});
 				}
 				if (plugin.options) {

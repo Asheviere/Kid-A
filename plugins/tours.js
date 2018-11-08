@@ -277,7 +277,8 @@ module.exports = {
 				return this.reply("User successfully removed from the whitelist.");
 			},
 		},
-		addtp: {
+		addpoints: {
+			aliases: ['addtp'],
 			requireRoom: true,
 			async action(message) {
 				if (!(this.canUse(2) || await this.settings.hexists(`${this.room}:tourhelpers`, this.userid))) return this.pmreply("Permission denied.");
@@ -286,7 +287,7 @@ module.exports = {
 				points = parseInt(points);
 				let userid = toId(username);
 				if (userid === this.userid) return this.reply("You cannot give yourself points.");
-				if (!userid || !points || points < 0) return this.pmreply("Syntax error. ``.addtp username, amount``");
+				if (!userid || !points || points < 0) return this.pmreply("Syntax error. ``.addpoints username, amount``");
 				userid = toId(userid);
 
 				let db = redis.useDatabase('tours');
@@ -303,7 +304,8 @@ module.exports = {
 				return this.reply(`${points} ${currency} added for ${username}.`);
 			},
 		},
-		removetp: {
+		removepoints: {
+			aliases: ['removetp'],
 			requireRoom: true,
 			async action(message) {
 				if (!(this.canUse(2) || await this.settings.hexists(`${this.room}:tourhelpers`, this.userid))) return this.pmreply("Permission denied.");
@@ -332,7 +334,8 @@ module.exports = {
 				return this.reply(`${points} ${currency} removed from ${username}${removeFromTotal ? ` and ${removeFromTotal} total ${currency}` : ''}.`);
 			},
 		},
-		resettp: {
+		resetpoints: {
+			aliases: ['resettp'],
 			requireRoom: true,
 			async action() {
 				if (!(this.canUse(5))) return this.pmreply("Permission denied.");
