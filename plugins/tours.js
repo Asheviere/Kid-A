@@ -11,8 +11,26 @@ const CURRENCY_NAME = 'Arbitrary Points';
 const LEFT_COLUMN = ['Points to Spend', 'Current Points'];
 
 const TOURS = {
-	simple: [['gen7randombattle'], ['gen7randombattle'], ['gen7ou'], ['gen7ou'], ['gen7uu'], ['gen7pu'], ['gen7monotype'], ['gen7anythingoes'], ['gen7ubers'], ['gen7battlespotsingles'], ['gen7doublesou']],
-	random: [['gen7randombattle'], ['gen7battlefactory'], ['gen7bssfactory'], ['gen7monotyperandombattle'], ['gen7challengecup1v1'], ['gen7challengecup2v2'], ['gen7hackmonscup'], ['gen7doubleshackmonscup'], ['gen6randombattle'], ['gen6battlefactory'], ['gen5randombattle'], ['gen4randombattle'], ['gen3randombattle'], ['gen2randombattle'], ['gen1randombattle'], ['gen1challengecup']],
+	simple: [
+		['gen7randombattle'], ['gen7randombattle'], ['gen7ou'], ['gen7ou'], ['gen7uu'], ['gen7pu'], ['gen7monotype'], ['gen7anythingoes'], ['gen7ubers'], ['gen7battlespotsingles'], ['gen7doublesou'],
+	],
+	random: [
+		['gen7randombattle'], ['gen7battlefactory'], ['gen7bssfactory'], ['gen7monotyperandombattle'], ['gen7challengecup1v1'], ['gen7challengecup2v2'], ['gen7hackmonscup'], ['gen7doubleshackmonscup'], ['gen6randombattle'], ['gen6battlefactory'], ['gen5randombattle'], ['gen4randombattle'], ['gen3randombattle'], ['gen2randombattle'], ['gen1randombattle'], ['gen1challengecup'],
+	],
+	crazy: [
+		['gen7monotyperandombattle', 'inversemod', 'Inverse Monotype Randbats'],
+		['gen7hackmonscup', 'inversemod', 'Inverse Hackmons Cup'],
+		['gen7randomdoublesbattle', 'inversemod', 'Inverse Doubles Randbats'],
+		['gen7ou', 'inversemod', 'Inverse OU'],
+		['gen7metronomebattle', 'inversemod', 'Inverse Metronome Battles'],
+		['gen7metronomebattle'],
+		['gen7battlefactory', 'inversemod', 'Inverse Battle Factory'],
+		['gen7bssfactory', 'inversemod', 'Inverse BSS Factory'],
+		['gen7challengecup1v1', '/tours rules inversemod', 'Inverse Challenge Cup 1v1'],
+		['ubers', '-lc, -pu, -nfe, -zu, -ou, -uber, -uu, -ru, -nu, -lc, -mega, +kangaskhan, +metagross, +abomasnow, +absol, +aerodactyl, +aggron, +alakazam, +altaria, +ampharos, +audino, +banette, +beedrill, +blastoise, +blaziken, +camerupt, +charizard, +diancie, +gallade, +garchomp, +gardevoir, +gengar, +glalie, +gyarados, +heracross, +houndoom, +latias, +latios, +lopunny, +lucario, +manectric, +mawile, +medicham, +mewtwo, +pidgeot, +pinsir, +sableye, +rayquaza, +salamence, +sceptile, +scizor, +sharpedo, +slowbro, +swampert, +steelix, +tyranitar, +venusaur, +crucibelle', 'Mega-no-Mega', 'Every single Pokemon that can Mega evolve can be used, except mega evolution is banned!'],
+		['ubers', '-uber, -ou, -uu, -ru, -nu, -pu, -zu, -lc, -nfe, +arceus, itemclause, !speciesclause', 'Arceus Only!', 'Only Arceus can be used for this tournament!'],
+		['customgame', '-zu, -pu, -ru, -nu, -uu, -ou, -uber, -rayquazamega, -red orb, -blue orb, +kyogre, +groudon, +blacephalon, +ferrothorn, +magnezone, +swampert, +heracross, +venusaur, +aggron, +krookodile, +nidoking, +tentacruel, +bewear, +glalie, +steelix, +tyrantrum, +exploud, +slurpuff, +accelgor, +hariyama, +claydol, +bastiodon, +kabutops, +beheeyem, +bouffalant, +carnivine, +drifblim, +gourgeist, +slaking, +wailmer, +wailord, +colossoil, +reuniclus, +primeape, +spinda, +feraligatr, +swampertmega, +glaliemega, +heracrossmega, +steelixmega, +aggronmega, +venusaurmega, -cap, !sleepclause, +weezing, +koffing, +metagross, +metagrossmega, -primalkyogre, -primalgroudon', 'Big Heads Only!', 'Big Head-ed Pokemon only! Here is a list of all the Pokemon valid for this tournament: https://pastebin.com/8pTHNrct'],
+	],
 };
 
 const settings = redis.useDatabase('settings');
@@ -143,11 +161,13 @@ module.exports = {
 				let rated = false;
 				let rules = '';
 				let name = '';
+				let announcement = '';
 
 				switch (cmd) {
 				case 'simple':
 				case 'random':
-					[format, rules, name] = TOURS[cmd][Math.floor(Math.random() * TOURS[cmd].length)];
+				case 'crazy':
+					[format, rules, name, announcement] = TOURS[cmd][Math.floor(Math.random() * TOURS[cmd].length)];
 				case 'leaderboard':
 				case 'new':
 				case 'create':
@@ -160,6 +180,9 @@ module.exports = {
 						format = leaderboardFormat;
 						rules = leaderboardRules || '';
 						name = `${format} Leaderboard`;
+						const currency = await getCurrencyName(this.room);
+						const shop = await this.settings.hget(`${this.room}:leaderboard`, 'shop');
+						announcement = `${currency} will be awarded this tournament${shop ? `, these can be spent on prizes throughout the month!` : ''}`;
 					}
 
 					ChatHandler.send(this.room, `/tour new ${format}, elimination`);
@@ -171,10 +194,8 @@ module.exports = {
 					if (rules) ChatHandler.send(this.room, `/tour rules ${rules}`);
 					if (rated) {
 						ChatHandler.send(this.room, `/tour scouting disallow`);
-						const currency = await getCurrencyName(this.room);
-						const shop = await this.settings.hget(`${this.room}:leaderboard`, 'shop');
-						ChatHandler.send(this.room, `/wall ${currency} will be awarded this tournament${shop ? `, these can be spent on prizes throughout the month!` : ''}`);
 					}
+					if (announcement) ChatHandler.send(this.room `/wall ${announcement}`);
 					return;
 				case 'end':
 					if (!(this.canUse(2) || await this.settings.hexists(`${this.room}:tourhelpers`, this.userid))) return this.pmreply("Permission denied.");
