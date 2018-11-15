@@ -6,7 +6,7 @@ const settings = redis.useDatabase('settings');
 const HOUR = 1000 * 60 * 60;
 const FIFTEEN_MINS = 1000 * 60 * 15;
 
-function getPunishment(val) {
+function getPunishment(val, options) {
 	switch (val) {
 	case 1:
 	case 2:
@@ -17,7 +17,7 @@ function getPunishment(val) {
 	case 5:
 		return 'hourmute';
 	default:
-		return 'roomban';
+		return options.includes('noroombans') ? 'hourmute' : 'roomban';
 	}
 }
 
@@ -36,7 +36,7 @@ async function checkMuted(roomid, userid) {
 	return muted;
 }
 
-async function punish(username, room, val, msg) {
+async function punish(username, room, val, msg, options) {
 	let userid = toId(username);
 
 	let points = punishments.has(`${room}:${userid}`) ? punishments.get(`${room}:${userid}`)[0] : 0;
@@ -57,7 +57,7 @@ async function punish(username, room, val, msg) {
 	if (points === 1) {
 		ChatHandler.send(room, `${username}, ${msg}`);
 	} else {
-		ChatHandler.send(room, `/${getPunishment(points)} ${userid}, Bot moderation: ${msg}${extraMsg}`);
+		ChatHandler.send(room, `/${getPunishment(points, options)} ${userid}, Bot moderation: ${msg}${extraMsg}`);
 	}
 
 	if (punishments.has(`${room}:${userid}`)) {
@@ -76,7 +76,7 @@ function addBuffer(userid, room, message, timestamp) {
 }
 
 module.exports = {
-	options: [['disablemoderation', "Disable bot moderation"], ['allowbold', "Don't moderate for bold"], ['allowcaps', "Don't moderate for caps"], ['allowstretching', "Don't moderate for stretching"], ['allowflooding', "Don't moderate for flooding"], ['disallowbattlelinks', "Don't allow posting battle and replay links"]],
+	options: [['disablemoderation', "Disable bot moderation"], ['allowbold', "Don't moderate for bold"], ['allowcaps', "Don't moderate for caps"], ['allowstretching', "Don't moderate for stretching"], ['allowflooding', "Don't moderate for flooding"], ['disallowbattlelinks', "Don't allow posting battle and replay links"], ['noroombans', "Don't roomban users when doing automated punishments."]],
 
 	analyzer: {
 		async parser(message, timestamp) {
@@ -90,7 +90,7 @@ module.exports = {
 						const duration = parseInt(array[3]);
 						if (duration === 7) {
 							return ChatHandler.send(this.room, `/hm ${array[1]}, Bot Moderation: Extending punishment for zero tolerance user.`);
-						} else if (duration === 60) {
+						} else if (duration === 60 && !this.options.includes('noroombans')) {
 							return ChatHandler.send(this.room, `/rb ${array[1]}, Bot Moderation: Escalating punishment for zero tolerance user.`);
 						}
 					}
@@ -125,7 +125,7 @@ module.exports = {
 				}
 
 				if ((msgs >= 5 || identical >= 3) && last - first < 7500) {
-					return punish(this.username, this.room, 2, 'Do not flood the chat.');
+					return punish(this.username, this.room, 2, 'Do not flood the chat.', this.options);
 				}
 			}
 
@@ -137,7 +137,7 @@ module.exports = {
 					let len = message.replace('*', '').length;
 					let boldLen = boldString.reduce((prev, cur) => prev + cur.length, 0);
 					if (boldLen >= 0.8 * len) {
-						return punish(this.username, this.room, 1, 'Do not abuse bold.');
+						return punish(this.username, this.room, 1, 'Do not abuse bold.', this.options);
 					}
 				}
 			}
@@ -148,7 +148,7 @@ module.exports = {
 				let len = toId(message).length;
 
 				if (len >= 10 && capsString && (capsString.length / len) >= 0.8) {
-					return punish(this.username, this.room, 1, 'Do not abuse caps.');
+					return punish(this.username, this.room, 1, 'Do not abuse caps.', this.options);
 				}
 			}
 
@@ -156,14 +156,14 @@ module.exports = {
 				let stretchString = message.replace(/ {2,}/g, ' ');
 
 				if (/(.)\1{7,}/gi.test(stretchString) || (/(..+)\1{4,}/gi.test(stretchString) && !/(\d+\/)+/gi.test(stretchString))) {
-					return punish(this.username, this.room, 1, 'Do not stretch.');
+					return punish(this.username, this.room, 1, 'Do not stretch.', this.options);
 				}
 			}
 
 			if (this.options.includes('disallowbattlelinks')) {
 				if (/replay.pokemonshowdown\.com\//gi.test(message) || /play\.pokemonshowdown\.com\/battle-/gi.test(message) ||
 				/<<battle-[a-z\-0-9]+>>/gi.test(message)) {
-					return punish(this.username, this.room, 1, 'Do not post battle or replay links.');
+					return punish(this.username, this.room, 1, 'Do not post battle or replay links.', this.options);
 				}
 			}
 		},
@@ -204,7 +204,7 @@ module.exports = {
 			async action() {
 				const notol = await this.settings.lrange(`${this.room}:notol`, 0, -1);
 
-				if (values.length) {
+				if (notol.length) {
 					this.replyHTML(`Zero Tolerance user${notol.length > 1 ? 's' : ''} in room ${this.room}: ${notol.join(', ')}`, true);
 				} else {
 					this.pmreply("This room has no notol list.");
