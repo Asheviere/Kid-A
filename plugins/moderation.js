@@ -171,7 +171,7 @@ module.exports = {
 	commands: {
 		notol: {
 			permission: 4,
-			disallowPM: true,
+			requireRoom: true,
 			async action(message) {
 				let userid = toId(message);
 				if (!userid) return this.pmreply("No username entered. Syntax: ``.notol <username>``");
@@ -186,7 +186,7 @@ module.exports = {
 		},
 		removenotol: {
 			permission: 4,
-			disallowPM: true,
+			requireRoom: true,
 			async action(message) {
 				let userid = toId(message);
 				if (!userid) return this.pmreply("No username entered. Syntax: ``.removenotol <username>``");
