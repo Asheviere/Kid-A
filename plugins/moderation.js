@@ -198,5 +198,18 @@ module.exports = {
 				}
 			},
 		},
+		viewnotol: {
+			permission: 2,
+			requireRoom: true,
+			async action() {
+				const notol = await this.settings.lrange(`${this.room}:notol`, 0, -1);
+
+				if (values.length) {
+					this.replyHTML(`Zero Tolerance user${notol.length > 1 ? 's' : ''} in room ${this.room}: ${notol.join(', ')}`, true);
+				} else {
+					this.pmreply("This room has no notol list.");
+				}
+			},
+		},
 	},
 };
