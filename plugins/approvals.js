@@ -150,11 +150,26 @@ async function parse(room, url) {
 				if (idx < 0) {
 					idx = url.indexOf('/channel/');
 					if (idx < 0) {
-						this.reply("Invalid url.");
-						return false;
+						const customindex = url.indexOf('/c/');
+						if (customindex > -1) {
+							const promise = new Promise(resolve => {
+								request(`http://youtube.com/${url.slice(customindex + 3)}`, (err, response, body) => {
+									const regex = new RegExp('data-channel-external-id="([a-zA-Z0-9]+)" ', 'g');
+									const match = regex.exec(body);
+									if (match) resolve(match);
+
+									resolve(false);
+								});
+							});
+							id = await promise;
+						} else {
+							this.reply("Invalid url.");
+							return false;
+						}
+					} else {
+						id = url.substr(idx + 9);
 					}
 					type = 'id';
-					id = url.substr(idx + 9);
 				} else {
 					id = url.substr(idx + 6);
 				}
