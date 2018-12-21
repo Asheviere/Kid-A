@@ -60,7 +60,7 @@ class YoutubePlugin {
 	async findChannel(name) {
 		name = toId(name);
 
-		for (let channelId in this.cache) {
+		for (let channelId of this.cache.keys()) {
 			let channelInfo = await this.get(channelId);
 			if (toId(channelInfo.name) === name) return channelId;
 		}
