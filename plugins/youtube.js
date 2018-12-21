@@ -62,7 +62,7 @@ class YoutubePlugin {
 
 		for (let channelId in this.cache) {
 			let channelInfo = await this.get(channelId);
-			if (toId(channelInfo.username) === name) return channelId;
+			if (toId(channelInfo.name) === name) return channelId;
 		}
 
 		return false;
