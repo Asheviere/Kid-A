@@ -183,18 +183,19 @@ module.exports = {
 				pendingApprovals.set(room, data);
 
 				ChatHandler.send(room, `${this.username} wishes to have a link approved!`);
-				ChatHandler.send(room, `/modnote ${this.username} wishes to get approval to post '${url}' in the room${description ? ` (${description})` : ''}. Type .approve or .reject to handle the request.`);
+				ChatHandler.send(room, `/addrankhtmlbox %, ${this.username} wishes to get approval to post '<a href="${url}">${url}</a>' in the room${description ? ` (<i>${description}</i>)` : ''}.<br/> <button class="button" name="parseCommand" value="/pm ${Config.username}, .approve ${room}">Approve</button>&nbsp;<button class="button" name="parseCommand" value="/pm ${Config.username}, .reject ${room}">Reject</button>`);
 			},
 		},
 		approve: {
 			hidden: true,
-			disallowPM: true,
+			requireRoom: true,
 			permission: 2,
 			async action() {
 				if (!pendingApprovals.has(this.room)) return this.pmreply("There is nothing to approve.");
 
 				let {user, data, description} = pendingApprovals.get(this.room);
 				pendingApprovals.delete(this.room);
+				ChatHandler.send(this.room, `/modnote ${this.username} approved ${user}'s link: ${data.url}`);
 				await draw.call(this, user, data, description);
 			},
 		},
@@ -221,16 +222,16 @@ module.exports = {
 		},
 		reject: {
 			hidden: true,
-			disallowPM: true,
+			requireRoom: true,
 			permission: 2,
 			async action() {
 				if (!pendingApprovals.has(this.room)) return this.pmreply("There is nothing to reject.");
 
-				let {user} = pendingApprovals.get(this.room);
+				let {user, data} = pendingApprovals.get(this.room);
 				pendingApprovals.delete(this.room);
 
 				ChatHandler.sendPM(user, `Your link was rejected.`);
-				return this.reply(`/modnote ${this.username} rejected ${user}'s link.`);
+				return this.reply(`/modnote ${this.username} rejected ${user}'s link: ${data.url}`);
 			},
 		},
 		whitelist: {
