@@ -133,8 +133,9 @@ async function parse(room, url) {
 			this.reply("Invalid youtube video.");
 			return false;
 		}
+		videoInfo.url = url;
 
-		data = {user: this.username, data: videoInfo, url: url};
+		data = {user: this.username, data: videoInfo};
 		break;
 	default:
 		if (!/^https?:\/\//.test(url)) url = `http://${url}`;
