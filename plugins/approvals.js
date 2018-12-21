@@ -156,7 +156,7 @@ async function parse(room, url) {
 								request(`http://youtube.com/${url.slice(customindex + 3)}`, (err, response, body) => {
 									const regex = new RegExp('data-channel-external-id="([a-zA-Z0-9]+)" ', 'g');
 									const match = regex.exec(body);
-									if (match) resolve(match);
+									if (match) resolve(match[1]);
 
 									resolve(false);
 								});
