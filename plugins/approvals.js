@@ -134,7 +134,7 @@ async function parse(room, url) {
 			return false;
 		}
 
-		data = {user: this.username, data: videoInfo};
+		data = {user: this.username, data: videoInfo, url: url};
 		break;
 	default:
 		if (!/^https?:\/\//.test(url)) url = `http://${url}`;
