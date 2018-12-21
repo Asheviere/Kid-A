@@ -41,7 +41,7 @@ const linkRegex = new RegExp(
 );
 
 const YOUTUBE_ROOM = 'youtube';
-const YT_ROOT = 'https://www.googleapis.com/youtube/v3/videos';
+const YT_ROOT = 'https://www.googleapis.com/youtube/v3/';
 const VIDEO_ROOT = 'https://youtu.be/';
 const CHANNEL_ROOT = 'https://www.youtube.com/channel/';
 const HOUR = 60 * 60 * 1000;
@@ -72,8 +72,32 @@ async function fitImage(url, maxHeight = 300, maxWidth = 400) {
 	return [Math.round(width * ratio), Math.round(height * ratio)];
 }
 
+async function getYoutubeChannelTrailer(type, id) {
+	let yturl = `${YT_ROOT}channels?part=brandingSettings&${type}=${encodeURIComponent(id)}&key=${Config.youtubeKey}`;
+
+	let yt = new Promise(function(resolve, reject) {
+		request(yturl, function(error, response, body) {
+			if (error) {
+				Output.errorMsg(error, 'Error in YouTube request', {url: yturl});
+				reject(error);
+			} else {
+				resolve(JSON.parse(body));
+			}
+		});
+	});
+
+	let channel = await yt;
+
+	if (channel.error) {
+		Output.log('ytapi', channel.error.message);
+		return false;
+	} else if (channel.items && channel.items.length) {
+		return channel.items[0].brandingSettings.channel.unsubscribedTrailer;
+	}
+}
+
 async function getYoutubeVideoInfo(id) {
-	let yturl = `${YT_ROOT}?part=snippet%2Cstatistics&id=${encodeURIComponent(id)}&key=${Config.youtubeKey}`;
+	let yturl = `${YT_ROOT}videos?part=snippet%2Cstatistics&id=${encodeURIComponent(id)}&key=${Config.youtubeKey}`;
 
 	let yt = new Promise(function(resolve, reject) {
 		request(yturl, function(error, response, body) {
@@ -119,12 +143,29 @@ async function parse(room, url) {
 		if (idx > -1) {
 			id = url.substr(idx + 9);
 		} else {
-			let idx = url.indexOf('?v=');
+			idx = url.indexOf('?v=');
 			if (idx < 0) {
-				this.reply("Invalid url.");
-				return false;
+				let type = 'forUsername';
+				idx = url.indexOf('/user/');
+				if (idx < 0) {
+					idx = url.indexOf('/channel/');
+					if (idx < 0) {
+						this.reply("Invalid url.");
+						return false;
+					}
+					type = 'id';
+					id = url.substr(idx + 9);
+				} else {
+					id = url.substr(idx + 6);
+				}
+				id = await getYoutubeChannelTrailer(type, id);
+				if (!id) {
+					this.reply("Invalid url.");
+					return false;
+				}
+			} else {
+				id = url.substr(idx + 3);
 			}
-			id = url.substr(idx + 3);
 		}
 		id = id.split('&')[0];
 
