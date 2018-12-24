@@ -3,6 +3,7 @@ const request = require('request');
 const redis = require('../redis.js');
 const server = require('../server.js');
 const Page = require('../page.js');
+const utils = require('../utils.js');
 
 // Define constants
 const YOUTUBE_ROOM = 'youtube';
@@ -145,7 +146,7 @@ class YoutubePlugin {
 			entries.push(this.getHTML(key));
 		}
 
-		return await Promise.all(entries);
+		return await Promise.all(utils.shuffle(entries));
 	}
 }
 
