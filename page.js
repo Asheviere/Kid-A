@@ -146,7 +146,7 @@ class Page {
 			tokenData.room = room;
 			tokenData.user = userid;
 			tokenData[this.token] = permission;
-			options.token = server.createAccessToken(tokenData, 60);
+			options.token = server.createAccessToken(tokenData, 1);
 		}
 
 		let optionString = Object.keys(options).map(opt => `${toId(opt)}=${toId(options[opt])}`).join('&');
