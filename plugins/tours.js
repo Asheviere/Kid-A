@@ -173,13 +173,13 @@ module.exports = {
 				case 'create':
 					if (!(this.canUse(2) || await this.settings.hexists(`${this.room}:tourhelpers`, this.userid))) return this.pmreply("Permission denied.");
 					if (cmd === 'leaderboard') {
-						const {format: leaderboardFormat, rules: leaderboardRules} = await settings.hgetall(`${this.room}:leaderboard`);
+						const {format: leaderboardFormat, rules: leaderboardRules, name: leaderboardName} = await settings.hgetall(`${this.room}:leaderboard`);
 						if (!leaderboardFormat) return this.reply("This room doesn't have a leaderboard format set. Set with ``.tour leaderboard``");
 
 						rated = true;
 						format = leaderboardFormat;
 						rules = leaderboardRules || '';
-						name = `${format} Leaderboard`;
+						name = `${leaderboardName || format} Leaderboard`;
 						const currency = await getCurrencyName(this.room);
 						const shop = await this.settings.hget(`${this.room}:leaderboard`, 'shop');
 						announcement = `${currency} will be awarded this tournament${shop ? `, these can be spent on prizes throughout the month!` : ''}`;
@@ -236,6 +236,16 @@ module.exports = {
 
 						await settings.hset(`${this.room}:leaderboard`, 'shop', rest === 'on');
 						return this.reply(`The scoreboard was marked as ${rest === 'on' ? '' : 'not'} having a shop.`);
+					case 'name':
+						if (!rest) {
+							const name = await settings.hget(`${this.room}:leaderboard`, 'name');
+							if (name) return this.reply(`The current leaderboard format name is: ${name}`);
+							return this.pmreply("No leaderboard format name set.");
+						}
+						if (!this.canUse(5)) return this.pmreply("Permission denied.");
+
+						await settings.hset(`${this.room}:leaderboard`, 'name', rest.trim());
+						return this.reply(`The room's leaderboard name was set to ${rest.trim()}`);
 					case 'currency':
 						if (!rest) {
 							const currency = await getCurrencyName(this.room);
