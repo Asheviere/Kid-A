@@ -223,19 +223,28 @@ class WifiList {
 
 		for (let i in this.data) {
 			if ('score' in this.data[i]) {
-				/* CP 1-10: 1 TP per CP
-				 * CP 11 and above: 0.5 TP per CP
-				 * For every 20 CP you earn, you receive a bonus of 5 TP.
-				*/
+				/* CP 1-30 count as 1 to 1.
+				 * CP 31-50 count as 1 CP = 0.5 TP
+				 * CP 50+ count as  1 CP = 0.25 TP
+				 */
 				let tp = 0;
 				let cpLeft = parseInt(this.data[i].score);
-				if (cpLeft < 10) {
+				if (cpLeft < 30) {
 					tp += cpLeft;
 				} else {
-					tp += 10;
-					tp += Math.floor(cpLeft / 20) * 5;
-					cpLeft -= 10;
+					tp += 30;
+					cpLeft -= 30;
+				}
+
+				if (cpLeft < 20) {
 					tp += Math.floor(cpLeft / 2);
+				} else {
+					tp += 10;
+					cpLeft -= 20;
+				}
+
+				if (cpLeft > 0) {
+					tp += Math.floor(cpLeft / 4);
 				}
 
 				if (tp > 0) {
