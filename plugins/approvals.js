@@ -124,6 +124,7 @@ async function getYoutubeVideoInfo(id) {
 const pendingApprovals = new Map();
 
 const selfLinkTimeouts = new Map();
+const unapprovedLinkTimeouts = new Map();
 
 async function draw(user, data, desc, self) {
 	switch (this.room) {
@@ -214,33 +215,30 @@ module.exports = {
 	options: [['imagethumbnails', "Show thumbnails for images linked in chat"]],
 	commands: {
 		requestapproval: {
+			requireRoom: true,
 			async action(message) {
-				let room = this.room;
-				let url, description;
-				if (!room) {
-					[room, url, ...description] = message.split(',').map(param => param.trim());
-					if (!(room && url)) return this.pmreply("Syntax: ``.requestapproval room, url, (optional) description``");
-					if (!this.getRoomAuth(room)) return;
-				} else {
-					[url, ...description] = message.split(',').map(param => param.trim());
-					if (!url) return this.pmreply("Syntax: ``.requestapproval url, (optional) description``");
+				let [url, ...description] = message.split(',').map(param => param.trim());
+				if (!url) return this.pmreply("Syntax: ``.requestapproval url, (optional) description``");
+
+				if (this.room === YOUTUBE_ROOM) {
+					if (unapprovedLinkTimeouts.has(this.userid)) return this.reply("You are only allowed to get a link approved once per day.");
 				}
 
-				if (pendingApprovals.has(room)) return this.reply("There is already someone awaiting approval.");
+				if (pendingApprovals.has(this.room)) return this.reply("There is already someone awaiting approval.");
 
 				if (description) {
 					description = description.join(', ');
 					if (description.length > 200) return this.reply("The description is too long.");
 				}
 
-				let data = await parse.call(this, room, url);
+				let data = await parse.call(this, this.room, url);
 				if (!data) return;
 				if (description) data.description = description;
 
-				pendingApprovals.set(room, data);
+				pendingApprovals.set(this.room, data);
 
-				ChatHandler.send(room, `${this.username} wishes to have a link approved!`);
-				ChatHandler.send(room, `/addrankhtmlbox %, ${this.username} wishes to get approval to post '<a href="${url}">${url}</a>' in the room${description ? ` (<i>${description}</i>)` : ''}.<br/> <button class="button" name="send" value="/pm ${Config.username}, .approve ${room}">Approve</button>&nbsp;<button class="button" name="send" value="/pm ${Config.username}, .reject ${room}">Reject</button>`);
+				ChatHandler.send(this.room, `${this.username} wishes to have a link approved!`);
+				ChatHandler.send(this.room, `/addrankhtmlbox %, ${this.username} wishes to get approval to post '<a href="${url}">${url}</a>' in the room${description ? ` (<i>${description}</i>)` : ''}.<br/> <button class="button" name="send" value="/pm ${Config.username}, .approve ${this.room}">Approve</button>&nbsp;<button class="button" name="send" value="/pm ${Config.username}, .reject ${this.room}">Reject</button>`);
 			},
 		},
 		approve: {
@@ -253,6 +251,9 @@ module.exports = {
 				let {user, data, description} = pendingApprovals.get(this.room);
 				ChatHandler.send(this.room, `/modnote ${this.username} approved ${user}'s link: ${data.url}`);
 				pendingApprovals.delete(this.room);
+				if (this.room === YOUTUBE_ROOM) {
+					unapprovedLinkTimeouts.set(user, setTimeout(() => unapprovedLinkTimeouts.delete(user), 24 * HOUR));
+				}
 				await draw.call(this, user, data, description);
 			},
 		},
