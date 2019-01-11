@@ -352,68 +352,8 @@ module.exports = {
 			},
 		},
 		daily: {
-			async action(message) {
-				let room = this.room;
-				let split = message.split(',');
-				if (!room) {
-					[room, ...split] = split;
-					room = toId(room);
-					if (!split.length || !this.userlists[room]) return this.pmreply("You need to specify the room when using this command in PMs.");
-					if (!this.getRoomAuth(room)) return;
-				}
-				let [key, ...rest] = split;
-				key = toId(key);
-				if (!key) return this.pmreply("No topic specified.");
-
-				let text, image;
-				let permission = false;
-
-				if (rest.length) {
-					if (!this.canUse(2)) return this.pmreply("Permission denied.");
-					permission = true;
-					if (toId(rest[0]) === 'clear') {
-						dailyCache.deleteProperty(room, key);
-						dailyCache.write();
-						return ChatHandler.send(room, `/modnote The daily ${key} was cleared by ${this.username}`);
-					}
-					if (validUrl.isWebUri(rest[0].trim())) {
-						image = rest[0].trim();
-						rest = rest.slice(1);
-					}
-					text = rest.join(',').trim();
-					dailyCache.setProperty(room, key, {text: text, image: image});
-					dailyCache.write();
-					ChatHandler.send(room, `/modnote ${this.username} set the daily ${key} to '${text}'${image ? ` (${image})` : ''}`);
-				} else {
-					if (this.canUse(1)) permission = true;
-					if (!(key in dailyCache.get(room))) return this.pmreply("Invalid topic");
-					let entry = dailyCache.get(room)[key];
-					text = entry.text;
-					image = entry.image;
-				}
-
-				let maxWidth = 600;
-				let maxHeight = 150;
-
-				if (!image) {
-					maxWidth = 100;
-					maxHeight = 100;
-					image = 'http://bumba.me/logo.png';
-				}
-				let width, height;
-				let dimensions = await fitImage(image, maxHeight, maxWidth).catch(() => {});
-				if (dimensions) {
-					[width, height] = dimensions;
-				} else {
-					image = 'http://bumba.me/logo.png';
-					[width, height] = await fitImage(image, 100, 100);
-				}
-
-				const html = `<table style="text-align:center;margin:auto"><tr><td style="padding-right:10px;">${escapeHTML(text)}</td><td><img src="${image}" width="${width}" height="${height}"/></td></tr></table>`;
-
-				if (this.room && permission) return this.reply(`/addhtmlbox ${html}`);
-
-				return ChatHandler.send(room, `/pminfobox ${this.userid}, ${html}`);
+			async action() {
+				return this.reply("Use /daily");
 			},
 		},
 	},
