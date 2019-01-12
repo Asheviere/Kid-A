@@ -1,37 +1,36 @@
 'use strict';
 
-const WebSocketClient = require('websocket').client;
+const WebSocket = require('faye-websocket').Client;
+const deflate   = require('permessage-deflate');
 
 const handler = require('./handler.js');
 
 const RETRY_TIME = 10; // Time (in seconds) before the bot retries a failed connection.
 
 function connect() {
-	const client = new WebSocketClient();
+	const protocol = Config.port === 443 ? 'wss' : 'ws';
+	const url     = `${protocol}://${Config.host}:${Config.port}/showdown/websocket`;
+	Output.log('status', 'WebSocket client connecting...');
 
-	client.on('connectFailed', error => {
-		Output.errorMsg(error, 'Connection failed. Retrying in ' + RETRY_TIME + 's.');
+	const client = new WebSocket(url, [], {extensions: [deflate]});
+
+	client.onopen = () => {
+		Output.log(`Connected to ${url}`);
+	};
+
+	client.onerror = error => {
+		Output.errorMsg(error, `Error connecting. Reconnecting in ${RETRY_TIME}s...`);
 		setTimeout(connect, RETRY_TIME * 1000);
-	});
+	};
 
-	client.on('connect', connection => {
-		Connection = connection;
-		Output.log('status', 'WebSocket Client Connected');
-		connection.on('error', error => {
-			Output.errorMsg(error, 'Error connecting. Retrying in ' + RETRY_TIME + 's.');
-			setTimeout(connect, RETRY_TIME * 1000);
-		});
-		connection.on('close', () => {
-			Output.log('client', 'Connection closed. Retrying in ' + RETRY_TIME + 's.');
-			setTimeout(connect, RETRY_TIME * 1000);
-		});
-		connection.on('message', message => {
-			handler.parse(message.utf8Data);
-		});
-	});
+	client.onclose = close => {
+		Output.log(`Closed connection with code ${close.code}. Reconnecting in ${RETRY_TIME}s...`);
+		setTimeout(connect, RETRY_TIME * 1000);
+	};
 
-	Output.log('status', 'WebSocket Client Connecting...');
-	client.connect('ws://' + Config.host + ':' + Config.port + '/showdown/websocket');
+	client.onmessage = message => {
+		handler.parse(message.data);
+	};
 }
 
 connect();
