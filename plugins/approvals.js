@@ -48,7 +48,6 @@ const HOUR = 60 * 60 * 1000;
 const VOICES_CAN_LINK = ['youtube', 'thecafe'];
 
 const settings = redis.useDatabase('settings');
-const dailyCache = new Cache('daily');
 
 // Thanks Zarel for this obviously extremely well-coded function from PS.
 function escapeHTML(str) {
@@ -234,6 +233,7 @@ module.exports = {
 				let data = await parse.call(this, this.room, url);
 				if (!data) return;
 				if (description) data.description = description;
+				data.timeout = setTimeout(() => pendingApprovals.delete(this.room), HOUR);
 
 				pendingApprovals.set(this.room, data);
 
@@ -248,8 +248,9 @@ module.exports = {
 			async action() {
 				if (!pendingApprovals.has(this.room)) return this.pmreply("There is nothing to approve.");
 
-				let {user, data, description} = pendingApprovals.get(this.room);
+				let {user, data, description, timeout} = pendingApprovals.get(this.room);
 				ChatHandler.send(this.room, `/modnote ${this.username} approved ${user}'s link: ${data.url}`);
+				clearTimeout(timeout);
 				pendingApprovals.delete(this.room);
 				if (this.room === YOUTUBE_ROOM) {
 					unapprovedLinkTimeouts.set(user, setTimeout(() => unapprovedLinkTimeouts.delete(user), 24 * HOUR));
@@ -285,9 +286,10 @@ module.exports = {
 			async action() {
 				if (!pendingApprovals.has(this.room)) return this.pmreply("There is nothing to reject.");
 
-				let {user, data} = pendingApprovals.get(this.room);
+				let {user, data, timeout} = pendingApprovals.get(this.room);
 				pendingApprovals.delete(this.room);
 
+				clearTimeout(timeout);
 				ChatHandler.sendPM(user, `Your link was rejected.`);
 				return this.reply(`/modnote ${this.username} rejected ${user}'s link: ${data.url}`);
 			},
