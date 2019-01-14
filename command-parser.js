@@ -108,6 +108,7 @@ class CommandWrapper {
 				[this.auth, this.username] = this.userlists[room][this.userid];
 				return true;
 			}
+			if (this.auth !== ' ' && this.auth !== '+') return true;
 			this.reply(`You need to be in the ${room} room to use this command.`);
 			return false;
 		}

@@ -83,32 +83,21 @@ module.exports = {
 	},
 	commands: {
 		linecount: {
+			requireRoom: true,
 			async action(message) {
-				let room = this.room;
-				let user;
-				if (!room) {
-					let split = message.split(',');
-					[room, user] = split.map(param => param.trim());
-					if (!(room && user)) return this.pmreply("Syntax: ``.linecount room, user``");
-					if (!this.userlists[room] && !curRooms.has(room)) return this.reply(`Invalid room: ${room}`);
-					if (!this.getRoomAuth(room)) return;
-				} else {
-					user = message;
-					if (!(user)) return this.pmreply("Syntax: ``.linecount user``");
-				}
-
+				if (!message) return this.pmreply("Syntax: ``.linecount room, user``");
 				if (!(this.canUse(3))) return this.pmreply("Permission denied.");
 
-				if (!curRooms.has(room)) {
-					linecountPage.addRoom(room);
-					topuserPage.addRoom(room);
+				if (!curRooms.has(this.room)) {
+					linecountPage.addRoom(this.room);
+					topuserPage.addRoom(this.room);
 					server.restart();
-					curRooms.add(room);
+					curRooms.add(this.room);
 				}
 
-				let url = linecountPage.getUrl(room, this.userid, true, {user: user});
+				let url = linecountPage.getUrl(this.room, this.userid, true, {user: message});
 
-				return this.pmreply(`Linecounts for ${user} in ${room}: ${url}`);
+				return this.pmreply(`Linecounts for ${message} in ${this.room}: ${url}`);
 			},
 		},
 		topusers: {
