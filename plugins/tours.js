@@ -347,16 +347,20 @@ module.exports = {
 		resetpoints: {
 			aliases: ['resettp'],
 			requireRoom: true,
-			async action() {
+			async action(message) {
 				if (!(this.canUse(5))) return this.pmreply("Permission denied.");
 
 				const db = redis.useDatabase('tours');
 				let keys = await db.keys(`${this.room}:*`);
 				const currency = await getCurrencyName(this.room);
+				const hard = toId(message) === 'hard';
 
 				let promises = keys.map(async key => {
 					const entry = await db.hgetall(key);
-					if (entry.points > DECAY_CAP) {
+					if (hard) {
+						db.hset(key, 'points', 0);
+						this.sendMail('Kid A', key.split(':')[1], `Your ${currency} in ${this.room} has been reset.`);
+					} else if (entry.points > DECAY_CAP) {
 						db.hset(key, 'points', DECAY_CAP);
 						this.sendMail('Kid A', key.split(':')[1], `Your ${currency} in ${this.room} have decayed! You now have ${DECAY_CAP} points.`);
 					} else if (!entry.timestamp || entry.timestamp + EXPIRATION_TIMER < Date.now()) {
