@@ -1,7 +1,7 @@
 'use strict';
 
 const WebSocket = require('faye-websocket').Client;
-const deflate   = require('permessage-deflate');
+const deflate = require('permessage-deflate');
 
 const handler = require('./handler.js');
 
@@ -9,13 +9,13 @@ const RETRY_TIME = 10; // Time (in seconds) before the bot retries a failed conn
 
 function connect() {
 	const protocol = Config.port === 443 ? 'wss' : 'ws';
-	const url     = `${protocol}://${Config.host}:${Config.port}/showdown/websocket`;
+	const url = `${protocol}://${Config.host}:${Config.port}/showdown/websocket`;
 	Output.log('status', 'WebSocket client connecting...');
 
 	const client = new WebSocket(url, [], {extensions: [deflate]});
 
 	client.onopen = () => {
-		Output.log(`Connected to ${url}`);
+		Output.log('status', `Connected to ${url}`);
 	};
 
 	client.onerror = error => {
@@ -31,6 +31,8 @@ function connect() {
 	client.onmessage = message => {
 		handler.parse(message.data);
 	};
+
+	Connection = client;
 }
 
 connect();
