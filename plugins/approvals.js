@@ -3,7 +3,6 @@ const validUrl = require('valid-url');
 const request = require('request');
 
 const redis = require('../redis.js');
-const Cache = require('../cache.js');
 
 // Taken from the PS client
 const domainRegex = '[a-z0-9\\-]+(?:[.][a-z0-9\\-]+)*';
@@ -120,10 +119,13 @@ async function getYoutubeVideoInfo(id) {
 	}
 }
 
+let lineCounter = 0;
+
 const pendingApprovals = new Map();
 
 const selfLinkTimeouts = new Map();
 const unapprovedLinkTimeouts = new Map();
+const lastLinked = new Map();
 
 async function draw(user, data, desc, self) {
 	switch (this.room) {
@@ -266,6 +268,7 @@ module.exports = {
 					if (!(await settings.hexists(`whitelist:${this.room}`, this.userid))) return this.pmreply("Permission denied.");
 					if (this.room === YOUTUBE_ROOM) {
 						if (selfLinkTimeouts.has(this.userid)) return this.reply("You are only allowed to post your own link once per two hours.");
+						if (lastLinked.has(this.userid) && lineCounter - lastLinked.get(this.userid) < 50) return this.reply("You need to wait at least 50 lines before linking another video.");
 						selfLinkTimeouts.set(this.userid, setTimeout(() => selfLinkTimeouts.delete(this.userid), 2 * HOUR));
 					}
 				}
@@ -361,6 +364,7 @@ module.exports = {
 	},
 	analyzer: {
 		async parser(message) {
+			if (this.room === YOUTUBE_ROOM) lineCounter++;
 			if (!this.options.includes('imagethumbnails')) return;
 
 			let match;
