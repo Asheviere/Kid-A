@@ -670,7 +670,7 @@ module.exports = {
 
 				clonerlog.addPoints(this.userid, userid, points);
 
-				return this.reply(`${points} points added for ${username}.`);
+				return this.reply(`${points} cloner points added for ${username}.`);
 			},
 		},
 		removecp: {
@@ -681,17 +681,15 @@ module.exports = {
 				}
 				if (!(this.canUse(2) || await this.settings.hexists('whitelist:cloners', this.userid))) return this.pmreply("Permission denied.");
 
-				let [username, points, total] = message.split(',').map(param => param.trim());
+				let [username, points] = message.split(',').map(param => param.trim());
 				points = parseInt(points);
-				total = toId(total);
-				let removeFromTotal = parseInt(total);
 				let userid = toId(username);
-				if (!userid || !(points || removeFromTotal) || points < 0) return this.pmreply("Syntax error. ``.removecp username, amount, remove from total``");
+				if (!userid || !points || points < 0) return this.pmreply("Syntax error. ``.removecp username, amount, remove from total``");
 				userid = toId(userid);
 
-				clonerlog.addPoints(this.userid, userid, -1 * points, removeFromTotal);
+				clonerlog.addPoints(this.userid, userid, -1 * points, -1 * points);
 
-				return this.reply(`${points} points removed from ${username}${removeFromTotal ? ` and ${removeFromTotal} total points` : ''}.`);
+				return this.reply(`${points} cloner points removed from ${username}.`);
 			},
 		},
 		clonerlog: {
