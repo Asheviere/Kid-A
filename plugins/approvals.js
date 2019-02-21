@@ -269,7 +269,6 @@ module.exports = {
 					if (this.room === YOUTUBE_ROOM) {
 						if (selfLinkTimeouts.has(this.userid)) return this.reply("You are only allowed to post your own link once per two hours.");
 						if (lastLinked.has(this.userid) && lineCounter - lastLinked.get(this.userid) < 50) return this.reply("You need to wait at least 50 lines before linking another video.");
-						selfLinkTimeouts.set(this.userid, setTimeout(() => selfLinkTimeouts.delete(this.userid), 2 * HOUR));
 					}
 				}
 				let [url, ...description] = message.split(',').map(param => param.trim());
@@ -279,6 +278,7 @@ module.exports = {
 				}
 				let {user, data} = await parse.call(this, this.room, url);
 				if (!user) return;
+				if (this.room === YOUTUBE_ROOM && !this.canUse(1)) selfLinkTimeouts.set(this.userid, setTimeout(() => selfLinkTimeouts.delete(this.userid), 2 * HOUR));
 				draw.call(this, this.username, data, description, true);
 			},
 		},
