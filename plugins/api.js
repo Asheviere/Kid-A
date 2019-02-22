@@ -188,7 +188,7 @@ const videogames = new InfoBox(igdbRequest, properties => {
 	const date = new Date(properties.first_release_date * 1000);
 	buffer += `<strong>Released:</strong> ${leftpad(date.getDate())}-${leftpad(date.getMonth() + 1)}-${leftpad(date.getFullYear())}<br/>`;
 	if (properties.rating) {
-		const scoreColor = properties.rating > 70 ? 'green' : properties.score < 55 ? 'red' : 'orange';
+		const scoreColor = properties.rating > 70 ? 'green' : properties.rating < 55 ? 'red' : 'orange';
 		buffer += `<strong>Rating:  <span style="color: ${scoreColor}">${properties.rating.toFixed(1)}%</span></strong> from ${properties.rating_count} ratings. | `;
 	}
 	buffer += `<strong>Popularity:</strong> ${properties.popularity.toFixed(1)}%<br/>`;
