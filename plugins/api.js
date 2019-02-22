@@ -185,8 +185,12 @@ const manga = new InfoBox(query => malRequest(query, 'manga'), properties => {
 const videogames = new InfoBox(igdbRequest, properties => {
 	let buffer = '';
 
-	const date = new Date(properties.first_release_date * 1000);
-	buffer += `<strong>Released:</strong> ${leftpad(date.getDate())}-${leftpad(date.getMonth() + 1)}-${leftpad(date.getFullYear())}<br/>`;
+	if (properties.first_release_date) {
+		const date = new Date(properties.first_release_date * 1000);
+		buffer += `<strong>Released:</strong> ${leftpad(date.getDate())}-${leftpad(date.getMonth() + 1)}-${leftpad(date.getFullYear())}<br/>`;
+	} else {
+		buffer += `<span style="font-weight:bold;color:red">Unreleased</span><br/>`;
+	}
 	if (properties.rating) {
 		const scoreColor = properties.rating > 70 ? 'green' : properties.rating < 55 ? 'red' : 'orange';
 		buffer += `<strong>Rating:  <span style="color: ${scoreColor}">${properties.rating.toFixed(1)}%</span></strong> from ${properties.rating_count} ratings. | `;
