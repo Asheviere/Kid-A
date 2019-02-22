@@ -40,6 +40,9 @@ exports.youtubeKey = '';
 // Mashape API key, used for the hs feature.
 exports.mashapeKey = '';
 
+// API keys used for api.js
+exports.igdbKey = '';
+
 // Logging related options.
 exports.disableLogging = false;
 exports.logMessages = true;
