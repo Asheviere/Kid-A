@@ -90,7 +90,7 @@ class InfoBox {
 
 		const properties = this.generator(entry.properties);
 
-		html += `<h3 style="margin:4px 7px;"><a href="${entry.url}" style="color:black;font-size: 13.5pt;">${entry.title}</a></h3>`;
+		html += `<h3 style="margin:4px 7px;"><a href="${entry.url}" style="color:inherit;font-size: 13.5pt;">${entry.title}</a></h3>`;
 		if (entry.image) {
 			html += `<table><tr><td><img src="${entry.image.url}" width="${entry.image.width}" height="${entry.image.height}" style="margin: 3px 5px;"></td><td style="max-width: 600px;">${properties}</td></tr></table>`;
 		} else {
