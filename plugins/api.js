@@ -142,7 +142,7 @@ const anime = new InfoBox(malRequest, properties => {
 		}
 	}
 	const scoreColor = properties.score > 7 ? 'green' : properties.score < 5.5 ? 'red' : 'orange';
-	buffer += `<br/><strong>Rated:</strong> ${properties.rated.startsWith('R') ? `<span style="font-weight:bold;color:red;">${properties.rated}</span>` : properties.rated} | <strong>User Score: <span style="color:${scoreColor};">${properties.score}/10</span></strong><br/>`;
+	buffer += `<br/><strong>Rated:</strong> ${properties.rated ? properties.rated.startsWith('R') ? `<span style="font-weight:bold;color:red;">${properties.rated}</span>` : properties.rated : `<span style="font-weight:bold;color:red;">Unrated</span>`} | <strong>User Score: <span style="color:${scoreColor};">${properties.score}/10</span></strong><br/>`;
 	if (properties.genres) {
 		buffer += `<strong>Genres:</strong> ${properties.genres.join(', ')}<br/>`;
 	}
