@@ -43,7 +43,7 @@ function igdbRequest(query) {
 				"user-key": Config.igdbKey,
 				Accept: "application/json",
 			},
-			body: `fields *; search "${query}"; where version_parent = null;`,
+			body: `limit 20; fields *; search "${query}"; where version_parent = null;`,
 		}, async (err, res) => {
 			if (err) reject(err);
 			const parsed = JSON.parse(res.body).map(entry => ({title: entry.name, url: entry.url, properties: entry}));
@@ -63,8 +63,9 @@ function igdbRequest(query) {
 						}, async (err, res) => {
 							if (err) reject(err);
 							const obj = JSON.parse(res.body)[0];
-							obj.height = Math.floor(obj.height / 2.8);
-							obj.width = Math.floor(obj.width / 2.8);
+							const factor = Math.max(obj.height / 105, obj.width / 105);
+							obj.height = Math.floor(obj.height / factor);
+							obj.width = Math.floor(obj.width / factor);
 							resolve(obj);
 						});
 					});
@@ -193,9 +194,9 @@ const videogames = new InfoBox(igdbRequest, properties => {
 	buffer += `<strong>Popularity:</strong> ${properties.popularity.toFixed(1)}%<br/>`;
 	if (properties.summary) {
 		if (properties.summary.length > 600) {
-			buffer += `<details style="width:100%;"><summary style="font-weight:bold;">Summary:</summary><div style="max-height:200px;">${properties.summary}</div></details>`;
+			buffer += `<details style="width:100%;"><summary style="font-weight:bold;">Summary:</summary><div style="max-height:200px;">${properties.summary.replace(/\n/g, '<br/>')}</div></details>`;
 		} else {
-			buffer += `<strong>Summary:</strong> ${properties.summary}`;
+			buffer += `<strong>Summary:</strong> ${properties.summary.replace(/\n/g, '<br/>')}`;
 		}
 	}
 
@@ -230,7 +231,7 @@ module.exports = {
 				return this.replyHTML(html);
 			},
 		},
-		game: {
+		videogame: {
 			permission: 1,
 			disallowPM: true,
 			async action(message) {
