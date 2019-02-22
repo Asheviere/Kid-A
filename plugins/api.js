@@ -1,6 +1,8 @@
 const request = require('request');
 
-const RELATED_LIMIT = 15;
+const RELATED_LIMIT = 10;
+const NASTY_GENRES = ['Hentai', 'Ecchi'];
+
 let leftpad = val => (val < 10 ? `0${val}`: `${val}`);
 
 async function malRequest(query, searchType = 'anime') {
@@ -9,20 +11,23 @@ async function malRequest(query, searchType = 'anime') {
 			if (err) reject(err);
 			let results = JSON.parse(res.body).results;
 			// Filter out naughty stuff (shaking my head @ weebs)
-			results = results.filter(result => result.rated && !(result.rated.length > 1 && result.rated.startsWith('R654'))).slice(0, RELATED_LIMIT);
+			results = results.filter(result => !(result.rated && result.rated === 'Rx')).slice(0, RELATED_LIMIT);
 			if (results.length) {
-				const promise = new Promise((resolve, reject) => {
-					request(`https://api.jikan.moe/v3/${searchType}/${results[0].mal_id}`, (err, res) => {
+				const promises = results.map(result => new Promise((resolve, reject) => {
+					request(`https://api.jikan.moe/v3/${searchType}/${result.mal_id}`, (err, res) => {
 						if (err) reject(err);
 						let entry = JSON.parse(res.body);
 						const genres = entry.genres ? Object.keys(entry.genres).map(key => entry.genres[key].name) : '';
 						resolve([genres, entry.title_japanese]);
 					});
-				});
-				let [genres, japTitle] = await promise;
+				}));
+				for (let i = 0; i < promises.length; i++) {
+					let [genres, japTitle] = await promises[i];
 
-				results[0].genres = genres;
-				results[0].title += ` (${japTitle})`;
+					results[i].genres = genres;
+					results[i].title += ` (${japTitle})`;
+				}
+				results = results.filter(result => !(result.genres && result.genres.some(genre => NASTY_GENRES.includes(genre))));
 			}
 			resolve(results.map(result => ({title: result.title, image: {width: 75, height: 107, url: result.image_url}, url: result.url, properties: result})));
 		});
@@ -123,7 +128,7 @@ const anime = new InfoBox(malRequest, properties => {
 
 	buffer += `<strong>Episodes:</strong> ${properties.episodes} | `;
 	if (properties.airing) {
-		buffer += `<strong style="color:green"> Currently airing</strong>`;
+		buffer += `<strong style="color:green">Currently airing</strong>`;
 	} else {
 		let start = new Date(properties.start_date);
 		let end = new Date(properties.end_date);
@@ -138,6 +143,35 @@ const anime = new InfoBox(malRequest, properties => {
 	}
 	const scoreColor = properties.score > 7 ? 'green' : properties.score < 5.5 ? 'red' : 'orange';
 	buffer += `<br/><strong>Rated:</strong> ${properties.rated} | <strong>User Score: <span style="color:${scoreColor};">${properties.score}/10</span></strong><br/>`;
+	if (properties.genres) {
+		buffer += `<strong>Genres:</strong> ${properties.genres.join(', ')}<br/>`;
+	}
+
+	buffer += `<strong>Synopsis:</strong> ${properties.synopsis}`;
+
+	return buffer;
+});
+
+const manga = new InfoBox(query => malRequest(query, 'manga'), properties => {
+	let buffer = '';
+
+	buffer += `<strong>Volumes:</strong> ${properties.volumes} | <strong>Chapters:</strong> ${properties.chapters} | `;
+	if (properties.publishing) {
+		buffer += `<strong style="color:green">Currently publishing</strong>`;
+	} else {
+		let start = new Date(properties.start_date);
+		let end = new Date(properties.end_date);
+
+		const sameYear = start.getFullYear() === end.getFullYear();
+		const sameMonth = start.getMonth() === end.getMonth();
+		if (sameYear && sameMonth) {
+			buffer += `Published in ${start.getFullYear()}`;
+		} else {
+			buffer += `Published from ${sameYear ? `${start.getFullYear()}-${leftpad(start.getMonth() + 1)}` : start.getFullYear()} to ${sameYear ? `${end.getFullYear()}-${leftpad(end.getMonth() + 1)}` : end.getFullYear()}`;
+		}
+	}
+	const scoreColor = properties.score > 7 ? 'green' : properties.score < 5.5 ? 'red' : 'orange';
+	buffer += `<br/><strong>User Score: <span style="color:${scoreColor};">${properties.score}/10</span></strong><br/>`;
 	if (properties.genres) {
 		buffer += `<strong>Genres:</strong> ${properties.genres.join(', ')}<br/>`;
 	}
@@ -178,6 +212,19 @@ module.exports = {
 				if (!message) return this.reply("No query entered.");
 
 				const html = await anime.parse(message).catch(err => this.reply(`Something went wrong during the request: ${err}`));
+				if (!html) return;
+
+				return this.replyHTML(html);
+			},
+		},
+		manga: {
+			permission: 1,
+			disallowPM: true,
+			async action(message) {
+				if (this.room !== 'animeandmanga' && !this.canUse(2)) return this.pmreply("Permission denied.");
+				if (!message) return this.reply("No query entered.");
+
+				const html = await manga.parse(message).catch(err => console.log(`Something went wrong during the request: ${err}`));
 				if (!html) return;
 
 				return this.replyHTML(html);
