@@ -192,13 +192,7 @@ const videogames = new InfoBox(igdbRequest, properties => {
 		buffer += `<strong>Rating:  <span style="color: ${scoreColor}">${properties.rating.toFixed(1)}%</span></strong> from ${properties.rating_count} ratings. | `;
 	}
 	buffer += `<strong>Popularity:</strong> ${properties.popularity.toFixed(1)}%<br/>`;
-	if (properties.summary) {
-		if (properties.summary.length > 600) {
-			buffer += `<details style="width:100%;"><summary style="font-weight:bold;">Summary:</summary><div style="max-height:200px;">${properties.summary.replace(/\n/g, '<br/>')}</div></details>`;
-		} else {
-			buffer += `<strong>Summary:</strong> ${properties.summary.replace(/\n/g, '<br/>')}`;
-		}
-	}
+	if (properties.summary) buffer += `<strong>Summary:</strong> ${properties.summary.slice(0, 600).replace(/\n/g, '<br/>')}${properties.summary.length > 600 ? ' (...)' : ''}`;
 
 	return buffer;
 });
