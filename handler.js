@@ -180,7 +180,14 @@ module.exports = {
 				});
 			}
 		case 'queryresponse':
-			ChatHandler.parseQueryResponse(split[2], JSON.parse(split[3])).catch(err => Debug.log(1, `Something went wrong parsing query response ${split}: ${err}`));
+			let json;
+			try {
+				json = JSON.parse(split[3]);
+			} catch (e) {
+				Debug.log(1, `Invalid JSON from query response ${split}`);
+				return;
+			}
+			ChatHandler.parseQueryResponse(split[2], json);
 		default:
 			Debug.log(5, `Unsupported message type: ${split[1]}`);
 		}
