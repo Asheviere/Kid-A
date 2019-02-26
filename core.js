@@ -21,7 +21,7 @@ global.Output = {
 		for (let k in context) {
 			contextStr += `\n${k}: ${context[k]}`;
 		}
-		this.log('error', `${msg}\n${err.stack}${contextStr}`);
+		this.log('error', `${msg}\n${err ? err.stack : err}${contextStr}`);
 	},
 
 	getTimeStamp() {
