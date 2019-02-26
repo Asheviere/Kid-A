@@ -179,6 +179,8 @@ module.exports = {
 					Output.errorMsg(err, `Error during tour ${cmdsplit[2]} command`, {room: roomid, data: cmdsplit.slice(3).join('|')});
 				});
 			}
+		case 'queryresponse':
+			ChatHandler.parseQueryResponse(split[2], JSON.parse(split[3]));
 		default:
 			Debug.log(5, `Unsupported message type: ${split[1]}`);
 		}

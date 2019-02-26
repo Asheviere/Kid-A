@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <link rel="stylesheet" type="text/css" href="../style.css">
+        <title>{{user}} - Kid A</title>
+    </head>
+    
+    <body>
+        <div class="container">
+            <h1>Your Profile</h1>
+            <form method="POST">
+                {{#each fields}}
+                    <h3>{{label}}</h3>
+                    <input style="margin: 0px 50px 10px;" type="text" name="{{@key}}" value="{{value}}">
+                {{/each}}
+                <br/><br/><input type="submit" value="Submit">
+            </form>
+        </div>
+    </body>
+</html>

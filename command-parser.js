@@ -168,6 +168,7 @@ class ChatHandler {
 		this.parsing = false;
 		this.mail = new Cache('mail');
 		this.privateRooms = Config.privateRooms;
+		this.pendingQueries = {};
 
 		this.sendQueue = [];
 		this.sendQueueTimer = setInterval(() => {
@@ -462,6 +463,28 @@ class ChatHandler {
 	send(room, message) {
 		Debug.log(4, `sending to ${room}: ${message}`);
 		this.trySend(`${room || ''}|${message}`);
+	}
+
+	parseQueryResponse(id, response) {
+		// failsafe
+		if (!this.pendingQueries[id].length) return;
+		this.pendingQueries[id][0](response);
+	}
+
+	async query(id, query) {
+		let timer;
+		const promise = new Promise((resolve, reject) => {
+			Connection.send(`|/query ${id} ${query}`);
+			if (!this.pendingQueries[id]) this.pendingQueries[id] = [];
+			this.pendingQueries[id].push(resolve);
+			timer = setTimeout(() => {
+				this.pendingQueries[id] = this.pendingQueries[id].filter(val => val !== resolve);
+				reject();
+			}, 5 * 60 * 1000);
+		});
+		const res = await promise;
+		clearTimeout(timer);
+		return res;
 	}
 }
 
