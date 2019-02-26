@@ -93,8 +93,8 @@ module.exports = {
 				if (lastfm) output.push(`<b>Last.fm:</b> <a href="https://last.fm/user/${encodeURIComponent(lastfm)}">${Utils.sanitize(lastfm)}</a>`);
 
 				const fcs = redis.useDatabase('friendcodes');
-				const fc = (await fcs.get(key)).split(':');
-				if (fc) output.push(`<b>3DS Friendcode:</b> ${fc.join(', ')}`);
+				const fc = await fcs.get(key);
+				if (fc) output.push(`<b>3DS Friendcode:</b> ${fc.split(':').join(', ')}`);
 
 				for (let field in fields) {
 					if (profile[field]) {
