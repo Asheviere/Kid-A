@@ -179,6 +179,7 @@ module.exports = {
 					Output.errorMsg(err, `Error during tour ${cmdsplit[2]} command`, {room: roomid, data: cmdsplit.slice(3).join('|')});
 				});
 			}
+			break;
 		case 'queryresponse':
 			let json;
 			try {
@@ -188,6 +189,7 @@ module.exports = {
 				return;
 			}
 			ChatHandler.parseQueryResponse(split[2], json);
+			break;
 		default:
 			Debug.log(5, `Unsupported message type: ${split[1]}`);
 		}
