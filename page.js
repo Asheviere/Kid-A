@@ -118,7 +118,6 @@ class Page {
 					if (!(req.body)) return res.end("Malformed request.");
 					let data;
 					if (this.postDataType === 'JSON') {
-						console.log(req.body);
 						try {
 							data = JSON.parse(decodeURIComponent(req.body.data || req.body));
 						} catch (e) {
