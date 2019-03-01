@@ -70,9 +70,10 @@ module.exports = {
 		if (!this.extraJoin) return;
 		if (roomid) {
 			let idx = this.extraJoin.indexOf(roomid);
-			if (idx < 0) return;
-			this.extraJoin.splice(idx, 1);
-			if (remove) settings.lrem('privaterooms', 0, roomid);
+			if (idx > -1) {
+				this.extraJoin.splice(idx, 1);
+				if (remove) settings.lrem('autojoin', 0, roomid);
+			}
 		}
 		if (!this.extraJoin.length) return;
 
