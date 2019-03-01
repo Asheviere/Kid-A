@@ -288,7 +288,6 @@ class ChatHandler {
 	}
 
 	async parse(userstr, room, message, timestamp) {
-		console.log(userstr, room, message);
 		if (userstr.startsWith('‽')) return; // I hate locked users
 		if (COMMAND_REGEX.test(message)) {
 			this.parseCommand(userstr, room, message);
