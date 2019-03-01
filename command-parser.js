@@ -288,6 +288,7 @@ class ChatHandler {
 	}
 
 	async parse(userstr, room, message, timestamp) {
+		console.log(userstr, room, message);
 		if (userstr.startsWith('‽')) return; // I hate locked users
 		if (COMMAND_REGEX.test(message)) {
 			this.parseCommand(userstr, room, message);
@@ -302,10 +303,10 @@ class ChatHandler {
 				if (!(Config.rooms.includes(toJoin) || (autojoin && autojoin.includes(toJoin)))) {
 					if (toJoin.includes('groupchat')) return this.sendPM(userstr.substr[1], `Kid A is currently unsupported in groupchats.`);
 					this.settings.rpush('autojoin', toJoin);
-					this.send(null, `/join ${toJoin}`);
 					this.sendPM(userstr.substr[1], `For an introduction on how to use Kid A in your room, see ${server.url}intro.html`);
 					return;
 				}
+				this.send(null, `/join ${toJoin}`);
 			}
 			if (message.startsWith('/') || message.startsWith('!')) return;
 			Output.log('pm', 'PM from ' + (userstr[0] === ' ' ? userstr.substr(1) : userstr) + ': ' + message);
