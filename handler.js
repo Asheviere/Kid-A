@@ -84,7 +84,7 @@ module.exports = {
 		if (!message) return;
 		let split = message.split('|');
 		let first = split[0].split('\n');
-		let roomid = toId(first[0]) || 'lobby';
+		let roomid = first[0].toLowerCase().replace(/[^a-z0-9-]/g, '') || 'lobby';
 		if (split[0].startsWith('(') || (first.length > 1 && first[1].startsWith('('))) {
 			if (split[0].startsWith('(')) roomid = 'lobby';
 			this.chatHandler.parseModnote(roomid, first[first.length - 1].slice(1, -1));
