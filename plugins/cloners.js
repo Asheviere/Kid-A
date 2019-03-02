@@ -377,14 +377,14 @@ class ClonerLog {
 		this.db = redis.useDatabase('clonerlog');
 
 		this.pendingRequests = {};
-		this.timeout = [];
+		this.thisDay = [];
 
 		const midnight = new Date();
 		// midnight EST
 		midnight.setHours(29, 0, 0, 0);
 		const resolver = () => {
-			this.timeout = [];
-			setTimeout(resolver, DAY);
+			this.thisDay = [];
+			this.timeout = setTimeout(resolver, DAY);
 		};
 		this.timeout = setTimeout(resolver, midnight.valueOf() - Date.now());
 
@@ -428,8 +428,8 @@ class ClonerLog {
 		} else {
 			if (role !== 'cloner') return ChatHandler.sendPM(user, `Only cloners can initiate a confirmation.`);
 			let key = `${target}:${user}`;
-			if (this.timeout.includes(key)) return ChatHandler.sendPM(user, `You cannot claim more points from this client today.`);
-			this.timeout.push(key);
+			if (this.thisDay.includes(key)) return ChatHandler.sendPM(user, `You cannot claim more points from this client today.`);
+			this.thisDay.push(key);
 			let obj = {timestamp: Date.now(), cloner: user};
 			this.pendingRequests[key] = obj;
 			ChatHandler.sendPM(user, `Confirmation request sent to ${target}.`);
