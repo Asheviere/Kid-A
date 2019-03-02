@@ -38,7 +38,12 @@ module.exports = {
 		chatHandler.send(null, `/autojoin ${this.toJoin.slice(0, 11).join(',')}`);
 		chatHandler.send(null, `/trn ${Config.username},0,${assertion}`);
 
-		this.extraJoin = this.toJoin.slice(11);
+		const sendJoin = rooms => {
+			if (!rooms || !rooms.length) return;
+			chatHandler.send(null, `/join ${rooms[0]}`);
+			setTimeout(() => sendJoin(rooms.slice(1)), 200);
+		};
+		sendJoin(this.toJoin.slice(11));
 
 		Output.log('status', 'Setup done.');
 	},
@@ -64,20 +69,6 @@ module.exports = {
 	removeUser(user, room) {
 		if (!(room in this.userlists)) return false;
 		delete this.userlists[room][toId(user)];
-	},
-
-	async tryJoin(roomid, remove) {
-		if (!this.extraJoin) return;
-		if (roomid) {
-			let idx = this.extraJoin.indexOf(roomid);
-			if (idx > -1) {
-				this.extraJoin.splice(idx, 1);
-				if (remove) settings.lrem('autojoin', 0, roomid);
-			}
-		}
-		if (!this.extraJoin.length) return;
-
-		setTimeout(() => chatHandler.send(null, `/join ${this.extraJoin[0]}`), 200);
 	},
 
 	async parse(message) {
@@ -149,10 +140,9 @@ module.exports = {
 			break;
 		case 'noinit':
 		case 'deinit':
-			this.tryJoin(roomid, true);
+			settings.lrem('autojoin', 0, roomid);
 			break;
 		case 'init':
-			this.tryJoin(roomid);
 			this.addUser(split[6].trim().split(',').slice(1), roomid);
 			break;
 		case 'pm':
