@@ -33,6 +33,12 @@ function connect() {
 	};
 
 	Connection = client;
+
+	Connection._send = Connection.send;
+	Connection.send = function(data) {
+		Debug.log(4, `Sending: ${data}`);
+		Connection._send(data);
+	};
 }
 
 connect();
