@@ -34,7 +34,7 @@ class Cache {
 	}
 
 	write() {
-		Debug.log(2, `Writing /cache/${this.name}.json. Content: ${JSON.stringify(this.data)}`);
+		Debug.log(5, `Writing /cache/${this.name}.json. Content: ${JSON.stringify(this.data)}`);
 		if (!this.changed) {
 			fs.unlink(`./cache/${this.name}.json.old`, () => {
 				fs.rename(`./cache/${this.name}.json`, `./cache/${this.name}.json.old`, () => {
