@@ -302,7 +302,7 @@ class ChatHandler {
 				if (!(Config.rooms.includes(toJoin) || (autojoin && autojoin.includes(toJoin)))) {
 					if (toJoin.includes('groupchat')) return this.sendPM(userstr.substr[1], `Kid A is currently unsupported in groupchats.`);
 					this.settings.rpush('autojoin', toJoin);
-					this.sendPM(userstr.substr[1], `For an introduction on how to use Kid A in your room, see ${server.url}intro.html`);
+					this.sendPM(userstr.substr(1), `For an introduction on how to use Kid A in your room, see ${server.url}intro.html`);
 				}
 				this.send(null, `/join ${toJoin}`);
 				return;
