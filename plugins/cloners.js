@@ -680,7 +680,7 @@ module.exports = {
 				if (!userid || !points || points < 0) return this.pmreply("Syntax error. ``.addcp username, amount``");
 				userid = toId(userid);
 
-				clonerlog.addPoints(this.userid, userid, points);
+				clonerList.updateScore(userid, points);
 
 				return this.reply(`${points} cloner points added for ${username}.`);
 			},
@@ -699,7 +699,7 @@ module.exports = {
 				if (!userid || !points || points < 0) return this.pmreply("Syntax error. ``.removecp username, amount, remove from total``");
 				userid = toId(userid);
 
-				clonerlog.addPoints(this.userid, userid, -1 * points, -1 * points);
+				clonerList.updateScore(userid, -1 * points, -1 * points);
 
 				return this.reply(`${points} cloner points removed from ${username}.`);
 			},
