@@ -303,9 +303,9 @@ class ChatHandler {
 					if (toJoin.includes('groupchat')) return this.sendPM(userstr.substr[1], `Kid A is currently unsupported in groupchats.`);
 					this.settings.rpush('autojoin', toJoin);
 					this.sendPM(userstr.substr[1], `For an introduction on how to use Kid A in your room, see ${server.url}intro.html`);
-					return;
 				}
 				this.send(null, `/join ${toJoin}`);
+				return;
 			}
 			if (message.startsWith('/') || message.startsWith('!')) return;
 			Output.log('pm', 'PM from ' + (userstr[0] === ' ' ? userstr.substr(1) : userstr) + ': ' + message);
