@@ -24,7 +24,7 @@ function connect() {
 	};
 
 	client.onclose = close => {
-		Output.log(`Closed connection with code ${close.code}. Reconnecting in ${RETRY_TIME}s...`);
+		Output.log('STATUS', `Closed connection with code ${close.code}. Reconnecting in ${RETRY_TIME}s...`);
 		setTimeout(connect, RETRY_TIME * 1000);
 	};
 
