@@ -469,7 +469,7 @@ class ChatHandler {
 	parseQueryResponse(id, response) {
 		// failsafe
 		if (!this.pendingQueries[id].length) return;
-		this.pendingQueries[id][0](response);
+		this.pendingQueries[id].shift()(response);
 	}
 
 	async query(id, query) {

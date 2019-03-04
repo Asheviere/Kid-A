@@ -41,7 +41,7 @@ async function postHandler(data, room, tokenData) {
 		queryArgs.unshift(tokenData.user);
 		ChatHandler.query('userdetails', tokenData.user).then(details => {
 			Debug.log(4, `Received query response: ${details}`);
-			if (details && details.avatar) profileData.hset(tokenData.user, 'avatar', details.avatar);
+			if (details && details.avatar) profileData.hset(tokenData.user, 'avatar', Utils.toAvatar(details.avatar));
 		});
 		await profileData.hmset.call(profileData, queryArgs);
 	}
