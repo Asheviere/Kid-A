@@ -401,6 +401,7 @@ global.Utils = module.exports = {
 	},
 
 	toAvatarId(str) {
+		str = ('' + str).toLowerCase().replace(/[^a-z0-9-#]/g, '');
 		if (str in BattleAvatarNumbers) return BattleAvatarNumbers[str];
 		return str;
 	},
