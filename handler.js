@@ -33,6 +33,8 @@ module.exports = {
 			);
 		}
 
+		this.toJoin = this.toJoin.filter(room => !(Config.blacklistedRooms && Config.blacklistedRooms.includes(room)));
+
 		Debug.log(3, `Joining rooms: ${this.toJoin.join(', ')}`);
 
 		chatHandler.send(null, `/autojoin ${this.toJoin.slice(0, 11).join(',')}`);

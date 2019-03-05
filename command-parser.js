@@ -295,7 +295,9 @@ class ChatHandler {
 			if (!room.includes('groupchat')) this.analyze(userstr, room, message, timestamp * 1000 || Date.now());
 		} else {
 			if (canUse(2, toId(userstr), userstr[0]) && message.startsWith('/invite')) {
-				let toJoin = message.substr(8);
+				let toJoin = toId(message.substr(8));
+
+				if (Config.blacklistedRooms && Config.blacklistedRooms.includes(toJoin)) return this.sendPM(userstr.substr[1], 'This room has been blacklisted');
 
 				let autojoin = await this.settings.lrange('autojoin', 0, -1);
 
