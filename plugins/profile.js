@@ -117,7 +117,7 @@ module.exports = {
 					cols.push(output.slice(i, i + 5).join('<br/>'));
 				}
 
-				return this.replyHTML(`<div style="width:100%;overflow-x:auto;"><table><tr>${cols.map(col => `<td style="margin-left:5px;">${col}</td>`).join('')}</tr></table></div>`);
+				return this.replyHTML(`<div style="width:100%;overflow-x:auto;"><table><tr>${cols.map(col => `<td style="margin-left:5px;${this.pm && !col.startsWith('<img') ? 'width:160px;display:block;' : ''}">${col}</td>`).join('')}</tr></table></div>`);
 			},
 		},
 	},
