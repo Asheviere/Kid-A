@@ -22,7 +22,7 @@ const fields = {
 	github: ["Github", username => username, username => `<a href="https://github.com/${username}">${Utils.sanitize(username)}</a>`, "Github Username"],
 	reddit: ["Reddit Username", username => /(\/?u\/)?[a-zA-Z0-9_-]{3,20}/.test(username), username => {
 		if (!username.startsWith('/')) {
-			if (!username.startWith('u/')) username = 'u/' + username;
+			if (!username.startsWith('u/')) username = 'u/' + username;
 			username = '/' + username;
 		}
 		return `<a href="https://reddit.com/${username}">${username}</a>`;
