@@ -14,7 +14,7 @@ const fields = {
 		const [name] = username.split('.');
 		return `<a href="https://www.smogon.com/forums/members/${username}">${name}</a>`;
 	}, "Smogon Account (username.numbers, as shown in your profile URL)"],
-	youtube: ["Youtube channel:", url => /https?:\/\/youtube.com\/(c|channel|user)\/[a-zA-Z0-9-_]+/.test(url), url => `<a href="${url}">${url}</a>`],
+	youtube: ["Youtube channel:", url => /https?:\/\/(www\.)?youtube\.com\/(c|channel|user)\/[a-zA-Z0-9-_]+/.test(url), url => `<a href="${url}">${url}</a>`],
 	twitch: ["Twitch.tv Username", username => /[a-zA-Z0-9_-]+/.test(username) && username.length < 25, username => `<a href="https://twitch.tv/${username}">${username}</a>`],
 	gamertag: ["Gamertag", username => /[a-zA-Z0-9_]+/.test(username) && username.length < 16, null, "Xbox Gamertag"],
 	psn: ["PSN", username => /[a-zA-Z0-9_]+/.test(username) && username.length < 25, null, "PlayStation Network Username"],
