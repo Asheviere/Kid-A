@@ -9,12 +9,12 @@ const CUSTOM_AVATAR_URL = `https://play.pokemonshowdown.com/sprites/trainers-cus
 
 const fields = {
 	discord: ["Discord Username", username => /.{2,32}#[0-9]{4}/.test(username)],
-	steam: ["Steam", url => /https?:\/\/steamcommunity.com\/(id|profiles)\/[a-zA-Z0-9]+\/?/.test(url), url => `<a href="${url}">${url}</a>`, null, "Steam Profile URL"],
+	steam: ["Steam", url => /https?:\/\/steamcommunity.com\/(id|profiles)\/[a-zA-Z0-9]+\/?/.test(url), url => `<small><a href="${url}">${url.replace(/https?:\/\/steamcommunity.com\//g, '')}</a></small>`, null, "Steam Profile URL"],
 	smogon: ["Smogon Profile", username => /[a-z0-9]+\.[0-9]{1,7}/.test(username), username => {
 		const [name] = username.split('.');
 		return `<a href="https://www.smogon.com/forums/members/${username}">${name}</a>`;
 	}, "Smogon Account (username.numbers, as shown in your profile URL)"],
-	youtube: ["Youtube channel", url => /https?:\/\/(www\.)?youtube\.com\/(c|channel|user)\/[a-zA-Z0-9-_]+/.test(url), url => `<small><a href="${url}">${url}</a></small>`],
+	youtube: ["YouTube channel", url => /https?:\/\/(www\.)?youtube\.com\/(c|channel|user)\/[a-zA-Z0-9-_]+/.test(url), url => `<small><a href="${url}">${url.replace(/https?:\/\/(www\.)?youtube\.com/g, '')}</a></small>`],
 	twitch: ["Twitch.tv Username", username => /[a-zA-Z0-9_-]+/.test(username) && username.length < 25, username => `<a href="https://twitch.tv/${username}">${username}</a>`],
 	gamertag: ["Gamertag", username => /[a-zA-Z0-9_]+/.test(username) && username.length < 16, null, "Xbox Gamertag"],
 	psn: ["PSN", username => /[a-zA-Z0-9_]+/.test(username) && username.length < 25, null, "PlayStation Network Username"],
