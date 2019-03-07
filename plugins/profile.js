@@ -86,7 +86,6 @@ module.exports = {
 			async action(message) {
 				const key = toId(message) || this.userid;
 				const profile = await profileData.hgetall(key);
-				if (!profile) return this.pmreply("User not found.");
 
 				let output = [];
 
@@ -96,6 +95,8 @@ module.exports = {
 				const fcs = redis.useDatabase('friendcodes');
 				const fc = await fcs.get(key);
 				if (fc) output.push(`<b>3DS Friendcode:</b> ${fc.split(':').join(', ')}`);
+
+				if (!Object.keys(profile).length && !output.length) return this.reply("User not found.");
 
 				for (let field in fields) {
 					if (profile[field]) {
