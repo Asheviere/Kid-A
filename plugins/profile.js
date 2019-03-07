@@ -29,7 +29,9 @@ async function postHandler(data, room, tokenData) {
 
 	for (let field in data) {
 		if (field in fields) {
-			if (fields[field][1](data[field])) {
+			if (!data[field]) {
+				queryArgs.push(field, '');
+			} else if (fields[field][1](data[field])) {
 				queryArgs.push(field, data[field]);
 			}
 		} else if (field === 'lastfm') {
