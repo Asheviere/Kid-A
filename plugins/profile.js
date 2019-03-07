@@ -9,7 +9,7 @@ const CUSTOM_AVATAR_URL = `https://play.pokemonshowdown.com/sprites/trainers-cus
 
 const fields = {
 	discord: ["Discord Username", username => /.{2,32}#[0-9]{4}/.test(username)],
-	steam: ["Steam", url => /https?:\/\/steamcommunity.com\/(id|profiles)\/[a-zA-Z0-9]+\/?/.test(url), url => `<small><a href="${url}">${url.replace(/https?:\/\/steamcommunity.com\//g, '')}</a></small>`, null, "Steam Profile URL"],
+	steam: ["Steam", url => /https?:\/\/steamcommunity.com\/(id|profiles)\/[a-zA-Z0-9]+\/?/.test(url), url => `<small><a href="${url}">${url.replace(/https?:\/\/steamcommunity.com/g, '')}</a></small>`, null, "Steam Profile URL"],
 	smogon: ["Smogon Profile", username => /[a-z0-9]+\.[0-9]{1,7}/.test(username), username => {
 		const [name] = username.split('.');
 		return `<a href="https://www.smogon.com/forums/members/${username}">${name}</a>`;
