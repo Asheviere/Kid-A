@@ -21,10 +21,8 @@ const fields = {
 	switchfc: ["Switch Friendcode", fc => /SW-[0-9]{4}-[0-9]{4}-[0-9]{4}/.test(fc)],
 	github: ["Github", username => username, username => `<a href="https://github.com/${username}">${Utils.sanitize(username)}</a>`, "Github Username"],
 	reddit: ["Reddit Username", username => /(\/?u\/)?[a-zA-Z0-9_-]{3,20}/.test(username), username => {
-		if (!username.startsWith('/')) {
-			if (!username.startsWith('u/')) username = 'u/' + username;
-			username = '/' + username;
-		}
+		if (username.startsWith('/')) username = username.slice(1);
+		if (!username.startsWith('u/')) username = 'u/' + username;
 		return `<a href="https://reddit.com/${username}">${username}</a>`;
 	}],
 	twitter: ["Twitter Username", username => /@?[a-zA-Z0-9_]{1,16}/.test(username), username => {
