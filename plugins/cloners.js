@@ -548,7 +548,7 @@ module.exports = {
 				if (!this.room) {
 					if (!this.getRoomAuth(WIFI_ROOM)) return;
 				}
-				if (!this.canUse(5)) return this.pmreply("Permission denied.");
+				if (!(this.canUse(5) || Config.clonerLeader === this.userid)) return this.pmreply("Permission denied.");
 
 				let removed = clonerList.purgeList();
 				// Do 10 names per time. Max length for a modnote is 300, assuming all names are the max length (19 characters), plus 2 for the ', ' sep. This would fit 14 names, but doing 10 since I need space for the rest of the message.
@@ -565,7 +565,7 @@ module.exports = {
 				if (!this.room) {
 					if (!this.getRoomAuth(WIFI_ROOM)) return;
 				}
-				if (!this.canUse(5)) return this.pmreply("Permission denied.");
+				if (!(this.canUse(5) || Config.clonerLeader === this.userid)) return this.pmreply("Permission denied.");
 
 				if (await settings.hexists('whitelist:cloners', toId(message))) return this.reply("This user is already whitelisted.");
 
@@ -580,7 +580,7 @@ module.exports = {
 				if (!this.room) {
 					if (!this.getRoomAuth(WIFI_ROOM)) return;
 				}
-				if (!this.canUse(5)) return this.pmreply("Permission denied.");
+				if (!(this.canUse(5) || Config.clonerLeader === this.userid)) return this.pmreply("Permission denied.");
 
 				if (!await settings.hexists('whitelist:cloners', toId(message))) return this.reply("This user isn't whitelisted.");
 
