@@ -124,7 +124,6 @@ let lineCounter = 0;
 const pendingApprovals = new Map();
 
 const selfLinkTimeouts = new Map();
-const unapprovedLinkTimeouts = new Map();
 const lastLinked = new Map();
 
 async function draw(user, data, desc, self) {
@@ -254,9 +253,6 @@ module.exports = {
 				ChatHandler.send(this.room, `/modnote ${this.username} approved ${user}'s link: ${data.url}`);
 				clearTimeout(timeout);
 				pendingApprovals.delete(this.room);
-				if (this.room === YOUTUBE_ROOM) {
-					unapprovedLinkTimeouts.set(user, setTimeout(() => unapprovedLinkTimeouts.delete(user), 24 * HOUR));
-				}
 				await draw.call(this, user, data, description);
 			},
 		},
