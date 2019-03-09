@@ -220,10 +220,6 @@ module.exports = {
 				let [url, ...description] = message.split(',').map(param => param.trim());
 				if (!url) return this.pmreply("Syntax: ``.requestapproval url, (optional) description``");
 
-				if (this.room === YOUTUBE_ROOM) {
-					if (unapprovedLinkTimeouts.has(this.userid)) return this.reply("You are only allowed to get a link approved once per day.");
-				}
-
 				if (pendingApprovals.has(this.room)) return this.reply("There is already someone awaiting approval.");
 
 				if (description) {
