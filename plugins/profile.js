@@ -174,7 +174,7 @@ module.exports = {
 						} else {
 							title = title.slice(0, 3);
 						}
-						badgeHTML.push(`<div style="width:18px;display:inline-block;vertical-align:middle;"><img title="${roomid}'s badge" width=16 height=16 src="${server.url}badges/badge.png?shape=${badge.shape || 'sun'}&color=${badge.color || 'green'}"><p style="word-wrap:break-word;margin:-3px auto;font-size:6pt;font-family:monospace;display:block;text-align:center;">${title}</p></div>`);
+						badgeHTML.push(`<div style="width:20px;display:inline-block;vertical-align:middle;"><img title="${roomid}'s badge" width=18 height=18 src="${server.url}badges/badge.png?shape=${badge.shape || 'sun'}&color=${badge.color || 'green'}"><p style="word-wrap:break-word;margin:-3px auto;font-size:6pt;font-family:monospace;display:block;text-align:center;">${title}</p></div>`);
 					}
 					output.push(`<b>Badges:</b> ${badgeHTML.join('&nbsp;')}`);
 				}
@@ -224,7 +224,7 @@ module.exports = {
 
 				rows.push('<th><code>.setbadge <color> <shape></code></th>' + shapes.map(shape => `<th><strong>${shape}</strong></th>`).join(''));
 				for (const color of colors) {
-					rows.push(`<th><strong>${color}</strong></th>` + shapes.map(shape => `<td><img width=16 height=16 src="${server.url}badges/badge.png?shape=${shape}&color=${color}"></td>`).join(''));
+					rows.push(`<th><strong>${color}</strong></th>` + shapes.map(shape => `<td><img width=18 height=18 src="${server.url}badges/badge.png?shape=${shape}&color=${color}"></td>`).join(''));
 				}
 
 				this.replyHTML(`<table class="ladder" style="margin:auto;text-align:center;">${rows.map(row => `<tr>${row}</tr>`).join('')}</table>`);
