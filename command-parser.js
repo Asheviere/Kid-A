@@ -169,6 +169,7 @@ class ChatHandler {
 		this.mail = new Cache('mail');
 		this.privateRooms = Config.privateRooms;
 		this.pendingQueries = {};
+		this.rooms = new Map();
 
 		this.sendQueue = [];
 		this.sendQueueTimer = setInterval(() => {
