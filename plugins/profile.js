@@ -213,6 +213,7 @@ module.exports = {
 				if (!message) return this.pmreply("No user supplied");
 				profileData.rpush(`badges:${message}`, this.room);
 				this.reply(`${message} was given this room's badge.`);
+				ChatHandler.send(this.room, `/modnote ${message} was given this room's badge by ${this.username}`);
 			},
 		},
 		badgeinfo: {
@@ -227,7 +228,7 @@ module.exports = {
 					rows.push(`<th><strong>${color}</strong></th>` + shapes.map(shape => `<td><img width=18 height=18 src="${server.url}badges/badge.png?shape=${shape}&color=${color}"></td>`).join(''));
 				}
 
-				this.replyHTML(`<table class="ladder" style="margin:auto;text-align:center;">${rows.map(row => `<tr>${row}</tr>`).join('')}</table>`);
+				this.replyHTML(`<div style="overflow:auto;"><table class="ladder" style="margin:auto;text-align:center;">${rows.map(row => `<tr>${row}</tr>`).join('')}</table></div>`);
 			},
 		},
 	},
