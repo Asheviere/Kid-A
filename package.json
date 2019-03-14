@@ -6,6 +6,7 @@
     "connect": "^3.6.6",
     "faye-websocket": "^0.11.1",
     "handlebars": "^4.0.6",
+    "image-js": "^0.21.4",
     "markdown": "^0.5.0",
     "permessage-deflate": "^0.1.6",
     "probe-image-size": "^3.2.0",

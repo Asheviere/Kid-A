@@ -1,3 +1,7 @@
+const fs = require('fs');
+const {Image} = require('image-js');
+
+const server = require('../server.js');
 const Page = require('../page.js');
 const redis = require('../redis.js');
 
@@ -6,6 +10,21 @@ const lastfmData = redis.useDatabase('lastfm');
 
 const AVATAR_URL = `https://play.pokemonshowdown.com/sprites/trainers/`;
 const CUSTOM_AVATAR_URL = `https://play.pokemonshowdown.com/sprites/trainers-custom/`;
+const BADGE_DIR = './public/badges/';
+const DEFAULT_BADGE_COLOR = [[72, 255, 106], [0, 212, 20], [0, 106, 20]];
+
+const badges = new Map();
+
+const badgeColors = {
+	red: [[223, 130, 130], [213, 18, 18], [135, 18, 18]],
+	blue: [[78, 133, 215], [31, 62, 212], [31, 62, 85]],
+	green: [[75, 234, 138], [57, 178, 106], [26, 122, 60]],
+	pika: [[255, 247, 165], [247, 231, 82], [222, 148, 0]],
+	kawaii: [[234, 135, 200], [234, 49, 200], [143, 30, 12]],
+	gold: [[226, 185, 118], [234, 162, 44], [157, 108, 29]],
+	silver: [[242, 243, 250], [195, 212, 218], [124, 124, 128]],
+	crystal: [[177, 214, 236], [130, 210, 236], [77, 148, 181]],
+};
 
 const fields = {
 	discord: ["Discord Username", username => /.{2,32}#[0-9]{4}/.test(username)],
@@ -73,6 +92,35 @@ async function contextGenerator(room, query, tokenData) {
 	return {user: tokenData.user, fields: data};
 }
 
+fs.readdir(BADGE_DIR, (err, files) => {
+	if (err) throw err;
+
+	for (let file of files) {
+		Image.load(`${BADGE_DIR}${file}`).then(image => {
+			badges.set(file.split('.')[0], image);
+		});
+	}
+});
+
+server.addRoute('/badges/badge.png', (req, res) => {
+	let query = Page.parseURL(req.originalUrl);
+	if (!(query.shape && query.color)) return;
+	const toRecolor = badges.get(query.shape).clone();
+	for (let i = 0; i < toRecolor.size; i++) {
+		const colors = toRecolor.getPixel(i);
+		for (let j = 0; j < DEFAULT_BADGE_COLOR.length; j++) {
+			const otherColors = DEFAULT_BADGE_COLOR[j];
+			if (colors[0] === otherColors[0] &&
+				colors[1] === otherColors[1] &&
+				colors[2] === otherColors[2]) {
+				toRecolor.setPixel(i, badgeColors[query.color][j]);
+			}
+		}
+	}
+
+	res.end(Buffer.from(toRecolor.toBuffer()));
+});
+
 module.exports = {
 	commands: {
 		editprofile: {
@@ -115,6 +163,22 @@ module.exports = {
 					}
 				}
 
+				const badges = await profileData.lrange(`badges:${key}`, 0, -1);
+				if (badges.length) {
+					const badgeHTML = [];
+					for (let roomid of badges) {
+						const badge = await redis.useDatabase('settings').hgetall(`badge:${roomid}`);
+						let title = ChatHandler.rooms.get(roomid) || roomid;
+						if (title.split(' ').length > 1) {
+							title = Utils.abbreviate(title);
+						} else {
+							title = title.slice(0, 3);
+						}
+						badgeHTML.push(`<div style="width:18px;display:inline-block;vertical-align:middle;"><img title="${roomid}'s badge" width=16 height=16 src="${server.url}badges/badge.png?shape=${badge.shape || 'sun'}&color=${badge.color || 'green'}"><p style="word-wrap:break-word;margin:-3px auto;font-size:6pt;font-family:monospace;display:block;text-align:center;">${title}</p></div>`);
+					}
+					output.push(`<b>Badges:</b> ${badgeHTML.join('&nbsp;')}`);
+				}
+
 				const cols = [];
 
 				if (profile.avatar) {
@@ -127,6 +191,43 @@ module.exports = {
 				}
 
 				return this.replyHTML(`<div style="width:100%;overflow-x:auto;display:inline-flex;">${cols.map(col => `<div style="margin:auto 5px auto 0px;${this.pm && !col.startsWith('<img') ? 'min-width:155px;max-width:155px;' : ''}">${col}</div>`).join('')}</div>`);
+			},
+		},
+		setbadge: {
+			permission: 5,
+			requireRoom: true,
+			async action(message) {
+				let [color, shape] = message.trim().split(' ').map(str => toId(str));
+
+				if (!badgeColors[color] || !badges.has(shape)) return this.pmreply("Invalid value for color/shape, check ``.badgeinfo``");
+
+				this.settings.hmset(`badge:${this.room}`, 'shape', shape, 'color', color);
+				this.reply(`The badge in ${this.room} is now a ${color} ${shape}.`);
+			},
+		},
+		givebadge: {
+			permission: 3,
+			requireRoom: true,
+			async action(message) {
+				message = toId(message);
+				if (!message) return this.pmreply("No user supplied");
+				profileData.rpush(`badges:${message}`, this.room);
+				this.reply(`${message} was given this room's badge.`);
+			},
+		},
+		badgeinfo: {
+			permission: 1,
+			async action() {
+				let rows = [];
+				const shapes = Array.from(badges.keys());
+				const colors = Object.keys(badgeColors);
+
+				rows.push('<th><code>.setbadge <color> <shape></code></th>' + shapes.map(shape => `<th><strong>${shape}</strong></th>`).join(''));
+				for (const color of colors) {
+					rows.push(`<th><strong>${color}</strong></th>` + shapes.map(shape => `<td><img width=16 height=16 src="${server.url}badges/badge.png?shape=${shape}&color=${color}"></td>`).join(''));
+				}
+
+				this.replyHTML(`<table class="ladder" style="margin:auto;text-align:center;">${rows.map(row => `<tr>${row}</tr>`).join('')}</table>`);
 			},
 		},
 	},
