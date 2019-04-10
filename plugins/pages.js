@@ -42,7 +42,7 @@ async function setPage(roomid, pageid, title, content) {
 const page = new Page('pages/', async (room, query, tokenData, url) => {
 	const pageData = await getPage(room, url.slice(1));
 	if (!pageData) return '404 Page not found';
-	return {title: pageData.title, content: md.toHTML(pageData.content).replace(/\\n/g, '<br/>')};
+	return {title: pageData.title, content: md.toHTML(pageData.content).replace(/\n/g, '<br/>')};
 }, 'template.html', {});
 
 const editPage = new Page('editpage', async (room, query) => {
