@@ -39,17 +39,26 @@ async function setPage(roomid, pageid, title, content) {
 	fs.writeFile(`${BASE_PAGE_PATH}${roomid}.json`, JSON.stringify(cache.get(roomid)), () => {});
 }
 
+const blockElements = ['ul', 'ol', 'p'];
+
 const page = new Page('pages/', async (room, query, tokenData, url) => {
 	const pageData = await getPage(room, url.slice(1));
 	if (!pageData) return '404 Page not found';
 	let rawContent = md.toHTML(pageData.content);
 	let parsedContent = '';
 	for (let i = 0; i < rawContent.length; i++) {
-		if (rawContent[i] === '\n' && rawContent.substr(i - 4, 4) !== '</p>' && rawContent.substr(i + 1, 3) !== '<p>') {
-			parsedContent += '<br/>';
-		} else {
-			parsedContent += rawContent[i];
+		if (rawContent[i] === '\n') {
+			let hasBlockElement = false;
+			for (const element of blockElements) {
+				const elemLength = element.length + 2;
+				hasBlockElement = hasBlockElement || (rawContent.substr(i - elemLength - 1, elemLength + 1) !== `</${element}>` && rawContent.substr(i + 1, elemLength) !== `<${element}>`);
+			}
+			if (!hasBlockElement) {
+				parsedContent += '<br/>';
+				continue;
+			}
 		}
+		parsedContent += rawContent[i];
 	}
 	return {title: pageData.title, content: parsedContent};
 }, 'template.html', {});
