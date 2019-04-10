@@ -45,7 +45,7 @@ const page = new Page('pages/', async (room, query, tokenData, url) => {
 	let rawContent = md.toHTML(pageData.content);
 	let parsedContent = '';
 	for (let i = 0; i < rawContent.length; i++) {
-		if (rawContent[i] === '\n' && rawContent.substr(i - 4, 4) !== '</p>') {
+		if (rawContent[i] === '\n' && rawContent.substr(i - 4, 4) !== '</p>' && rawContent.substr(i + 1, 3) !== '<p>') {
 			parsedContent += '<br/>';
 		} else {
 			parsedContent += rawContent[i];
