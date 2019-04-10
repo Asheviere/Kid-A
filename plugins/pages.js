@@ -51,7 +51,7 @@ const page = new Page('pages/', async (room, query, tokenData, url) => {
 			let hasBlockElement = false;
 			for (const element of blockElements) {
 				const elemLength = element.length + 2;
-				hasBlockElement = hasBlockElement || (rawContent.substr(i - elemLength - 1, elemLength + 1) === `</${element}>` && rawContent.substr(i + 1, elemLength) === `<${element}>`);
+				hasBlockElement = hasBlockElement || (rawContent.substr(i - elemLength - 1, elemLength + 1) === `</${element}>` || rawContent.substr(i + 1, elemLength) === `<${element}>`);
 			}
 			if (!hasBlockElement) {
 				parsedContent += '<br/>';
