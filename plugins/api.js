@@ -80,6 +80,20 @@ function igdbRequest(query) {
 	});
 }
 
+function googleBooksRequest(query) {
+	return new Promise((resolve, reject) => {
+		request(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&printType=books&key=${Config.youtubeKey}`, (err, res) => {
+			if (err) reject(err);
+			let results = JSON.parse(res.body).items.map(result => result.volumeInfo);
+			results = results.filter(result => {
+				const id = toId(result.title);
+				return !(id.includes('nazi') || id.includes('hitler'));
+			});
+			resolve(results.map(result => ({title: `${result.title}${result.subtitle ? ` <small>${result.subtitle}</small>` : ''}`, image: {width: 75, height: 107, url: result.imageLinks.thumbnail}, url: result.infoLink, properties: result})));
+		});
+	});
+}
+
 class InfoBox {
 	constructor(dataFetcher, generator) {
 		this.dataFetcher = dataFetcher;
@@ -201,6 +215,27 @@ const videogames = new InfoBox(igdbRequest, properties => {
 	return buffer;
 });
 
+const books = new InfoBox(googleBooksRequest, properties => {
+	let buffer = '';
+
+	if (properties.authors) buffer += `<strong>Author${properties.authors.length > 1 ? 's' : ''}:</strong> ${properties.authors.join(', ')}<br/>`;
+	if (properties.publishedDate) buffer += `<strong>Published:</strong> ${properties.publishedDate}${properties.publisher ? ` by <i>${properties.publisher}</i>` : ''}<br/>`;
+	if (properties.categories) buffer += `<strong>Categories:</strong> ${properties.categories.join(', ')}<br/>`;
+
+	let miscInfoLine = [];
+
+	if (properties.language) miscInfoLine.push(`<strong>${properties.language.toUpperCase()}</strong>`);
+	if (properties.pageCount) miscInfoLine.push(`${properties.pageCount} pages`);
+	if (properties.averageRating) {
+		const ratingColor = properties.averageRating > 3.5 ? 'green' : properties.averageRating < 2.5 ? 'red' : 'orange';
+		miscInfoLine.push(`<strong style="color:${ratingColor}">${properties.averageRating}/5</strong> (${properties.ratingsCount} ratings)`);
+	}
+	if (miscInfoLine.length) buffer += `${miscInfoLine.join(', ')}<br/>`;
+	if (properties.description) buffer += `<strong>Description: </strong> ${properties.description.slice(0, 500).replace(/\n/g, '<br/>')}${properties.description.length > 500 ? ' (...)' : ''}`;
+
+	return buffer;
+});
+
 module.exports = {
 	commands: {
 		anime: {
@@ -237,6 +272,19 @@ module.exports = {
 				if (!message) return this.reply("No query entered.");
 
 				const html = await videogames.parse(message).catch(err => this.reply(`Something went wrong during the request: ${err}`));
+				if (!html) return;
+
+				return this.replyHTML(html);
+			},
+		},
+		book: {
+			permission: 1,
+			disallowPM: true,
+			async action(message) {
+				if (this.room !== 'thelibrary' && !this.canUse(2)) return this.pmreply("Permission denied.");
+				if (!message) return this.reply("No query entered.");
+
+				const html = await books.parse(message).catch(err => this.reply(`Something went wrong during the request: ${err}`));
 				if (!html) return;
 
 				return this.replyHTML(html);
