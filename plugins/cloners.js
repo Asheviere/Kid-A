@@ -822,7 +822,7 @@ module.exports = {
 
 					for (let thisfc of split) {
 						if (thisfc === fc) {
-							output.push(`This FC belongs to ${scammerList.data[i].username}, who <b>${scammerList.data[i].date.startsWith("PERMA") ? 'is a permabanned scammer' : `was added to the scammers list on ${(new Date(parseInt(scammerList.data[i].date))).toDateString()}`}</b>.`);
+							output.push(`This FC belongs to ${scammerList.data[i].username}, who <b>${scammerList.data[i].date.startsWith && scammerList.data[i].date.startsWith("PERMA") ? 'is a permabanned scammer' : `was added to the scammers list on ${(new Date(parseInt(scammerList.data[i].date))).toDateString()}`}</b>.`);
 							output.push(`Reason: ${scammerList.data[i].reason}`);
 							search = false;
 							break;
