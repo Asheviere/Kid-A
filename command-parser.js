@@ -382,6 +382,14 @@ class ChatHandler {
 		}
 	}
 
+	async parseJoinRoom(room) {
+		for (let i in this.plugins) {
+			if (this.plugins[i].onJoinRoom) {
+				this.plugins[i].onJoinRoom.apply(this, [room]).catch(err => Output.errorMsg(err, 'Error in onJoinRoom', {room: room}));
+			}
+		}
+	}
+
 	async parseTourCommand(roomid, command, rest) {
 		const data = rest.startsWith('{') || rest.startsWith('[') ? JSON.parse(rest) : rest;
 		for (let i in this.plugins) {

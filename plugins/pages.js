@@ -5,6 +5,7 @@ const md = require('markdown').markdown;
 const Page = require('../page.js');
 
 const BASE_PAGE_PATH = './data/pages-';
+const INTERVAL = 3 * 60 * 60 * 1000;
 
 const cache = new Map();
 
@@ -41,10 +42,7 @@ async function setPage(roomid, pageid, title, content) {
 
 const blockElements = ['ul', 'ol', 'p'];
 
-const page = new Page('pages/', async (room, query, tokenData, url) => {
-	const pageData = await getPage(room, url.slice(1));
-	if (!pageData) return '404 Page not found';
-	let rawContent = md.toHTML(pageData.content);
+function parseContent(rawContent) {
 	let parsedContent = '';
 	for (let i = 0; i < rawContent.length; i++) {
 		if (rawContent[i] === '\n') {
@@ -60,6 +58,14 @@ const page = new Page('pages/', async (room, query, tokenData, url) => {
 		}
 		parsedContent += rawContent[i];
 	}
+	return parsedContent;
+}
+
+const page = new Page('pages/', async (room, query, tokenData, url) => {
+	const pageData = await getPage(room, url.slice(1));
+	if (!pageData) return '404 Page not found';
+	let rawContent = md.toHTML(pageData.content);
+	let parsedContent = parseContent(rawContent);
 	return {title: pageData.title, content: parsedContent};
 }, 'template.html', {});
 
@@ -71,7 +77,24 @@ const editPage = new Page('editpage', async (room, query) => {
 	const today = new Date();
 	await setPage(room, query.page, data.title, data.content + `\n###### Last edited by: ${tokenData.user} on ${today.getDate()}/${today.getMonth() + 1}/${today.getFullYear()}`);
 	ChatHandler.send(room, `/modnote ${tokenData.user} has updated the page '${query.page}'.`);
+	if (query.page === 'noticeboard') sendNoticeboard(room);
 }});
+
+const noticeboardTimers = new Map();
+
+async function sendNoticeboard(room) {
+	if (noticeboardTimers.has(room)) clearTimeout(noticeboardTimers.get(room));
+	const pageData = await getPage(room, 'noticeboard');
+	if (!pageData) return;
+	let rawContent = md.toHTML(pageData.content.split('\n').slice(0, -1).join(''));
+	let parsedContent = parseContent(rawContent);
+	let noticeboard = `<div class='infobox'><div style="text-align:center;"><h3>Noticeboard:</h3>${parsedContent.replace(/\n/g, '')}</div></div>`;
+	console.log(room, noticeboard);
+	ChatHandler.send(room, `/adduhtml noticeboard, ${noticeboard}`);
+	noticeboardTimers.set(room, setInterval(() => {
+		sendNoticeboard(room);
+	}, INTERVAL));
+}
 
 module.exports = {
 	async init() {
@@ -81,6 +104,9 @@ module.exports = {
 			page.addRoom(rooms[i]);
 			editPage.addRoom(rooms[i]);
 		}
+	},
+	async onJoinRoom(room) {
+		sendNoticeboard(room);
 	},
 	commands: {
 		editpage: {

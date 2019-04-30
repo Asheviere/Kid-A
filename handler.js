@@ -140,6 +140,7 @@ module.exports = {
 			break;
 		case 'init':
 			this.chatHandler.rooms.set(roomid, split[4].trim());
+			this.chatHandler.parseJoinRoom(roomid);
 			this.addUser(split[6].trim().split(',').slice(1), roomid);
 			break;
 		case 'pm':
