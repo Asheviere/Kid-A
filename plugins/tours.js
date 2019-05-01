@@ -296,6 +296,23 @@ module.exports = {
 				return this.reply("User successfully removed from the whitelist.");
 			},
 		},
+		points: {
+			aliases: ['tp'],
+			requireRoom: true,
+			permission: 1,
+			async action(message) {
+				if (!message) message = this.userid;
+				message = toId(message);
+
+				let db = redis.useDatabase('tours');
+				const currency = await getCurrencyName(this.room);
+
+				const points = db.hget(`${this.room}:${message}`, 'points');
+
+				if (!points) return this.reply(`${message === this.userid ? `You don't` : `${message} doesn't`} have any ${currency}.`);
+				return this.reply(`${message === this.userid ? `You have` : `${message} has`} ${points} ${currency}.`);
+			},
+		},
 		addpoints: {
 			aliases: ['addtp'],
 			requireRoom: true,
