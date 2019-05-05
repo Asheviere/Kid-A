@@ -204,7 +204,7 @@ module.exports = {
 					if (rated) {
 						ChatHandler.send(this.room, `/tour scouting disallow`);
 					}
-					if (announcement) ChatHandler.send(this.room `/wall ${announcement}`);
+					if (announcement) ChatHandler.send(this.room, `/wall ${announcement}`);
 					return;
 				case 'end':
 					if (!(this.canUse(2) || await this.settings.hexists(`${this.room}:tourhelpers`, this.userid))) return this.pmreply("Permission denied.");
