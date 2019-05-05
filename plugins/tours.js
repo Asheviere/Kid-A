@@ -307,7 +307,7 @@ module.exports = {
 				let db = redis.useDatabase('tours');
 				const currency = await getCurrencyName(this.room);
 
-				const points = db.hget(`${this.room}:${message}`, 'points');
+				const points = await db.hget(`${this.room}:${message}`, 'points');
 
 				if (!points) return this.reply(`${message === this.userid ? `You don't` : `${message} doesn't`} have any ${currency}.`);
 				return this.reply(`${message === this.userid ? `You have` : `${message} has`} ${points} ${currency}.`);
