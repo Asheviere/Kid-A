@@ -13,7 +13,7 @@ async function editQuotes(data, room) {
 
 	let quotes = await quotedata.lrange(room, 0, -1);
 
-	for (let i = 0; i < quotes.length; i++) {
+	for (let i = quotes.length - 1; i >= 0; i--) {
 		if (toDelete && toDelete.includes(i.toString())) {
 			await quotedata.lrem(room, 0, quotes[i]);
 		}
