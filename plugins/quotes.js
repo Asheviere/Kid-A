@@ -15,7 +15,7 @@ async function editQuotes(data, room) {
 
 	for (let i = quotes.length - 1; i >= 0; i--) {
 		if (toDelete && toDelete.includes(i.toString())) {
-			await quotedata.lrem(room, 0, quotes[i]);
+			await quotedata.lrem(room, -1, quotes[i]);
 		}
 
 		if (toEdit && i in toEdit) {
