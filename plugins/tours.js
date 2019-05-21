@@ -81,7 +81,8 @@ listener.on('update', (roomid, data) => {
 
 listener.on('end', async (roomid, data) => {
 	if (data.generator === 'Round Robin') return; // This is currently not supported.
-	if (!toId(data.format).includes('leaderboard')) return; // TODO: better way to determine whether to give points for the tour.
+	const options = await settings.lrange(`${roomid}:options`, 0, -1);
+	if (!(toId(data.format).includes('leaderboard') || options.includes('autopoints'))) return; // TODO: better way to determine whether to give points for the tour.
 	let finalist1 = data.bracketData.rootNode.children[0].team;
 	let finalist2 = data.bracketData.rootNode.children[1].team;
 	let winner = data.bracketData.rootNode.result === 'win' ? finalist1 : finalist2;
@@ -89,7 +90,7 @@ listener.on('end', async (roomid, data) => {
 	let semifinalists = data.bracketData.rootNode.children[0].children.map(val => val.team).concat(data.bracketData.rootNode.children[1].children.map(val => val.team)).filter(name => ![finalist1, finalist2].includes(name));
 
 	// Get the list of players to determine amount of prize points.
-	const getPlayers = node => node.children.length ? getPlayers(node.children[0]).concat(getPlayers(node.children[1])) : [node.team];
+	const getPlayers = node => node.children && node.children.length ? getPlayers(node.children[0]).concat(getPlayers(node.children[1])) : [node.team];
 	const players = getPlayers(data.bracketData.rootNode);
 	let rounds = Math.floor(Math.log2(players.length));
 
@@ -148,7 +149,8 @@ listener.on('end', async (roomid, data) => {
 });
 
 module.exports = {
-	options: [['disabletours', "Disable tournaments plugin"]],
+	options: [['disabletours', "Disable tournaments plugin"],
+			  ['autopoints', "Automatically award points for any tour"]],
 
 	async init() {
 		let rooms = await ChatLogger.getRooms();
@@ -173,6 +175,24 @@ module.exports = {
 				let announcement = '';
 
 				switch (cmd) {
+				case 'alias':
+					if (!this.canUse(2)) return this.pmreply("Permission denied.");
+
+					let [alias, ...text] = rest.split(',');
+					alias = toId(alias);
+					text = text.join(',').trim();
+
+					await this.settings.hset(`${this.room}:touraliases`, alias, text);
+					ChatHandler.send(this.room, `/modnote tour alias '${alias}' => '${text}' was set by ${this.username}.`);
+					return this.reply(`Alias created: '${alias}' => '${text}'`);
+				case 'deletealias':
+					let toDelete = toId(rest);
+
+					if (!(await this.settings.hdel(`${this.room}:touraliases`, toDelete))) {
+						return this.reply("Cannot delete alias.");
+					}
+					ChatHandler.send(this.room, `/modnote tour alias '${alias}' was deleted by ${this.username}.`);
+					return this.reply(`Alias deleted: ${toDelete}`);
 				case 'simple':
 				case 'random':
 				case 'crazy':
@@ -189,9 +209,20 @@ module.exports = {
 						format = leaderboardFormat;
 						rules = leaderboardRules || '';
 						name = `${leaderboardName || format} Leaderboard`;
+					} else if (this.options.includes('autopoints')) {
+						rated = true;
+					}
+
+					if (rated) {
 						const currency = await getCurrencyName(this.room);
 						const shop = await this.settings.hget(`${this.room}:leaderboard`, 'shop');
 						announcement = `${currency} will be awarded this tournament${shop ? `, these can be spent on prizes throughout the month!` : ''}`;
+					}
+
+					let isAlias = await this.settings.hget(`${this.room}:touraliases`, rest);
+
+					if (isAlias) {
+						[format, rules] = isAlias.split('|').map(param => param.trim());
 					}
 
 					ChatHandler.send(this.room, `/tour new ${format}, elimination`);
