@@ -115,7 +115,7 @@ module.exports = {
 			async action(message) {
 				const pageid = toId(message);
 				if (!pageid) return this.reply("Invalid page name.");
-				this.reply(editPage.getUrl(this.room, this.userid, true, {page: pageid}));
+				this.pmreply(editPage.getUrl(this.room, this.userid, true, {page: pageid}));
 			},
 		},
 		deletepage: {
