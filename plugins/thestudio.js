@@ -31,6 +31,7 @@ module.exports = {
 			async action(message) {
 				if (!this.room) {
 					if (!this.getRoomAuth(THE_STUDIO)) return;
+					if (this.auth === ' ') return this.pmreply("Permission denied.");
 				}
 
 				if (!(this.canUse(1))) return this.pmreply("Permission denied.");
@@ -45,7 +46,7 @@ module.exports = {
 
 				if (await db.exists(key)) return this.reply('This song is already recommended.');
 
-				let tagStr = tags.map(tag => toId(tag)).join('|');
+				let tagStr = tags.map(tag => tag.trim()).join('|');
 
 				await db.hmset(key, 'artist', artist, 'title', title, 'link', link, 'user', this.username, 'tags', tagStr);
 
@@ -98,7 +99,7 @@ module.exports = {
 					for (let i = 0; i < keys.length; i++) {
 						let entry = await db.hgetall(keys[i]);
 
-						let tags = entry.tags.split('|');
+						let tags = entry.tags.split('|').map(tag => toId(tag));
 
 						if (tags.includes(message) || toId(entry.user) === message) possibilities.push(entry);
 					}
@@ -116,7 +117,7 @@ module.exports = {
 					tagStr = ` Tag${rec.tags.length > 1 ? 's' : ''}: ${rec.tags.split('|').join(', ')}`;
 				}
 
-				return this.reply(`${rec.artist} - ${rec.title}: ${rec.link} (recommended by ${rec.user}.${tagStr})`);
+				return this.reply(`${rec.artist} - ${rec.title}: ${rec.link} (recommended by __${rec.user}__.${tagStr})`);
 			},
 		},
 	},
