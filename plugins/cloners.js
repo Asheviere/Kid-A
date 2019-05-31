@@ -4,7 +4,6 @@ const fs = require('fs');
 
 const Page = require('../page.js');
 const redis = require('../redis.js');
-const utils = require('../utils.js');
 const Cache = require('../cache.js');
 
 const HOUR = 60 * 60 * 1000;
@@ -58,7 +57,7 @@ class WifiList {
 						if (!tokenData.permission) continue;
 						elem = Utils.toFc(elem);
 						if (!elem) continue;
-						if (!utils.validateFc(elem)) continue;
+						if (!Utils.validateFc(elem)) continue;
 					}
 					this.data[i][key] = elem;
 				}
@@ -128,7 +127,7 @@ class WifiList {
 					fc = Utils.toFc(fc);
 					if (!fc) return "Invalid formatting for Friend Code. format: ``1111-2222-3333``";
 					split[i] = fc;
-					if (!utils.validateFc(fc)) return "The Friend code you entered is invalid";
+					if (!Utils.validateFc(fc)) return "The Friend code you entered is invalid";
 				}
 
 				params[i] = split.join(', ');
@@ -184,7 +183,7 @@ class WifiList {
 					fc = Utils.toFc(fc);
 					if (!fc) return "Invalid formatting for Friend Code. format: ``1111-2222-3333``";
 					split[i] = fc;
-					if (!utils.validateFc(fc)) return "The Friend code you entered is invalid";
+					if (!Utils.validateFc(fc)) return "The Friend code you entered is invalid";
 				}
 
 				value = split.join(', ');
@@ -811,7 +810,7 @@ module.exports = {
 
 				if (!fc) return this.reply("Syntax error: ``.checkfc friend code``");
 
-				if (!utils.validateFc(fc)) return this.reply("This FC is invalid.");
+				if (!Utils.validateFc(fc)) return this.reply("This FC is invalid.");
 
 				let output = [];
 				let search = true;

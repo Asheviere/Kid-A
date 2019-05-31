@@ -3,11 +3,11 @@
 const request = require('request');
 
 const redis = require('../redis.js');
+const ytApi = require('../utils/youtube-api.js');
 
 let db = redis.useDatabase('lastfm');
 
 const API_ROOT = 'http://ws.audioscrobbler.com/2.0/';
-const YT_ROOT = 'https://www.googleapis.com/youtube/v3/search';
 const VIDEO_ROOT = 'https://youtu.be/';
 
 module.exports = {
@@ -38,7 +38,7 @@ module.exports = {
 					});
 				});
 
-				return req.then(data => {
+				return req.then(async data => {
 					let msg = '';
 					if (htmlbox) {
 						msg += '<table><tr><td style="padding-right:5px;">';
@@ -70,37 +70,25 @@ module.exports = {
 						}
 						trackname += track.name;
 						if (!htmlbox) msg += trackname;
-						let yturl = YT_ROOT + '?part=snippet&order=relevance&maxResults=1&q=' + encodeURIComponent(trackname) + '&key=' + Config.youtubeKey;
-						let yt = new Promise(function(resolve, reject) {
-							request(yturl, function(error, response, body) {
-								if (error) {
-									Output.errorMsg(error, 'Error in YouTube request', {url: yturl});
-									reject(error);
-								} else {
-									resolve(JSON.parse(body));
-								}
-							});
-						});
 
-						return yt.then(video => {
-							if (video.error) {
-								Output.log('ytapi', video.error.message);
-								msg = 'Something went wrong with the youtube API.';
-							} else if (video.items && video.items.length && video.items[0].id) {
-								if (htmlbox) {
-									msg += '<a href="' + VIDEO_ROOT + video.items[0].id.videoId + '">' + trackname + '</a>';
-								} else {
-									msg += ' ' + VIDEO_ROOT + video.items[0].id.videoId;
-									msg += ' | Profile link: http://www.last.fm/user/' + message;
-								}
-							} else if (htmlbox) {
-								// Since the htmlbox doesn't actually write down the trackname yet.
-								msg += trackname;
+						const videoId = await ytApi.searchVideo(trackname);
+
+						if (videoId === false) {
+							msg = 'Something went wrong with the youtube API.';
+						} else if (videoId) {
+							if (htmlbox) {
+								msg += '<a href="' + VIDEO_ROOT + videoId + '">' + trackname + '</a>';
+							} else {
+								msg += ' ' + VIDEO_ROOT + videoId;
+								msg += ' | Profile link: http://www.last.fm/user/' + message;
 							}
+						} else if (htmlbox) {
+							// Since the htmlbox doesn't actually write down the trackname yet.
+							msg += trackname;
+						}
 
-							if (htmlbox) msg = '/addhtmlbox ' + msg + '</td></tr></table>';
-							return this.reply(msg);
-						});
+						if (htmlbox) msg = '/addhtmlbox ' + msg + '</td></tr></table>';
+						return this.reply(msg);
 					} else if (data.error) {
 						return this.reply(data.message + '.');
 					}
@@ -134,7 +122,7 @@ module.exports = {
 					});
 				});
 
-				return req.then(data => {
+				return req.then(async data => {
 					let msg = '';
 					if (htmlbox) {
 						msg += '<table><tr><td style="padding-right:5px;">';
@@ -157,36 +145,24 @@ module.exports = {
 						} else {
 							msg += trackname;
 						}
-						let yturl = YT_ROOT + '?part=snippet&order=relevance&maxResults=1&q=' + encodeURIComponent(trackname) + '&key=' + Config.youtubeKey;
 
-						let yt = new Promise(function(resolve, reject) {
-							request(yturl, function(error, response, body) {
-								if (error) {
-									Output.errorMsg(error, 'Error in YouTube request', {url: yturl});
-									reject(error);
-								} else {
-									resolve(JSON.parse(body));
-								}
-							});
-						});
-						return yt.then(video => {
-							if (video.error) {
-								Output.log('ytapi', video.error.message);
-								msg = 'Something went wrong with the youtube API.';
-							} else if (video.items && video.items.length && video.items[0].id) {
-								if (htmlbox) {
-									msg += '<a href="' + VIDEO_ROOT + video.items[0].id.videoId + '">Youtube link</a>';
-								} else {
-									msg += ' ' + VIDEO_ROOT + video.items[0].id.videoId;
-								}
-							} else if (htmlbox) {
-								// Since the htmlbox doesn't actually write down the trackname yet.
-								msg += trackname;
+						const videoId = await ytApi.searchVideo(trackname);
+
+						if (videoId === false) {
+							msg = 'Something went wrong with the youtube API.';
+						} else if (videoId) {
+							if (htmlbox) {
+								msg += '<a href="' + VIDEO_ROOT + videoId + '">Youtube link</a>';
+							} else {
+								msg += ' ' + VIDEO_ROOT + videoId;
 							}
+						} else if (htmlbox) {
+							// Since the htmlbox doesn't actually write down the trackname yet.
+							msg += trackname;
+						}
 
-							if (htmlbox) msg = '/addhtmlbox ' + msg + '</td></tr></table>';
-							return this.reply(msg);
-						});
+						if (htmlbox) msg = '/addhtmlbox ' + msg + '</td></tr></table>';
+						return this.reply(msg);
 					}
 
 					return this.reply(data.message + '.');

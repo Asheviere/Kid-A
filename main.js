@@ -13,7 +13,7 @@ global.Config = require('./config.js');
 
 // Require auxiliary files
 require('./core.js');
-require('./utils.js');
+require('./utils/common.js');
 
 /**
  * Log levels:

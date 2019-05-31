@@ -1,13 +1,10 @@
-const request = require('request');
-
 const redis = require('../redis.js');
 const server = require('../server.js');
 const Page = require('../page.js');
-const utils = require('../utils.js');
+const ytApi = require('../utils/youtube-api.js');
 
 // Define constants
 const YOUTUBE_ROOM = 'youtube';
-const YTAPI_ROOT = 'https://www.googleapis.com/youtube/v3/channels';
 const YT_ROOT = 'https://www.youtube.com/';
 const INVALIDATION_TIME = 12 * 60 * 60 * 1000;
 const REPEAT_INTERVAL = 3 * 60 * 60 * 1000;
@@ -45,7 +42,7 @@ class YoutubePlugin {
 		if (!channelInfo) return false;
 		// Make another query for channel data if data is outdated.
 		if (channelInfo.lastUpdated < Date.now() - INVALIDATION_TIME) {
-			const res = await this.queryChannelInfo(channelId);
+			const res = await ytApi.queryChannelInfo(channelId);
 			if (!res) {
 				this.removeChannel(channelId);
 				return false;
@@ -71,7 +68,7 @@ class YoutubePlugin {
 
 	async addChannel(channelId, username = 'false') {
 		// This is needed to make sure the channel actually exists. It doesn't hurt to immediately cache this either.
-		const channelInfo = await this.queryChannelInfo(channelId);
+		const channelInfo = await ytApi.queryChannelInfo(channelId);
 
 		if (!channelInfo) return false;
 
@@ -104,39 +101,6 @@ class YoutubePlugin {
 		return `<div style="background:rgba(230,230,230,0.4);font-family:'Segoe UI', 'Segoe', 'Liberation Sans', 'Arial', sans-serif;"><table style="margin:0px;"><tr><td style="margin:5px;padding:5px;background:rgba(120,120,120, 0.15);min-width:175px;max-width:160px;text-align:center;border-bottom:0px;"><div style="padding:5px;background:white;border:1px solid black;margin:auto;max-width:100px;max-height:100px;"><a href="${YT_ROOT}channel/${channelId}"><img src="${channelInfo.icon}" width=100px height=100px/></a></div><p style="margin:5px 0px 4px 0px;word-wrap:break-word;"><a style="font-weight:bold;color: #151515;font-size:12pt;text-decoration:underline #e22828;" href="${YT_ROOT}channel/${channelId}">${channelInfo.name}</a></p></td><td style="padding: 0px 25px;font-size:10pt;background:rgba(255,255,255,0.7);width:100%;border-bottom:0px;vertical-align:top;"><p style="background: #e22828; padding: 5px;border-radius:8px;color:white;font-weight:bold;text-align:center;">${channelInfo.videoCount} videos | ${channelInfo.subscriberCount} subscribers | ${channelInfo.viewCount} video views</p><p style="margin-left: 5px; font-size:9pt;color:black;">${channelInfo.description.slice(0, 500).replace(/\n/g, ' ')}${channelInfo.description.length > 500 ? '(...)' : ''}</p>${channelInfo.username !== 'false' ? `<p style="text-align:right;font-style:italic;color:black;">PS Username: ${channelInfo.username}</p>` : ''}</td></tr></table></div>`;
 	}
 
-	async queryChannelInfo(channelId) {
-		const queryUrl = `${YTAPI_ROOT}?part=snippet%2Cstatistics&id=${encodeURIComponent(channelId)}&key=${Config.youtubeKey}`;
-
-		const query = new Promise(function(resolve, reject) {
-			request(queryUrl, function(error, response, body) {
-				if (error) {
-					Output.errorMsg(error, 'Error in YouTube query request', {url: queryUrl});
-					reject(error);
-				} else {
-					resolve(JSON.parse(body));
-				}
-			});
-		});
-
-		const res = await query.catch(() => {});
-		if (res.error) {
-			Output.log('ytapi', res.error.message);
-			return false;
-		}
-		if (!res.items.length) return false;
-
-		const channelInfo = res.items[0];
-		return {
-			name: channelInfo.snippet.title,
-			description: channelInfo.snippet.description,
-			url: channelInfo.snippet.customUrl,
-			icon: channelInfo.snippet.thumbnails.medium.url,
-			videoCount: Number(channelInfo.statistics.videoCount),
-			subscriberCount: Number(channelInfo.statistics.subscriberCount),
-			viewCount: Number(channelInfo.statistics.viewCount),
-		};
-	}
-
 	async pageGenerator(room, query) {
 		const showAll = query.view === 'all';
 
@@ -146,7 +110,7 @@ class YoutubePlugin {
 			entries.push(this.getHTML(key));
 		}
 
-		return await Promise.all(utils.shuffle(entries));
+		return await Promise.all(Utils.shuffle(entries));
 	}
 }
 

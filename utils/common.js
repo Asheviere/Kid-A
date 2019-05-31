@@ -343,7 +343,7 @@ function and(val1, val2) {
 function pad(num, size){ return ('000000000' + num).substr(-size); }
 
 
-global.Utils = module.exports = {
+module.exports = {
 	// Basic utility functions
 	toId(text) {
 		return text.toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -407,4 +407,4 @@ global.Utils = module.exports = {
 	},
 };
 
-global.toId = Utils.toId;
+global.toId = module.exports.toId;

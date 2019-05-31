@@ -1,8 +1,8 @@
 const probe = require('probe-image-size');
 const validUrl = require('valid-url');
-const request = require('request');
 
 const redis = require('../redis.js');
+const ytApi = require('../utils/youtube-api.js');
 
 // Taken from the PS client
 const domainRegex = '[a-z0-9\\-]+(?:[.][a-z0-9\\-]+)*';
@@ -40,7 +40,6 @@ const linkRegex = new RegExp(
 );
 
 const YOUTUBE_ROOM = 'youtube';
-const YT_ROOT = 'https://www.googleapis.com/youtube/v3/';
 const VIDEO_ROOT = 'https://youtu.be/';
 const CHANNEL_ROOT = 'https://www.youtube.com/channel/';
 const HOUR = 60 * 60 * 1000;
@@ -70,55 +69,6 @@ async function fitImage(url, maxHeight = 300, maxWidth = 400) {
 	return [Math.round(width * ratio), Math.round(height * ratio)];
 }
 
-async function getYoutubeChannelTrailer(type, id) {
-	let yturl = `${YT_ROOT}channels?part=brandingSettings&${type}=${encodeURIComponent(id)}&key=${Config.youtubeKey}`;
-
-	let yt = new Promise(function(resolve, reject) {
-		request(yturl, function(error, response, body) {
-			if (error) {
-				Output.errorMsg(error, 'Error in YouTube request', {url: yturl});
-				reject(error);
-			} else {
-				resolve(JSON.parse(body));
-			}
-		});
-	});
-
-	let channel = await yt;
-
-	if (channel.error) {
-		Output.log('ytapi', channel.error.message);
-		return false;
-	} else if (channel.items && channel.items.length) {
-		return channel.items[0].brandingSettings.channel.unsubscribedTrailer;
-	}
-}
-
-async function getYoutubeVideoInfo(id) {
-	let yturl = `${YT_ROOT}videos?part=snippet%2Cstatistics&id=${encodeURIComponent(id)}&key=${Config.youtubeKey}`;
-
-	let yt = new Promise(function(resolve, reject) {
-		request(yturl, function(error, response, body) {
-			if (error) {
-				Output.errorMsg(error, 'Error in YouTube request', {url: yturl});
-				reject(error);
-			} else {
-				resolve(JSON.parse(body));
-			}
-		});
-	});
-
-	let video = await yt;
-
-	if (video.error) {
-		Output.log('ytapi', video.error.message);
-		return false;
-	} else if (video.items && video.items.length && video.items[0].id) {
-		video = video.items[0];
-		return {id: video.id, title: video.snippet.title, date: new Date(video.snippet.publishedAt), description: video.snippet.description, channel: video.snippet.channelTitle, channelUrl: video.snippet.channelId, views: video.statistics.viewCount, thumbnail: video.snippet.thumbnails.default.url, likes: video.statistics.likeCount, dislikes: video.statistics.dislikeCount};
-	}
-}
-
 let lineCounter = 0;
 
 const pendingApprovals = new Map();
@@ -139,53 +89,13 @@ async function parse(room, url) {
 	let data;
 	switch (room) {
 	case YOUTUBE_ROOM:
-		let id = '';
-		let idx = url.indexOf('youtu.be/');
-		if (idx > -1) {
-			id = url.substr(idx + 9);
-		} else {
-			idx = url.indexOf('?v=');
-			if (idx < 0) {
-				let type = 'forUsername';
-				idx = url.indexOf('/user/');
-				if (idx < 0) {
-					idx = url.indexOf('/channel/');
-					if (idx < 0) {
-						const customindex = url.indexOf('/c/');
-						if (customindex > -1) {
-							const promise = new Promise(resolve => {
-								request(`http://youtube.com/${url.slice(customindex + 3)}`, (err, response, body) => {
-									const regex = new RegExp('data-channel-external-id="([a-zA-Z0-9]+)" ', 'g');
-									const match = regex.exec(body);
-									if (match) resolve(match[1]);
-
-									resolve(false);
-								});
-							});
-							id = await promise;
-						} else {
-							this.reply("Invalid url.");
-							return false;
-						}
-					} else {
-						id = url.substr(idx + 9);
-					}
-					type = 'id';
-				} else {
-					id = url.substr(idx + 6);
-				}
-				id = await getYoutubeChannelTrailer(type, id);
-				if (!id) {
-					this.reply("Invalid url.");
-					return false;
-				}
-			} else {
-				id = url.substr(idx + 3);
-			}
+		let id = await ytApi.getVideoIdFromURL(url);
+		if (!id) {
+			this.reply("Invalid URL.");
+			return false;
 		}
-		id = id.split('&')[0];
 
-		let videoInfo = await getYoutubeVideoInfo(id);
+		let videoInfo = await ytApi.getYoutubeVideoInfo(id);
 		if (!videoInfo) {
 			this.reply("Invalid youtube video.");
 			return false;

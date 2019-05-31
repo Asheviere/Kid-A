@@ -1,7 +1,6 @@
 'use strict';
 
 const redis = require('../redis.js');
-const utils = require('../utils.js');
 
 const WIFI_ROOM = 'wifi';
 
@@ -26,7 +25,7 @@ module.exports = {
 				name = toId(name);
 				fc = Utils.toFc(fc);
 				if (!fc) return this.pmreply("Invalid formatting for Friend Code. format: ``1111-2222-3333``");
-				if (!utils.validateFc(fc)) return this.pmreply("The Friend code you entered is invalid");
+				if (!Utils.validateFc(fc)) return this.pmreply("The Friend code you entered is invalid");
 
 				let fcstr = fc;
 				if (await friendcodes.exists(name)) {
