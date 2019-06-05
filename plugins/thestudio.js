@@ -4,7 +4,7 @@ const Page = require('../page.js');
 const redis = require('../redis.js');
 const ytApi = require('../utils/youtube-api.js');
 
-const THE_STUDIO = 'botdevelopment';
+const THE_STUDIO = 'thestudio';
 const AVATAR_URL = `https://play.pokemonshowdown.com/sprites/trainers/`;
 const CUSTOM_AVATAR_URL = `https://play.pokemonshowdown.com/sprites/trainers-custom/`;
 
