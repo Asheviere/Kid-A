@@ -2,13 +2,16 @@
 
 const Page = require('../page.js');
 const redis = require('../redis.js');
+const ytApi = require('../utils/youtube-api.js');
 
-const THE_STUDIO = 'thestudio';
+const THE_STUDIO = 'botdevelopment';
+const AVATAR_URL = `https://play.pokemonshowdown.com/sprites/trainers/`;
+const CUSTOM_AVATAR_URL = `https://play.pokemonshowdown.com/sprites/trainers-custom/`;
 
 let db = redis.useDatabase('thestudio');
 
 async function recsGenerator() {
-	let keys = ['Song', 'Tags', 'Recommended by'];
+	let keys = ['Song', 'Tags', 'Description', 'Recommended by', 'Score'];
 	let data = [];
 
 	let recs = await db.keys('*');
@@ -16,7 +19,7 @@ async function recsGenerator() {
 	for (let i = 0; i < recs.length; i++) {
 		let entry = await db.hgetall(recs[i]);
 
-		data.push([`<a href="${entry.link}">${entry.artist} - ${entry.title}</a>`, entry.tags.split('|').join(', '), entry.user]);
+		data.push([`<a href="${entry.link}">${entry.artist} - ${entry.title}</a>`, entry.tags.split('|').join(', '), entry.description || '', entry.user, entry.score || 0]);
 	}
 
 	return {room: THE_STUDIO, columnNames: keys, entries: data};
@@ -24,23 +27,120 @@ async function recsGenerator() {
 
 new Page('recs', recsGenerator, 'songrecs.html', {rooms: [THE_STUDIO]});
 
+// Looks like overkill but saves me a ton of time if I want to port over the whole auto collapse idea to other rooms.
+class SongRecs {
+	constructor(room) {
+		this.room = room;
+	}
+
+	async queueRec(rec) {
+		rec.id = Utils.randomBytes(5);
+		rec.key = `${toId(rec.artist)}|${toId(rec.title)}}`;
+
+		this.render(rec);
+
+		await this.collapseRec(this.lastRec);
+		this.lastRec = rec;
+	}
+
+	request(rec) {
+		if (this.pending) return false;
+
+		return new Promise((resolve, reject) => {
+			this.pending = {resolve, reject, user: rec.user};
+			this.render(rec, true);
+		}).finally(() => {
+			this.pending = null;
+		});
+	}
+
+	async approve() {
+		if (!this.pending) return;
+		ChatHandler.sendPM(this.pending.user, "Your song recommendation was approved.");
+		this.pending.resolve();
+	}
+
+	async reject() {
+		if (!this.pending) return;
+		const name = this.pending.user;
+		ChatHandler.sendPM(name, "Your song recommendation was rejected.");
+		this.pending.reject();
+		return name;
+	}
+
+	async render(rec = this.lastRec, forApproval = false) {
+		let videoInfo;
+		let dbInfo;
+
+		const videoId = await ytApi.getVideoIdFromURL(rec.link || '');
+		if (videoId) {
+			videoInfo = await ytApi.getYoutubeVideoInfo(videoId);
+		}
+
+		if (!forApproval) {
+			dbInfo = await db.hgetall(rec.key);
+		}
+
+		let content = `<div style="background: linear-gradient(rgba(210 , 210 , 210) , rgba(225 , 225 , 225))"> <table style="margin: auto ; background: rgba(255 , 255 , 255 , 0.25) ; padding: 3px"> <tbody><tr>${videoInfo ? `<td style="text-align: center"> <img src="${videoInfo.thumbnail}" width="120" height="67"><br> <small><i>${!forApproval ? `${dbInfo.score || 0} point${dbInfo.score !== '1' ? 's' : ''} | ` : ''}${videoInfo.views} views</i></small> </td>` : ''} <td style="max-width: 300px"> <a href="${rec.link}" style="color: black ; font-weight: bold" target="_blank" rel="noopener">${rec.artist} - ${rec.title}<br></a> ${rec.tags ? `<b>Tags:</b> <i>${Utils.sanitize(rec.tags.split('|').join(', '))}</i><br>` : ''} ${rec.description ? `<span style="display: inline-block ; line-height: 1.15em"><b>Description:</b> ${Utils.sanitize(rec.description)}</span><br>` : ''} ${!videoInfo && !forApproval ? `<b>Score:</b> ${dbInfo.score || 0} point${dbInfo.score !== 1 ? 's' : ''}<br/>` : ''} ${!dbInfo || !dbInfo.avatar ? `<b>Recommended by: ${rec.user}</b><br/>` : ''} ${forApproval ? `<button name="send" value="/pm ${Config.username}, .approverec ${this.room}" class="button" style="float: right ; display: inline ; padding: 3px 5px ; font-size: 8pt">Approve</button><button name="send" value="/pm ${Config.username}, .rejectrec ${this.room}" class="button" style="float: right ; display: inline ; padding: 3px 5px ; font-size: 8pt">Reject</button>` : `<button name="send" value="/pm ${Config.username}, .likerec ${this.room}" class="button" style="float: right ; display: inline ; padding: 3px 5px ; font-size: 8pt"><img src="http://play.pokemonshowdown.com/sprites/bwicons/441.png" style="margin: -9px -30px -6px -7px ; margin-right: 0px" width="32" height="32"><span style="position: relative ; bottom: 2.6px">Upvote</span></button>`} </td> ${!forApproval && dbInfo.avatar ? `<td style="text-align: center ; width: 110px ; background: rgba(255 , 255 , 255 , 0.4) ; border-radius: 15px"><img style="margin-bottom: -38px" src="${dbInfo.avatar.startsWith('#') ? `${CUSTOM_AVATAR_URL}${dbInfo.avatar.slice(1)}.png` : `${AVATAR_URL}${dbInfo.avatar}.png`}" width="80" height="80"><br> <span style="background: rgba(0 , 0 , 0 , 0.5) ; padding: 1.5px 4px ; color: white ; font-size: 7pt">Recommended by:</span><br><b style="background: rgba(0 , 0 , 0 , 0.5) ; padding: 1.5px 4px ; color: white ; font-size: 7pt">${rec.user}</b> </td>` : ''} </tr> </tbody></table> </div>`;
+
+		ChatHandler.send(this.room, `/${forApproval ? 'addrankhtmlbox %' : `${rec === this.lastRec ? 'change' : 'add'}uhtml ${rec.id}`}, ${content}`);
+	}
+
+	async collapseRec(rec) {
+		if (!rec) return;
+
+		let content = `<div style="background: linear-gradient(rgba(210 , 210 , 210) , rgba(225 , 225 , 225))"> <table style="margin: auto ; background: rgba(255 , 255 , 255 , 0.25) ; padding: 3px"> <tbody><tr> <td style="text-align: center"> <a href="${rec.link}" style="color: black ; font-weight: bold" target="_blank" rel="noopener">${rec.artist} - ${rec.title}<br></a> ${rec.tags ? `<b>Tags:</b> <i>${Utils.sanitize(rec.tags.split('|').join(', '))}</i><br>` : ''} <b>Recommended by: ${rec.user}</b><br/> </td> </tr> </tbody></table> </div>`;
+
+		ChatHandler.send(this.room, `/changeuhtml ${rec.id}, ${content}`);
+	}
+
+	async likeRec(username) {
+		if (!this.lastRec) return false;
+		let ids = ((await db.hget(this.lastRec.key, 'voters')) || '').split('|');
+		if (ids.includes(toId(username))) return false;
+		ids.push(toId(username));
+		await db.hset(this.lastRec.key, 'voters', ids.join('|'));
+		await db.hincrby(this.lastRec.key, 'score', 1);
+		this.render();
+		return true;
+	}
+}
+
+const songRecs = new SongRecs(THE_STUDIO);
+
 module.exports = {
 	commands: {
+		approverec: {
+			hidden: true,
+			requireRoom: true,
+			permission: 2,
+			async action() {
+				songRecs.approve();
+			},
+		},
+		rejectrec: {
+			hidden: true,
+			requireRoom: true,
+			permission: 2,
+			async action() {
+				const username = await songRecs.reject();
+				if (username) {
+					return ChatHandler.send(this.room, `${this.username} rejected ${username}'s song rec.`);
+				}
+			},
+		},
 		addrec: {
 			rooms: [THE_STUDIO],
 			async action(message) {
 				if (!this.room) {
 					if (!this.getRoomAuth(THE_STUDIO)) return;
-					if (this.auth === ' ') return this.pmreply("Permission denied.");
 				}
 
-				if (!(this.canUse(1))) return this.pmreply("Permission denied.");
+				if (!message) return this.reply('Syntax: ``.addrec artist | title | link | description | tags``');
 
-				if (!message) return this.reply('Syntax: ``.addrec artist | title | link | tags``');
+				let [artist, title, link, description, ...tags] = message.split(message.includes('|') ? '|' : ',').map(param => param.trim());
 
-				let [artist, title, link, ...tags] = message.split(message.includes('|') ? '|' : ',').map(param => param.trim());
-
-				if (!toId(artist) || !toId(title) || !toId(link)) return this.reply('Syntax: ``.addrec artist | title | link | tags``');
+				if (!toId(artist) || !toId(title) || !toId(link)) return this.reply('Syntax: ``.addrec artist | title | link | description | tags``');
 
 				let key = `${toId(artist)}|${toId(title)}}`;
 
@@ -48,7 +148,18 @@ module.exports = {
 
 				let tagStr = tags.map(tag => tag.trim()).join('|');
 
-				await db.hmset(key, 'artist', artist, 'title', title, 'link', link, 'user', this.username, 'tags', tagStr);
+				if (!this.canUse(1)) {
+					let req = songRecs.request({artist, title, link, description, user: this.username});
+					if (!req) return this.reply("There is already someone waiting for approval.");
+					this.pmreply("Awaiting approval for your song rec");
+					await req;
+				}
+
+				await db.hmset(key, 'artist', artist, 'title', title, 'link', link, 'user', this.username, 'description', description, 'tags', tagStr);
+
+				ChatHandler.query('userdetails', this.userid).then(details => {
+					db.hset(key, 'avatar', Utils.toAvatarId(details.avatar));
+				});
 
 				ChatHandler.send(THE_STUDIO, `/modnote ${this.username} added a song rec for '${artist} - ${title}'`);
 				return this.reply("Song recommendation added.");
@@ -83,6 +194,16 @@ module.exports = {
 				return this.reply("Song recommendation deleted.");
 			},
 		},
+		likerec: {
+			hidden: true,
+			async action() {
+				if (await songRecs.likeRec(this.username)) {
+					this.pmreply('You like this song rec.');
+				} else {
+					this.pmreply('You have already liked this song rec.');
+				}
+			},
+		},
 		rec: {
 			rooms: [THE_STUDIO],
 			permission: 1,
@@ -111,13 +232,7 @@ module.exports = {
 					rec = await db.hgetall((await db.randomkey()));
 				}
 
-				let tagStr = '';
-
-				if (rec.tags.length) {
-					tagStr = ` Tag${rec.tags.length > 1 ? 's' : ''}: ${rec.tags.split('|').join(', ')}`;
-				}
-
-				return this.reply(`${rec.artist} - ${rec.title}: ${rec.link} (recommended by __${rec.user}__.${tagStr})`);
+				songRecs.queueRec(rec);
 			},
 		},
 	},

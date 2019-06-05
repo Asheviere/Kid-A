@@ -343,10 +343,10 @@ function and(val1, val2) {
 function pad(num, size){ return ('000000000' + num).substr(-size); }
 
 
-module.exports = {
+global.Utils = module.exports = {
 	// Basic utility functions
 	toId(text) {
-		return text.toLowerCase().replace(/[^a-z0-9]/g, '');
+		return ('' + text).toLowerCase().replace(/[^a-z0-9]/g, '');
 	},
 
 	sanitize(text) {
@@ -355,6 +355,10 @@ module.exports = {
 
 	abbreviate(text) {
 		return text.split(' ').map(str => str[0]).join('');
+	},
+
+	randomBytes(num = 5) {
+		return crypto.randomBytes(num).toString('hex');
 	},
 
 	// From https://github.com/Daplie/knuth-shuffle

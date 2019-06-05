@@ -133,7 +133,7 @@ class Server {
 	}
 
 	createAccessToken(data, mins) {
-		let token = crypto.randomBytes(5).toString('hex');
+		let token = Utils.randomBytes(5);
 		data.expiration = mins * 1000 * 60;
 		data.timeout = setTimeout(() => this.removeAccessToken(token), data.expiration);
 		this.accessTokens.set(token, data);

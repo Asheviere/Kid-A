@@ -89,7 +89,6 @@ async function sendNoticeboard(room) {
 	let rawContent = md.toHTML(pageData.content.split('\n').slice(0, -1).join(''));
 	let parsedContent = parseContent(rawContent);
 	let noticeboard = `<div class='infobox'><div style="text-align:center;"><h3>Noticeboard:</h3>${parsedContent.replace(/\n/g, '')}</div></div>`;
-	console.log(room, noticeboard);
 	ChatHandler.send(room, `/adduhtml noticeboard, ${noticeboard}`);
 	noticeboardTimers.set(room, setInterval(() => {
 		sendNoticeboard(room);
