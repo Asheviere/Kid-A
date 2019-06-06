@@ -89,7 +89,7 @@ class SongRecs {
 	async collapseRec(rec) {
 		if (!rec) return;
 
-		let content = `<div style="background: linear-gradient(rgba(210 , 210 , 210) , rgba(225 , 225 , 225))"> <table style="margin: auto ; background: rgba(255 , 255 , 255 , 0.25) ; padding: 3px"> <tbody><tr> <td style="text-align: center"> <a href="${rec.link}" style="color: black ; font-weight: bold" target="_blank" rel="noopener">${rec.artist} - ${rec.title}<br></a> ${rec.tags ? `<b>Tags:</b> <i>${Utils.sanitize(rec.tags.split('|').join(', '))}</i><br>` : ''} <b>Recommended by: ${rec.user}</b><br/> </td> </tr> </tbody></table> </div>`;
+		let content = `<div style="color:black;background: linear-gradient(rgba(210 , 210 , 210) , rgba(225 , 225 , 225))"> <table style="margin: auto ; background: rgba(255 , 255 , 255 , 0.25) ; padding: 3px"> <tbody><tr> <td style="text-align: center"> <a href="${rec.link}" style="color: black ; font-weight: bold" target="_blank" rel="noopener">${rec.artist} - ${rec.title}<br></a> ${rec.tags ? `<b>Tags:</b> <i>${Utils.sanitize(rec.tags.split('|').join(', '))}</i><br>` : ''} <b>Recommended by: ${rec.user}</b><br/> </td> </tr> </tbody></table> </div>`;
 
 		ChatHandler.send(this.room, `/changeuhtml ${rec.id}, ${content}`);
 	}
@@ -142,7 +142,7 @@ module.exports = {
 
 				if (!toId(artist) || !toId(title) || !toId(link)) return this.reply('Syntax: ``.addrec artist | title | link | description | tags``');
 
-				let key = `${toId(artist)}|${toId(title)}}`;
+				let key = `${toId(artist)}|${toId(title)}`;
 
 				if (await db.exists(key)) return this.reply('This song is already recommended.');
 
