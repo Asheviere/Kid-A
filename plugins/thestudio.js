@@ -242,6 +242,7 @@ module.exports = {
 				}
 
 				if (this.pm) {
+					rec.key = `${toId(rec.artist)}|${toId(rec.title)}`;
 					songRecs.render(rec, false, true);
 				} else {
 					songRecs.queueRec(rec);
