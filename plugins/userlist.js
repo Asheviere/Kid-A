@@ -154,7 +154,7 @@ module.exports = {
 				if (!room) {
 					[room, ...params] = params;
 					room = toId(room);
-					if (!(room && params.length)) return this.pmreply("Syntax: ``.removeinfo room, user, key``");
+					if (!(room && params.length)) return this.pmreply("Syntax: ``.info room, user, key``");
 					if (!this.userlists[room]) return this.reply(`Invalid room: ${room}`);
 					if (!this.getRoomAuth(room)) return;
 				}
