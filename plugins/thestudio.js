@@ -35,7 +35,7 @@ class SongRecs {
 
 	async queueRec(rec) {
 		rec.id = Utils.randomBytes(5);
-		rec.key = `${toId(rec.artist)}|${toId(rec.title)}}`;
+		rec.key = `${toId(rec.artist)}|${toId(rec.title)}`;
 
 		this.render(rec);
 
@@ -180,7 +180,7 @@ module.exports = {
 
 				if (!toId(artist) || !toId(title)) return this.reply('Syntax: ``.deleterec artist, title``');
 
-				let key = `${toId(artist)}|${toId(title)}}`;
+				let key = `${toId(artist)}|${toId(title)}`;
 
 				if (!(await db.exists(key))) return this.reply('This song isn\'t recommended.');
 
