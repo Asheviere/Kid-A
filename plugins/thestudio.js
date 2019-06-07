@@ -161,7 +161,7 @@ module.exports = {
 
 				let tagStr = tags.map(tag => tag.trim()).join('|');
 
-				if (!this.canUse(1)) {
+				if (this.auth === ' ') {
 					let req = songRecs.request({artist, title, link, description, user: this.username});
 					if (!req) return this.reply("There is already someone waiting for approval.");
 					this.pmreply("Awaiting approval for your song rec");
