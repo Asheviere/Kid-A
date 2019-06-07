@@ -31,6 +31,11 @@ new Page('recs', recsGenerator, 'songrecs.html', {rooms: [THE_STUDIO]});
 class SongRecs {
 	constructor(room) {
 		this.room = room;
+		this.pending = [];
+
+		setInterval(() => {
+			if (this.pending.length) this.render(this.pending[0], true);
+		}, 1000 * 60 * 60);
 	}
 
 	async queueRec(rec) {
@@ -46,29 +51,26 @@ class SongRecs {
 	}
 
 	request(rec) {
-		if (this.pending) return false;
-
 		return new Promise((resolve, reject) => {
-			this.pending = {resolve, reject, user: rec.user};
-			this.render(rec, true);
-			this.pendingTimeout = setTimeout(() => reject(), 1000 * 60 * 60);
+			this.pending.push({rec, resolve, reject, user: rec.user});
+			if (this.pending.length === 1) this.render(rec, true);
 		}).finally(() => {
-			this.pending = null;
-			if (this.pendingTimeout) clearTimeout(this.pendingTimeout);
+			this.pending.shift();
+			if (this.pending.length) this.render(this.pending[0].rec, true);
 		});
 	}
 
 	async approve() {
-		if (!this.pending) return;
+		if (!this.pending.length) return;
 		ChatHandler.sendPM(this.pending.user, "Your song recommendation was approved.");
-		this.pending.resolve();
+		this.pending[0].resolve();
 	}
 
 	async reject() {
-		if (!this.pending) return;
+		if (!this.pending.length) return;
 		const name = this.pending.user;
 		ChatHandler.sendPM(name, "Your song recommendation was rejected.");
-		this.pending.reject();
+		this.pending[0].reject();
 		return name;
 	}
 
