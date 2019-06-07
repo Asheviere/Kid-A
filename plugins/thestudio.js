@@ -41,6 +41,8 @@ class SongRecs {
 
 		await this.collapseRec(this.lastRec);
 		this.lastRec = rec;
+		if (this.timer) clearTimeout(this.timer);
+		this.timer = setTimeout(() => this.lastRec = null, 1000 * 60 * 60);
 	}
 
 	request(rec) {
@@ -49,8 +51,10 @@ class SongRecs {
 		return new Promise((resolve, reject) => {
 			this.pending = {resolve, reject, user: rec.user};
 			this.render(rec, true);
+			this.pendingTimeout = setTimeout(() => reject(), 1000 * 60 * 60);
 		}).finally(() => {
 			this.pending = null;
+			if (this.pendingTimeout) clearTimeout(this.pendingTimeout);
 		});
 	}
 
