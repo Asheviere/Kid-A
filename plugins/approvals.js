@@ -87,8 +87,7 @@ async function draw(user, data, desc, self) {
 
 async function parse(room, url) {
 	let data;
-	switch (room) {
-	case YOUTUBE_ROOM:
+	if (room === YOUTUBE_ROOM || url.includes('youtube')) {
 		let id = await ytApi.getVideoIdFromURL(url);
 		if (!id) {
 			this.reply("Invalid URL.");
@@ -103,8 +102,7 @@ async function parse(room, url) {
 		videoInfo.url = url;
 
 		data = {user: this.username, data: videoInfo};
-		break;
-	default:
+	} else {
 		if (!/^https?:\/\//.test(url)) url = `http://${url}`;
 		if (!validUrl.isWebUri(url)) {
 			this.reply("That's not a valid URL.");
