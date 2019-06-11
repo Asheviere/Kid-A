@@ -63,14 +63,14 @@ class SongRecs {
 	async approve() {
 		if (!this.pending.length) return;
 		ChatHandler.sendPM(this.pending.user, "Your song recommendation was approved.");
-		this.pending[0].resolve();
+		this.pending[0].resolve(true);
 	}
 
 	async reject() {
 		if (!this.pending.length) return;
-		const name = this.pending.user;
+		const name = this.pending[0].user;
 		ChatHandler.sendPM(name, "Your song recommendation was rejected.");
-		this.pending[0].reject();
+		this.pending[0].reject(false);
 		return name;
 	}
 
@@ -166,8 +166,9 @@ module.exports = {
 				if (this.auth === ' ') {
 					let req = songRecs.request({artist, title, link, description, user: this.username});
 					if (!req) return this.reply("There is already someone waiting for approval.");
-					this.pmreply("Awaiting approval for your song rec");
-					await req;
+					this.pmreply("Awaiting approval for your song rec.");
+					req = await req.catch(() => {});
+					if (!req) return;
 				}
 
 				await db.hmset(key, 'artist', artist, 'title', title, 'link', link, 'user', this.username, 'description', description, 'tags', tagStr);
