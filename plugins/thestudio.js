@@ -140,7 +140,7 @@ module.exports = {
 			async action() {
 				const username = await songRecs.reject();
 				if (username) {
-					return ChatHandler.send(this.room, `${this.username} rejected ${username}'s song rec.`);
+					return ChatHandler.send(this.room, `/modnote ${this.username} rejected ${username}'s song rec.`);
 				}
 			},
 		},
