@@ -162,6 +162,8 @@ module.exports = {
 				if (await db.exists(key)) return this.reply('This song is already recommended.');
 
 				let tagStr = tags.map(tag => tag.trim()).join('|');
+				// Idiot protection
+				tagStr = tagStr.split(',').join('|');
 
 				if (this.auth === ' ') {
 					let req = songRecs.request({artist, title, link, description, user: this.username});
