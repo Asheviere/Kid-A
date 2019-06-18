@@ -93,7 +93,7 @@ class SongRecs {
 
 		let command;
 		if (forApproval) {
-			command = `addrankhuhtml %, ${rec.id}`;
+			command = `addrankuhtml %, ${rec.id}`;
 		} else if (pm) {
 			command = 'pminfobox';
 		} else {
