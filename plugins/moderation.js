@@ -54,7 +54,7 @@ async function punish(username, room, val, msg, options) {
 		return ChatHandler.send(room, `/rb ${userid}, Bot moderation: repeated offenses.${extraMsg}`);
 	}
 
-	if (points === 1) {
+	if (points === 1 && !msg.includes('links')) {
 		ChatHandler.send(room, `${username}, ${msg}`);
 	} else {
 		ChatHandler.send(room, `/${getPunishment(points, options)} ${userid}, Bot moderation: ${msg}${extraMsg}`);
