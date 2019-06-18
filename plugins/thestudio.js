@@ -52,9 +52,11 @@ class SongRecs {
 
 	request(rec) {
 		return new Promise((resolve, reject) => {
+			rec.id = Utils.randomBytes(5);
 			this.pending.push({rec, resolve, reject, user: rec.user});
 			if (this.pending.length === 1) this.render(rec, true);
-		}).finally(() => {
+		}).finally(async () => {
+			await this.collapseRec(this.pending[0].rec);
 			this.pending.shift();
 			if (this.pending.length) this.render(this.pending[0].rec, true);
 		});
@@ -91,7 +93,7 @@ class SongRecs {
 
 		let command;
 		if (forApproval) {
-			command = 'addrankhtmlbox %';
+			command = `addrankhuhtml %, ${rec.id}`;
 		} else if (pm) {
 			command = 'pminfobox';
 		} else {
@@ -101,12 +103,12 @@ class SongRecs {
 		ChatHandler.send(this.room, `/${command}, ${content}`);
 	}
 
-	async collapseRec(rec) {
+	async collapseRec(rec, forApproval = false) {
 		if (!rec) return;
 
 		let content = `<div style="color:black;background: linear-gradient(rgba(210 , 210 , 210) , rgba(225 , 225 , 225))"> <table style="margin: auto ; background: rgba(255 , 255 , 255 , 0.25) ; padding: 3px"> <tbody><tr> <td style="text-align: center"> <a href="${rec.link}" style="color: black ; font-weight: bold" target="_blank" rel="noopener">${rec.artist} - ${rec.title}<br></a> ${rec.tags ? `<b>Tags:</b> <i>${Utils.sanitize(rec.tags.split('|').join(', '))}</i><br>` : ''} <b>Recommended by: ${rec.user}</b><br/> </td> </tr> </tbody></table> </div>`;
 
-		ChatHandler.send(this.room, `/changeuhtml ${rec.id}, ${content}`);
+		ChatHandler.send(this.room, `/change${forApproval ? 'rank' : ''}uhtml ${forApproval ? '%, ' : ''}${rec.id}, ${content}`);
 	}
 
 	async likeRec(username) {
