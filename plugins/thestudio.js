@@ -34,7 +34,7 @@ class SongRecs {
 		this.pending = [];
 
 		setInterval(() => {
-			if (this.pending.length) this.render(this.pending[0], true);
+			if (this.pending.length) this.render(this.pending[0].rec, true);
 		}, 1000 * 60 * 60);
 	}
 
