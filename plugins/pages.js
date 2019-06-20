@@ -58,7 +58,7 @@ function parseContent(rawContent) {
 		}
 		parsedContent += rawContent[i];
 	}
-	return parsedContent;
+	return parsedContent.replace(/~~(.+?)~~/g, '<s>$&</s>');
 }
 
 const page = new Page('pages/', async (room, query, tokenData, url) => {
