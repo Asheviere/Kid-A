@@ -448,9 +448,9 @@ class ChatHandler {
 
 		if (now < this.lastMessage + THROTTLE_DELAY) {
 			this.sendQueue.push(message);
-			if (this.sendQueue.length > 10) {
+			if (this.sendQueue.length > 5) {
 				const flood = this.sendQueue.filter(msg => msg === message);
-				if (flood > 3) {
+				if (flood > 2) {
 					Output.log('flood', `Message flooding: ${message}`);
 					return;
 				}
