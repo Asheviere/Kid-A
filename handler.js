@@ -52,11 +52,13 @@ module.exports = {
 			Debug.log(3, `Adding array of users to userlist of ${room}: ${user}`);
 			this.userlists[room] = {};
 			for (let i = 0; i < user.length; i++) {
-				this.userlists[room][toId(user[i])] = [user[i][0], user[i].slice(1).split('@')[0]];
+				const username = user[i].slice(1).split('@')[0];
+				this.userlists[room][toId(username)] = [user[i][0], username];
 			}
 			return true;
 		}
-		this.userlists[room][toId(user)] = [user[0], user.slice(1).split('@')[0]];
+		const username = user.slice(1).split('@')[0];
+		this.userlists[room][toId(username)] = [user[0], username];
 
 		this.chatHandler.parseJoin(user, room);
 	},
