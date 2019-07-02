@@ -108,7 +108,7 @@ module.exports = {
 			});
 			break;
 		case 'updateuser':
-			if (split[2] !== Config.username) return false;
+			if (split[2].slice(1) !== Config.username) return false;
 
 			Output.log('status', 'Logged in as ' + split[2] + '.');
 
