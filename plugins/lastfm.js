@@ -10,6 +10,8 @@ let db = redis.useDatabase('lastfm');
 const API_ROOT = 'http://ws.audioscrobbler.com/2.0/';
 const VIDEO_ROOT = 'https://youtu.be/';
 
+const uhtmlIDs = {};
+
 module.exports = {
 	options: [['lastfmhtmlbox', "Use /htmlbox when showing output of .lastfm and .track"]],
 	commands: {
@@ -87,7 +89,11 @@ module.exports = {
 							msg += trackname;
 						}
 
-						if (htmlbox) msg = '/addhtmlbox ' + msg + '</td></tr></table>';
+						if (htmlbox) {
+							const id = Utils.randomBytes(5);
+							uhtmlIDs[this.room] = id;
+							msg = `/adduhtml ${id}, <div class="infobox">${msg}</td></tr></table></div>`;
+						}
 						return this.reply(msg);
 					} else if (data.error) {
 						return this.reply(data.message + '.');
@@ -161,7 +167,11 @@ module.exports = {
 							msg += trackname;
 						}
 
-						if (htmlbox) msg = '/addhtmlbox ' + msg + '</td></tr></table>';
+						if (htmlbox) {
+							const id = Utils.randomBytes(5);
+							uhtmlIDs[this.room] = id;
+							msg = `/adduhtml ${id}, <div class="infobox">${msg}</td></tr></table></div>`;
+						}
 						return this.reply(msg);
 					}
 
@@ -180,6 +190,17 @@ module.exports = {
 				await db.set(this.userid, username);
 
 				this.pmreply(`You've been registered as ${username}.`);
+			},
+		},
+
+		cleartrack: {
+			hidden: true,
+			permission: 2,
+			requireRoom: true,
+			async action() {
+				if (!uhtmlIDs[this.room]) return this.reply("There is no track to clear.");
+
+				ChatHandler.send(this.room, `/changeuhtml ${uhtmlIDs[this.room]}, <div class="infobox">&lt;snip&gt;</div>`);
 			},
 		},
 	},
