@@ -36,6 +36,11 @@ class SongRecs {
 		setInterval(() => {
 			if (this.pending.length) this.render(this.pending[0].rec, true);
 		}, 1000 * 60 * 60);
+
+		setInterval(async () => {
+			const rec = await db.hgetall((await db.randomkey()));
+			this.queueRec(rec);
+		}, 1000 * 60 * 60 * 6);
 	}
 
 	async queueRec(rec) {
