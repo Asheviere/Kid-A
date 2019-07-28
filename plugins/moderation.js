@@ -215,12 +215,12 @@ module.exports = {
 
 				if (keys.length) {
 					const rows = [];
-					rows.push(`<th>Username</th><th>Added on</th><th>Reason</th>`);
+					rows.push(`<th>Username</th><th>Added on</th>`);
 
 					for (const key of keys) {
 						const entry = await notol.hgetall(key);
 						const date = new Date(parseInt(entry.time) || 0);
-						rows.push(`<td>${entry.username}</td><td>${leftpad(date.getDate())}/${leftpad(date.getMonth() + 1)}/${date.getFullYear()}</td><td>${entry.reason}</td>`);
+						rows.push(`<td>${entry.username}</td><td>${leftpad(date.getDate())}/${leftpad(date.getMonth() + 1)}/${date.getFullYear()}</td></tr><tr><td colspan="2"><i>- ${entry.reason}</i></td>`);
 					}
 
 					html += `<table><tr>${rows.join('</tr><tr>')}</tr></table>`;
