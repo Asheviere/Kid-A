@@ -220,7 +220,7 @@ module.exports = {
 					for (const key of keys) {
 						const entry = await notol.hgetall(key);
 						const date = new Date(parseInt(entry.time) || 0);
-						rows.push(`<td>${entry.username}</td><td>${leftpad(date.getDate())}/${leftpad(date.getMonth() + 1)}/${date.getFullYear()}</td></tr><tr><td colspan="2"><i>- ${entry.reason}</i></td>`);
+						rows.push(`<td><b>${entry.username}</b></td><td><u>${leftpad(date.getDate())}/${leftpad(date.getMonth() + 1)}/${date.getFullYear()}</u></td></tr><tr><td colspan="2"><i>- ${entry.reason}</i></td>`);
 					}
 
 					html += `<table><tr>${rows.join('</tr><tr>')}</tr></table>`;
