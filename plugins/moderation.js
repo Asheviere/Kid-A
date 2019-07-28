@@ -2,6 +2,9 @@
 
 const redis = require('../redis.js');
 const settings = redis.useDatabase('settings');
+const notol = redis.useDatabase('notol');
+
+let leftpad = val => (val < 10 ? `0${val}`: `${val}`);
 
 const HOUR = 1000 * 60 * 60;
 const FIFTEEN_MINS = 1000 * 60 * 15;
@@ -44,8 +47,7 @@ async function punish(username, room, val, msg, options) {
 	points += val;
 	let extraMsg = '';
 
-	let notol = await settings.lrange(`${room}:notol`, 0, -1);
-	if (notol.includes(userid)) {
+	if ((await notol.exists(`${room}:${userid}`))) {
 		points++;
 		extraMsg = " (zero tolerance)";
 	}
@@ -85,8 +87,7 @@ module.exports = {
 			if (message.startsWith('/log')) {
 				let array = /\/log (.+?) was muted by (.+?) for ([0-9]+?) minutes/g.exec(message);
 				if (array) {
-					let notol = await settings.lrange(`${this.room}:notol`, 0, -1);
-					if (notol.includes(toId(array[1]))) {
+					if ((await notol.exists(`${this.room}:${toId(array[1])}`))) {
 						const duration = parseInt(array[3]);
 						if (duration === 7) {
 							return ChatHandler.send(this.room, `/hm ${array[1]}, Bot Moderation: Extending punishment for zero tolerance user.`);
@@ -99,8 +100,7 @@ module.exports = {
 				array = /\/log (.+?) was warned by (.+?)\./g.exec(message);
 
 				if (array) {
-					let notol = await settings.lrange(`${this.room}:notol`, 0, -1);
-					if (notol.includes(toId(array[1]))) {
+					if ((await notol.exists(`${this.room}:${toId(array[1])}`))) {
 						return ChatHandler.send(this.room, `/m ${array[1]}, Bot Moderation: Escalating punishment for zero tolerance user.`);
 					}
 				}
@@ -173,15 +173,17 @@ module.exports = {
 			permission: 4,
 			requireRoom: true,
 			async action(message) {
-				let userid = toId(message);
-				if (!userid) return this.pmreply("No username entered. Syntax: ``.notol <username>``");
+				let [username, ...reason] = message.split(',');
+				if (!toId(username)) return this.reply("No username entered, Syntax: ``.notol username, reason``");
+				username = username.trim();
+				reason = reason.join(',').trim();
+				let userid = toId(username);
 
-				let notol = await this.settings.lrange(`${this.room}:notol`, 0, -1);
+				if ((await notol.exists(`${this.room}:${userid}`))) return this.reply("This user is already on zero tolerance.");
 
-				if (notol.includes(userid)) return this.pmreply("This user is already marked as zero tolerance.");
+				notol.hmset(`${this.room}:${userid}`, 'time', Date.now(), 'username', username, 'reason', reason);
 
-				this.settings.rpush(`${this.room}:notol`, userid);
-				ChatHandler.send(this.room, `/modnote ${userid} was marked as zero tolerance by ${this.username}.`);
+				ChatHandler.send(this.room, `/modnote ${userid} was marked as zero tolerance by ${this.username}.${reason ? ` (${reason})` : ''}`);
 			},
 		},
 		removenotol: {
@@ -191,7 +193,7 @@ module.exports = {
 				let userid = toId(message);
 				if (!userid) return this.pmreply("No username entered. Syntax: ``.removenotol <username>``");
 
-				if ((await this.settings.lrem(`${this.room}:notol`, 0, userid))) {
+				if ((await notol.delete(`${this.room}:${userid}`))) {
 					ChatHandler.send(this.room, `/modnote ${userid} was unmarked as zero tolerance by ${this.username}.`);
 				} else {
 					this.pmreply("This user isn't marked as zero tolerance.");
@@ -202,13 +204,30 @@ module.exports = {
 			permission: 2,
 			requireRoom: true,
 			async action() {
-				const notol = await this.settings.lrange(`${this.room}:notol`, 0, -1);
-
-				if (notol.length) {
-					this.replyHTML(`Zero Tolerance user${notol.length > 1 ? 's' : ''} in room ${this.room}: ${notol.join(', ')}`, true);
-				} else {
-					this.pmreply("This room has no notol list.");
+				let html = '';
+				// Old notol
+				const oldNotol = await this.settings.lrange(`${this.room}:notol`, 0, -1);
+				if (oldNotol.length) {
+					this.replyHTML(`Old notol list: ${notol.join(', ')}<br/>`, true);
 				}
+
+				const keys = await notol.keys(`${this.room}:*`);
+
+				if (keys.length) {
+					const rows = [];
+					rows.push(`<th>Username</th><th>Added on</th><th>Reason</th>`);
+
+					for (const key of keys) {
+						const entry = await notol.hgetall(key);
+						const date = new Date(parseInt(entry.time) || 0);
+						rows.push(`<td>${entry.username}</td><td>${leftpad(date.getDate())}/${leftpad(date.getMonth() + 1)}/${date.getFullYear()}</td><td>${entry.reason}</td>`);
+					}
+
+					html += `<table><tr>${rows.join('</tr><tr>')}</tr></table>`;
+				}
+
+				if (!html) return this.reply("This room has no zero tolerance users.");
+				this.replyHTML(html, true);
 			},
 		},
 	},
