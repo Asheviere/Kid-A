@@ -52,7 +52,7 @@ async function punish(username, room, val, msg, options) {
 		extraMsg = " (zero tolerance)";
 	}
 
-	if (points >= 3 && (await checkMuted(room, userid))) {
+	if (!options.includes('noroombans') && points >= 3 && (await checkMuted(room, userid))) {
 		return ChatHandler.send(room, `/rb ${userid}, Bot moderation: repeated offenses.${extraMsg}`);
 	}
 
