@@ -47,7 +47,7 @@ class SongRecs {
 		rec.id = Utils.randomBytes(5);
 		rec.key = `${toId(rec.artist)}|${toId(rec.title)}`;
 
-		this.render(rec);
+		await this.render(rec);
 
 		await this.collapseRec(this.lastRec);
 		this.lastRec = rec;
