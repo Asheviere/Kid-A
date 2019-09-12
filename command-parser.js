@@ -251,44 +251,48 @@ class ChatHandler {
 		this.mail.write();
 	}
 
-	async loadPlugins() {
-		fs.readdir('./plugins', (err, plugins) => {
-			if (err) return;
+	loadPlugins() {
+		return new Promise((resolve, reject) => {
+			fs.readdir('./plugins', async (err, plugins) => {
+				if (err) reject(err);
 
-			let inits = [];
-			plugins.filter((file) => file.endsWith('.js') && !Config.blacklistedPlugins.has(file.slice(0, -3)))
-			.forEach((file) => {
-				let plugin = require('./plugins/' + file);
-				let name = file.slice(0, -3);
-				this.plugins[name] = plugin;
-				if (plugin.init) inits.push(plugin.init());
-				if (plugin.analyzer) this.analyzers[name] = plugin.analyzer;
-				if (plugin.commands) {
-					Object.keys(plugin.commands).forEach((c) => {
-						this.commands[c] = plugin.commands[c];
-						if (plugin.commands[c].aliases) {
-							for (const alias of plugin.commands[c].aliases) {
-								this.commands[alias] = plugin.commands[c];
+				let inits = [];
+				plugins.filter((file) => file.endsWith('.js') && !Config.blacklistedPlugins.has(file.slice(0, -3)))
+				.forEach((file) => {
+					let plugin = require('./plugins/' + file);
+					let name = file.slice(0, -3);
+					this.plugins[name] = plugin;
+					if (plugin.init) inits.push(plugin.init());
+					if (plugin.analyzer) this.analyzers[name] = plugin.analyzer;
+					if (plugin.commands) {
+						Object.keys(plugin.commands).forEach((c) => {
+							this.commands[c] = plugin.commands[c];
+							if (plugin.commands[c].aliases) {
+								for (const alias of plugin.commands[c].aliases) {
+									this.commands[alias] = plugin.commands[c];
+								}
 							}
-						}
-					});
-				}
-				if (plugin.options) {
-					plugin.options.forEach(entry => {
-						let id, label;
-						if (typeof entry === 'string') {
-							id = entry;
-							label = entry;
-						} else {
-							[id, label] = entry;
-						}
-						this.options.add(id);
-						this.optionLabels.set(id, label);
-					});
-				}
-			});
+						});
+					}
+					if (plugin.options) {
+						plugin.options.forEach(entry => {
+							let id, label;
+							if (typeof entry === 'string') {
+								id = entry;
+								label = entry;
+							} else {
+								[id, label] = entry;
+							}
+							this.options.add(id);
+							this.optionLabels.set(id, label);
+						});
+					}
+				});
 
-			Promise.all(inits).then(() => server.restart());
+				await Promise.all(inits);
+				server.restart();
+				return resolve();
+			});
 		});
 	}
 
