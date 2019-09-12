@@ -222,6 +222,36 @@ class ChatHandler {
 			return dataCache[room];
 		};
 
+		analytics.keys('*').then(keys => {
+			let rooms = new Set();
+
+			for (let i = 0; i < keys.length; i++) {
+				let split = keys[i].split(':');
+				if (split.length > 1) {
+					let room = split[1];
+					if (!rooms.has(room)) {
+						rooms.add(room);
+						server.addRoute(`/${room}/data`, this.dataResolver);
+					}
+				}
+			}
+
+			server.restart();
+		});
+
+		// Prune mail scheduled over a month ago.
+		for (let [curUser, messages] of Object.entries(this.mail.data)) {
+			messages = messages.filter(({time}) => Date.now() - time < MONTH);
+			if (messages) {
+				this.mail.set(curUser, messages);
+			} else {
+				delete this.mail.data[curUser];
+			}
+		}
+		this.mail.write();
+	}
+
+	async loadPlugins() {
 		let inits = [];
 
 		fs.readdirSync('./plugins')
@@ -256,34 +286,6 @@ class ChatHandler {
 					});
 				}
 			});
-
-		analytics.keys('*').then(keys => {
-			let rooms = new Set();
-
-			for (let i = 0; i < keys.length; i++) {
-				let split = keys[i].split(':');
-				if (split.length > 1) {
-					let room = split[1];
-					if (!rooms.has(room)) {
-						rooms.add(room);
-						server.addRoute(`/${room}/data`, this.dataResolver);
-					}
-				}
-			}
-
-			server.restart();
-		});
-
-		// Prune mail scheduled over a month ago.
-		for (let [curUser, messages] of Object.entries(this.mail.data)) {
-			messages = messages.filter(({time}) => Date.now() - time < MONTH);
-			if (messages) {
-				this.mail.set(curUser, messages);
-			} else {
-				delete this.mail.data[curUser];
-			}
-		}
-		this.mail.write();
 
 		Promise.all(inits).then(() => server.restart());
 	}

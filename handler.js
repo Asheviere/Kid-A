@@ -40,7 +40,8 @@ module.exports = {
 		chatHandler.send(null, `/autojoin ${this.toJoin.slice(0, 11).join(',')}`);
 		chatHandler.send(null, `/trn ${Config.username},0,${assertion}`);
 
-		Output.log('status', 'Setup done.');
+		Output.log('status', 'Setup done, loading plugins...');
+		ChatHandler.loadPlugins();
 	},
 
 	addUser(user, room) {
