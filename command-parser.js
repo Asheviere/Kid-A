@@ -165,7 +165,9 @@ class ChatHandler {
 		this.userlists = userlists;
 		this.settings = settings;
 		this.commandQueue = [];
+		this.roomParseQueue = [];
 		this.parsing = false;
+		this.parsingRoom = false;
 		this.mail = new Cache('mail');
 		this.privateRooms = Config.privateRooms;
 		this.pendingQueries = {};
@@ -391,11 +393,17 @@ class ChatHandler {
 	}
 
 	async parseJoinRoom(room) {
+		if (this.parsingRoom) return this.roomParseQueue.push(room);
+		this.parsingRoom = true;
+
 		for (let i in this.plugins) {
 			if (this.plugins[i].onJoinRoom) {
-				this.plugins[i].onJoinRoom.apply(this, [room]).catch(err => Output.errorMsg(err, 'Error in onJoinRoom', {room: room}));
+				await this.plugins[i].onJoinRoom.apply(this, [room]).catch(err => Output.errorMsg(err, 'Error in onJoinRoom', {room: room}));
 			}
 		}
+
+		this.parsingRoom = false;
+		if (this.roomParseQueue.length) this.parseJoinRoom(this.roomParseQueue.shift());
 	}
 
 	async parseTourCommand(roomid, command, rest) {
