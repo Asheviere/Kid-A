@@ -51,7 +51,7 @@ module.exports = {
 			setTimeout(() => sendJoin(rooms.slice(1)), 500);
 		};
 		// This should be enough of a window right???
-		setTimeout(() => sendJoin(this.toJoin.slice(11)), 5000);
+		setTimeout(() => sendJoin(this.toJoin.slice(11)), 1000);
 	},
 
 	addUser(user, room) {
