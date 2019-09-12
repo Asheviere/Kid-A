@@ -185,7 +185,7 @@ module.exports = {
 			ChatHandler.parseQueryResponse(split[2], json);
 			break;
 		default:
-			Debug.log(5, `Unsupported message type: ${split[1]}`);
+			return Debug.log(5, `Unsupported message type: ${split[1]}`);
 		}
 	},
 };

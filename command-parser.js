@@ -193,13 +193,12 @@ class ChatHandler {
 				let data = server.getAccessToken(token);
 				if (!data) return res.end('Invalid access token.');
 				if (data[room]) {
-					res.end(await this.generateDataPage(room));
-				} else {
-					res.end('Permission denied.');
+					return res.end(await this.generateDataPage(room));
 				}
-			} else {
-				res.end(await this.generateDataPage(room));
+				return res.end('Permission denied.');
 			}
+
+			return res.end(await this.generateDataPage(room));
 		};
 
 		this.generateDataPage = async room => {
@@ -256,7 +255,7 @@ class ChatHandler {
 	loadPlugins() {
 		return new Promise((resolve, reject) => {
 			fs.readdir('./plugins', async (err, plugins) => {
-				if (err) reject(err);
+				if (err) return reject(err);
 
 				let inits = [];
 				plugins.filter((file) => file.endsWith('.js') && !Config.blacklistedPlugins.has(file.slice(0, -3)))
@@ -301,29 +300,28 @@ class ChatHandler {
 	async parse(userstr, room, message, timestamp) {
 		if (userstr.startsWith('‽')) return; // I hate locked users
 		if (COMMAND_REGEX.test(message)) {
-			this.parseCommand(userstr, room, message);
+			return this.parseCommand(userstr, room, message);
 		} else if (room) {
-			if (!room.includes('groupchat')) this.analyze(userstr, room, message, timestamp * 1000 || Date.now());
-		} else {
-			if (canUse(2, toId(userstr), userstr[0]) && message.startsWith('/invite')) {
-				let toJoin = toId(message.substr(8));
-
-				if (Config.blacklistedRooms && Config.blacklistedRooms.includes(toJoin)) return this.sendPM(userstr.substr(1), 'This room has been blacklisted');
-
-				let autojoin = await this.settings.lrange('autojoin', 0, -1);
-
-				if (!(Config.rooms.includes(toJoin) || (autojoin && autojoin.includes(toJoin)))) {
-					if (toJoin.includes('groupchat')) return this.sendPM(userstr.substr[1], `Kid A is currently unsupported in groupchats.`);
-					this.settings.rpush('autojoin', toJoin);
-					this.sendPM(userstr.substr(1), `For an introduction on how to use Kid A in your room, see ${server.url}intro.html`);
-				}
-				this.send(null, `/join ${toJoin}`);
-				return;
-			}
-			if (message.startsWith('/') || message.startsWith('!')) return;
-			Output.log('pm', 'PM from ' + (userstr[0] === ' ' ? userstr.substr(1) : userstr) + ': ' + message);
-			this.sendPM(userstr, "Hi I'm a chatbot made by Asheviere. I moderate rooms, provide chat analytics, and have a few other neat features. For help with using the bot, use ``.help`` for a list of available topics.");
+			if (!room.includes('groupchat')) return this.analyze(userstr, room, message, timestamp * 1000 || Date.now());
 		}
+		if (canUse(2, toId(userstr), userstr[0]) && message.startsWith('/invite')) {
+			let toJoin = toId(message.substr(8));
+
+			if (Config.blacklistedRooms && Config.blacklistedRooms.includes(toJoin)) return this.sendPM(userstr.substr(1), 'This room has been blacklisted');
+
+			let autojoin = await this.settings.lrange('autojoin', 0, -1);
+
+			if (!(Config.rooms.includes(toJoin) || (autojoin && autojoin.includes(toJoin)))) {
+				if (toJoin.includes('groupchat')) return this.sendPM(userstr.substr[1], `Kid A is currently unsupported in groupchats.`);
+				this.settings.rpush('autojoin', toJoin);
+				this.sendPM(userstr.substr(1), `For an introduction on how to use Kid A in your room, see ${server.url}intro.html`);
+			}
+			this.send(null, `/join ${toJoin}`);
+			return;
+		}
+		if (message.startsWith('/') || message.startsWith('!')) return;
+		Output.log('pm', 'PM from ' + (userstr[0] === ' ' ? userstr.substr(1) : userstr) + ': ' + message);
+		this.sendPM(userstr, "Hi I'm a chatbot made by Asheviere. I moderate rooms, provide chat analytics, and have a few other neat features. For help with using the bot, use ``.help`` for a list of available topics.");
 	}
 
 	async parseModnote(room, message) {
@@ -403,7 +401,7 @@ class ChatHandler {
 		}
 
 		this.parsingRoom = false;
-		if (this.roomParseQueue.length) this.parseJoinRoom(this.roomParseQueue.shift());
+		if (this.roomParseQueue.length) return this.parseJoinRoom(this.roomParseQueue.shift());
 	}
 
 	async parseTourCommand(roomid, command, rest) {
@@ -471,11 +469,11 @@ class ChatHandler {
 					return;
 				}
 			}
-			Debug.log(3, `Pushing to queue {${this.sendQueue.length}}: ${message}`);
-		} else {
-			this.lastMessage = now;
-			Connection.send(message);
+			return Debug.log(3, `Pushing to queue {${this.sendQueue.length}}: ${message}`);
 		}
+
+		this.lastMessage = now;
+		Connection.send(message);
 	}
 
 	processQueue() {
