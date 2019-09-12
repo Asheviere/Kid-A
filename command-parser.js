@@ -252,10 +252,11 @@ class ChatHandler {
 	}
 
 	async loadPlugins() {
-		let inits = [];
+		fs.readdir('./plugins', (err, plugins) => {
+			if (err) return;
 
-		fs.readdirSync('./plugins')
-			.filter((file) => file.endsWith('.js') && !Config.blacklistedPlugins.has(file.slice(0, -3)))
+			let inits = [];
+			plugins.filter((file) => file.endsWith('.js') && !Config.blacklistedPlugins.has(file.slice(0, -3)))
 			.forEach((file) => {
 				let plugin = require('./plugins/' + file);
 				let name = file.slice(0, -3);
@@ -287,7 +288,8 @@ class ChatHandler {
 				}
 			});
 
-		Promise.all(inits).then(() => server.restart());
+			Promise.all(inits).then(() => server.restart());
+		});
 	}
 
 	async parse(userstr, room, message, timestamp) {
