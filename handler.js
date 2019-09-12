@@ -46,7 +46,7 @@ module.exports = {
 		Output.log('status', "Loaded plugins, joining rooms...");
 
 		const sendJoin = rooms => {
-			if (!rooms || !rooms.length) return;
+			if (!rooms || !rooms.length) return this.chatHandler.setupREPL();
 			chatHandler.send(null, `/join ${rooms[0]}`);
 			setTimeout(() => sendJoin(rooms.slice(1)), 500);
 		};
@@ -124,9 +124,6 @@ module.exports = {
 			if (split[2].slice(1) !== Config.username) return false;
 
 			Output.log('status', 'Logged in as ' + split[2] + '.');
-
-			// Set up REPL when bot is ready to receive messages.
-			this.chatHandler.setupREPL();
 
 			break;
 		case 'J':
