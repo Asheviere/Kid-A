@@ -118,7 +118,7 @@ module.exports = {
 			const sendJoin = rooms => {
 				if (!rooms || !rooms.length) return;
 				chatHandler.send(null, `/join ${rooms[0]}`);
-				setTimeout(() => sendJoin(rooms.slice(1)), 200);
+				setTimeout(() => sendJoin(rooms.slice(1)), 500);
 			};
 			sendJoin(this.toJoin.slice(11));
 
