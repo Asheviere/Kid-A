@@ -50,7 +50,8 @@ module.exports = {
 			chatHandler.send(null, `/join ${rooms[0]}`);
 			setTimeout(() => sendJoin(rooms.slice(1)), 500);
 		};
-		sendJoin(this.toJoin.slice(11));
+		// This should be enough of a window right???
+		setTimeout(() => sendJoin(this.toJoin.slice(11)), 5000);
 	},
 
 	addUser(user, room) {
