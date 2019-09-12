@@ -104,6 +104,8 @@ module.exports = {
 						Output.log('client', "Invalid login request.");
 						process.exit(0);
 					}
+				} else {
+					Output.errorMsg(error, `Error logging in.`);
 				}
 			});
 			break;
