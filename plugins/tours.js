@@ -241,6 +241,10 @@ module.exports = {
 					if (!(this.canUse(2) || await this.settings.hexists(`${this.room}:tourhelpers`, this.userid))) return this.pmreply("Permission denied.");
 
 					return ChatHandler.send(this.room, `/tour end`);
+				case 'setname':
+					if (!(this.canUse(2) || await this.settings.hexists(`${this.room}:tourhelpers`, this.userid))) return this.pmreply("Permission denied.");
+
+					ChatHandler.send(this.room, `/tour name ${rest}`);
 				case 'set':
 					let setting;
 					[setting, ...rest] = rest.split(',');
