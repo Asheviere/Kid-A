@@ -35,7 +35,7 @@
   "private": true,
   "license": "GPL3",
   "devDependencies": {
-    "eslint": "^2.10.2",
+    "eslint": "^6.5.0",
     "eslint-config-google": "^0.5.0"
   }
 }
