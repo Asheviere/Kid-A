@@ -179,8 +179,8 @@ module.exports = {
 					if (!this.canUse(2)) return this.pmreply("Permission denied.");
 
 					let [alias, ...text] = rest.split(',');
+					text = `${text.join(',').trim()}|${alias}`;
 					alias = toId(alias);
-					text = text.join(',').trim();
 
 					await this.settings.hset(`${this.room}:touraliases`, alias, text);
 					ChatHandler.send(this.room, `/modnote tour alias '${alias}' => '${text}' was set by ${this.username}.`);
@@ -222,7 +222,7 @@ module.exports = {
 					let isAlias = await this.settings.hget(`${this.room}:touraliases`, toId(rest));
 
 					if (isAlias) {
-						[format, rules] = isAlias.split('|').map(param => param.trim());
+						[format, rules, name] = isAlias.split('|').map(param => param.trim());
 					}
 
 					ChatHandler.send(this.room, `/tour new ${format}, elimination`);
