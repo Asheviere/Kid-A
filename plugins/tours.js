@@ -219,7 +219,7 @@ module.exports = {
 						announcement = `${currency} will be awarded this tournament${shop ? `, these can be spent on prizes throughout the month!` : ''}`;
 					}
 
-					let isAlias = await this.settings.hget(`${this.room}:touraliases`, rest);
+					let isAlias = await this.settings.hget(`${this.room}:touraliases`, toId(rest));
 
 					if (isAlias) {
 						[format, rules] = isAlias.split('|').map(param => param.trim());
