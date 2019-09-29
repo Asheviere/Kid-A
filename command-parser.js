@@ -405,7 +405,7 @@ class ChatHandler {
 	}
 
 	async parseTourCommand(roomid, command, rest) {
-		const data = rest.startsWith('{') || rest.startsWith('[') ? JSON.parse(rest) : rest;
+		const data = rest.startsWith('{') || (rest.startsWith('[') && !rest.startsWith('[G')) ? JSON.parse(rest) : rest;
 		for (let i in this.plugins) {
 			if (this.plugins[i].tours && (!this.plugins[i].tours.rooms || this.plugins[i].tours.rooms.includes(roomid))) {
 				const options = await this.settings.lrange(`${roomid}:options`, 0, -1);
