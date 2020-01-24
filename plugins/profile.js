@@ -136,7 +136,7 @@ module.exports = {
 				if (!this.canUse(3) && this.user !== message) return this.pmreply("Permission denied.");
 
 				if (!(await profileData.exists(message))) return this.pmreply("User not found.");
-				await profileData.delete(message);
+				await profileData.del(message);
 				return this.reply("Profile deleted.");
 			},
 		},
