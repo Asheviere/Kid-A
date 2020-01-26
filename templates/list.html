@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="../../style.css">
+        <title>{{id}} list - Kid A</title>
+        <script>
+            function filter() {
+                var docs = document.getElementsByTagName("tr");
+
+                for (var i = 0; i < docs.length; i++) {
+                    if (docs[i].className !== 'online' && docs[i].className !== 'header') {
+                        docs[i].style.display = 'none';
+                    }
+                }
+            }
+
+            function unfilter() {
+                var docs = document.getElementsByTagName("tr");
+
+                for (var i = 0; i < docs.length; i++) {
+                    if (docs[i].className !== 'online' && docs[i].className !== 'header') {
+                        docs[i].style.display = 'table-row';
+                    }
+                }
+            }
+
+            function toggleFilter(checkbox) {
+                if (checkbox.checked) {
+                    filter();
+                } else {
+                    unfilter();
+                }
+            }
+        </script>
+    </head>
+    
+    <body>
+        <div class="container">
+			{{#if editors}}
+				<p class="editors">Editors: {{editors}}</p>
+			{{/if}}
+            {{#unless noOnline}}
+                <div class="popup"><input type="checkbox" onclick="toggleFilter(this)">Only show online {{id}}.</div>
+            {{/unless}}
+            
+			<table>
+                <tr class="header">
+                    {{#each columnNames}}
+                        <th>{{this}}</th>
+                    {{/each}}
+                </tr>
+                {{#each entries}}
+                    {{#if ../tokenData}}
+                        {{#if_id data.username ../tokenData.user}}
+                            <tr id="{{@index}}" class="online">
+                        {{else}}
+                            <tr id="{{@index}}">
+                        {{/if_id}}
+                    {{else}}
+                        {{#if online}}
+                            <tr id="{{@index}}" class="online">
+                        {{else}}
+                            <tr id="{{@index}}">
+                        {{/if}}
+                    {{/if}}
+                    
+                    {{#each data}}
+                        <td>
+                            {{#if_eq @key "avatar"}}
+                                {{{get_avatar this}}}
+                            {{else}}
+                                {{#if_ends @key "time"}}
+                                    {{parse_date this}}
+                                {{else}}
+                                    {{#if_ends @key "info"}}
+                                        {{{this}}}
+                                    {{else}}
+                                        {{this}}
+                                    {{/if_ends}}
+                                {{/if_ends}}
+                            {{/if_eq}}
+                        </td>
+                    {{/each}}
+
+                    </tr>
+                {{/each}}
+			</table>
+        </div>
+    </body>
+</html>

@@ -20,6 +20,13 @@ handlebars.registerHelper('if_id', function(val1, val2, options) {
 	return options.inverse(this);
 });
 
+handlebars.registerHelper('if_ends', function(val1, val2, options) {
+	if (val1.endsWith(val2)) {
+		return options.fn(this);
+	}
+	return options.inverse(this);
+});
+
 handlebars.registerHelper('mod', function(variable, num, eq, options) {
 	if (variable % num === eq) {
 		return options.fn(this);

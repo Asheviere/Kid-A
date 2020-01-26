@@ -1,5 +1,6 @@
 'use strict';
 
+const crypto = require('crypto');
 const request = require('request');
 
 const redis = require('./redis.js');
@@ -9,9 +10,14 @@ const ACTION_URL = 'http://play.pokemonshowdown.com/action.php';
 
 let settings = redis.useDatabase('settings');
 
-const userlists = {};
+const userlists = {global: {}};
 
 const chatHandler = global.ChatHandler = commandParser.new(userlists, settings);
+
+// This regex is a work of art (html parsing is awful :( )
+const INFOBOX_REGEX = /<div class="infobox"><strong class="username"><small style="display:none">.<\/small>(.+?)<\/small>/;
+const IP_REGEX = /<a href="https:\/\/whatismyipaddress.com\/ip\/([0-9]{2,3}\.[0-9]{2,3}\.[0-9]{2,3}\.[0-9]{2,3})" target="_blank">\1<\/a>/;
+const ALT_REGEX = /Alt: <span class="username">(.+?)<\/span><br \/>/g;
 
 module.exports = {
 	toJoin: [],
@@ -65,18 +71,32 @@ module.exports = {
 			for (let i = 0; i < user.length; i++) {
 				const username = user[i].slice(1).split('@')[0];
 				this.userlists[room][toId(username)] = [user[i][0], username];
+				this.userlists.global[toId(username)] = [user[i][0], username];
 			}
 			return true;
 		}
 		const username = user.slice(1).split('@')[0];
 		this.userlists[room][toId(username)] = [user[0], username];
+		this.userlists.global[toId(username)] = [user[0], username];
 
 		this.chatHandler.parseJoin(user, room);
 	},
 
 	removeUser(user, room) {
+		const userid = toId(user);
+
 		if (!(room in this.userlists)) return false;
-		delete this.userlists[room][toId(user)];
+		delete this.userlists[room][userid];
+
+		let found = false;
+		for (const roomid in this.userlists) {
+			if (this.userlists[roomid][userid]) {
+				found = true;
+				break;
+			}
+		}
+
+		if (!found) delete this.userlists.global[userid];
 	},
 
 	async parse(message) {
@@ -174,6 +194,35 @@ module.exports = {
 				});
 			}
 			break;
+		case 'html':
+			const html = split.slice(1).join('|');
+
+			const whoisMatch = INFOBOX_REGEX.exec(html);
+			if (whoisMatch) {
+				const res = {username: whoisMatch[1]};
+
+				const ips = [];
+				const alts = res.alts = [];
+
+				let match = IP_REGEX.exec(html);
+				while (match) {
+					const md5 = crypto.createHash('md5');
+					ips.push(md5.digest(match[1]));
+
+					match = IP_REGEX.exec(html);
+				}
+
+				match = ALT_REGEX.exec(html);
+				while (match) {
+					alts.push(match[1]);
+
+					match = ALT_REGEX.exec(html);
+				}
+
+				res.ipStr = ips.join('|');
+
+				ChatHandler.parseQueryResponse(`whois:${toId(res.username)}`, res);
+			}
 		case 'queryresponse':
 			let json;
 			try {

@@ -14,6 +14,7 @@ const WIFI_ROOM = 'wifi';
 const NOTES_FILE = 'clonernotes.json';
 
 const settings = redis.useDatabase('settings');
+const profile = redis.useDatabase('profiles');
 
 const cache = new Cache('wifi');
 
@@ -467,9 +468,37 @@ module.exports = {
 	onUserJoin: {
 		rooms: [WIFI_ROOM],
 		async action(user) {
-			user = toId(user);
+			const userid = toId(user);
+			const now = new Date();
 
-			let now = new Date();
+			// Gen 8
+
+			const scammers = await ChatHandler.queryProfile({wifiscammerinfo: ''});
+
+			for (const scammerId in scammers) {
+				const scammer = scammers[scammerId];
+				if (scammerId === userid || (scammer.wifiscammeralts && scammer.wifiscammeralts.split(',').map(alt => toId(alt)).includes(userid))) {
+					const date = new Date(parseInt(scammer.wifiscammeraddedtime));
+
+					if (toId(scammer.wifiscammerinfo).startsWith('perma') || !(date.getUTCFullYear() < now.getUTCFullYear() - 1 || (date.getUTCFullYear() < now.getUTCFullYear() && (date.getUTCMonth() < now.getUTCMonth() || (date.getUTCMonth() === now.getUTCMonth() && date.getUTCDate() < now.getUTCDate()))))) {
+						ChatHandler.send(WIFI_ROOM, `/rb ${user}, ${toId(scammer.wifiscammerinfo).startsWith('perma') ? 'Permabanned ' : ''}Scammer`);
+					}
+
+					const userinfo = await ChatHandler.query('whois', userid);
+
+					ChatHandler.setProfileField(scammerId, 'wifiscammerfingerprint', `${scammer.wifiscammerfingerprint}${userinfo.ipStr.length && scammer.wifiscammerfingerprint.length ? '|' : ''}${userinfo.ipStr}`);
+					if (scammerId !== userid) {
+						userinfo.alts.push(user.slice(1));
+					}
+					ChatHandler.setProfileField(scammerId, 'wifiscammeralts', `${scammer.wifiscammeralts}${userinfo.alts.length && scammer.wifiscammeralts.length ? ', ' : ''}${userinfo.alts.join(', ')}`);
+
+					ChatHandler.send(WIFI_ROOM, `/modnote ${user.slice(1)} was added${scammerId !== userid ? ` as an alt of ${scammer.username}` : ""} to the scammers database.`);
+				}
+			}
+
+			// Legacy Gen 7 scammer code
+
+			user = userid;
 			let scammer = getScammerEntry(user);
 
 			// Autoban permabanned scammers
@@ -940,6 +969,11 @@ module.exports = {
 
 			if (match) {
 				if (match[2] !== 'GTS') ChatHandler.send(WIFI_ROOM, `It's Giveaway Time!`);
+
+				if ((await profile.hexists(toId(match[3]), 'wificlonerlastgatime'))) {
+					profile.hset(toId(match[3]), 'wificlonerlastgatime', Date.now());
+				}
+
 				if (clonerList.data[toId(match[3])]) {
 					clonerList.data[toId(match[3])].date = Date.now();
 					clonerList.writeList();

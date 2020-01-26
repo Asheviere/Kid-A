@@ -504,10 +504,16 @@ class ChatHandler {
 		this.pendingQueries[id].shift()(response);
 	}
 
-	async query(id, query) {
+	async query(id, query, room = '') {
 		let timer;
 		const promise = new Promise((resolve, reject) => {
-			Connection.send(`|/query ${id} ${query}`);
+			let queryStr;
+			if (id.startsWith('whois')) {
+				queryStr = `${room}|/ip ${query}`;
+			} else {
+				queryStr = `|/query ${id} ${query}`;
+			}
+			Connection.send(queryStr);
 			if (!this.pendingQueries[id]) this.pendingQueries[id] = [];
 			this.pendingQueries[id].push(resolve);
 			timer = setTimeout(() => {
