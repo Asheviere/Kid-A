@@ -199,6 +199,7 @@ const queryProfile = ChatHandler.queryProfile = async function(query) {
 	const output = {};
 
 	for (const key of keys) {
+		if (key.startsWith('badges:')) continue;
 		const profile = await profileData.hgetall(key);
 
 		for (const field in query) {
