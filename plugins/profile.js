@@ -514,7 +514,7 @@ module.exports = {
 				}
 				if (!(this.canUse(5) || await this.settings.hexists('whitelist:cloners', this.userid))) return this.pmreply("Permission denied.");
 
-				return this.reply(cloners.addpage.getUrl(WIFI_ROOM, toId(message), true, {user: this.username}));
+				return this.reply(cloners.addpage.getUrl(WIFI_ROOM, this.username, true, {user: toId(message)}));
 			},
 		},
 	},
