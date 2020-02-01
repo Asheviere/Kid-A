@@ -208,7 +208,6 @@ const queryProfile = ChatHandler.queryProfile = async function(query) {
 
 	for (const key of keys) {
 		if (key.startsWith('badges:')) continue;
-		Debug.log(4, key);
 		const profile = await profileData.hgetall(key);
 
 		for (const field in query) {
@@ -320,7 +319,7 @@ class List {
 				entries: {},
 			};
 
-			if (this.whitelistKey) output.editors = (await this.settings.lrange(this.whitelistKey, 0, -1)).join(', ');
+			if (this.whitelistKey) output.editors = (await this.settings.hvals(this.whitelistKey, 0, -1)).join(', ');
 			const data = await this.get();
 
 			for (const key in data) {
