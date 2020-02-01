@@ -319,7 +319,7 @@ class List {
 				entries: {},
 			};
 
-			if (this.whitelistKey) output.editors = (await this.settings.hvals(this.whitelistKey, 0, -1)).join(', ');
+			if (this.whitelistKey) output.editors = (await this.settings.hvals(this.whitelistKey)).join(', ');
 			const data = await this.get();
 
 			for (const key in data) {
