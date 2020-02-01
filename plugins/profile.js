@@ -129,7 +129,7 @@ const allFields = {
 	wifiign: {
 		title: "In-Game Name",
 		validation: username => /[a-zA-Z0-9]+/.test(username) && username.length < 20,
-		edit: () => 0,
+		edit: profile => profile.wificloneraddedtime ? 2 : 1,
 	},
 	wificlonerinfo: {
 		title: "Cloner Information",
@@ -184,8 +184,16 @@ ChatHandler.setProfileField = async function(userid, field, value) {
 	if (!(field in allFields)) return false;
 	if (!(await profileData.exists(userid))) return false;
 
+	let ret;
+
+	if (value) {
+		ret = profileData.hset(userid, field, value);
+	} else {
+		ret = profileData.hdel(userid, field);
+	}
+
 	// return await so we don't get a double promise
-	return await profileData.hset(field, value);
+	return await ret;
 };
 
 // For convenience
@@ -389,7 +397,7 @@ class List {
 	}
 }
 
-const cloners = new List('cloners', {wificloneraddedtime: ''}, ["Avatar", "Username", "IGN", "Notes", "Last giveaway"], {roomid: 'wifi', visibleFields: ["avatar", "username", "wifiign", "wificlonerinfo", "wificlonerlastgatime"], addHandler: (data, tokenData) => {
+const cloners = new List('cloners', {wificloneraddedtime: ''}, ["Avatar", "Username", "IGN", "Notes", "Last giveaway"], {roomid: 'wifi', whitelist: "cloners", visibleFields: ["avatar", "username", "wifiign", "wificlonerinfo", "wificlonerlastgatime"], addHandler: (data, tokenData) => {
 	data.wificloneraddedtime = Date.now();
 	data.wificlonerlastgatime = Date.now();
 	data.wificloneraddedby = tokenData.user;
@@ -516,6 +524,22 @@ module.exports = {
 				if (!(this.canUse(5) || await this.settings.hexists('whitelist:cloners', this.userid))) return this.pmreply("Permission denied.");
 
 				return this.reply(cloners.addpage.getUrl(WIFI_ROOM, this.username, true, {user: toId(message)}));
+			},
+		},
+		removecloner: {
+			rooms: [WIFI_ROOM],
+			async action(message) {
+				if (!this.room) {
+					if (!this.getRoomAuth(WIFI_ROOM)) return;
+				}
+
+				const id = toId(message);
+
+				if (!(await profileData.exists(id))) return this.reply("User not found on the cloners list.");
+
+				await Promise.all([ChatHandler.setProfileField(id, 'wificloneraddedtime'), ChatHandler.setProfileField(id, 'wificlonerlastgatime'), ChatHandler.setProfileField(id, 'wificloneraddedtime')]);
+
+				return this.reply("User deleted from the cloners list");
 			},
 		},
 	},
