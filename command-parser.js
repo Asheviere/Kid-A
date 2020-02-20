@@ -321,7 +321,10 @@ class ChatHandler {
 		}
 		if (message.startsWith('/') || message.startsWith('!')) return;
 		Output.log('pm', 'PM from ' + (userstr[0] === ' ' ? userstr.substr(1) : userstr) + ': ' + message);
-		this.sendPM(userstr, "Hi I'm a chatbot made by Asheviere. I moderate rooms, provide chat analytics, and have a few other neat features. For help with using the bot, use ``.help`` for a list of available topics.");
+		if (this.lastPM !== userstr) {
+			this.sendPM(userstr, "Hi I'm a chatbot made by Asheviere. I moderate rooms, provide chat analytics, and have a few other neat features. For help with using the bot, use ``.help`` for a list of available topics.");
+			this.lastPM = userstr;
+		}
 	}
 
 	async parseModnote(room, message) {
