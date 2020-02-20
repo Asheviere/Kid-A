@@ -18,6 +18,7 @@ const chatHandler = global.ChatHandler = commandParser.new(userlists, settings);
 const INFOBOX_REGEX = /<div class="infobox"><strong class="username"><small style="display:none">.<\/small>(.+?)<\/small>/;
 const IP_REGEX = /<a href="https:\/\/whatismyipaddress.com\/ip\/([0-9]{2,3}\.[0-9]{2,3}\.[0-9]{2,3}\.[0-9]{2,3})" target="_blank">\1<\/a>/;
 const ALT_REGEX = /Alt: <span class="username">(.+?)<\/span><br \/>/g;
+const PROXY_REGEX = /Host: (.+?)\[proxy\??\]/g;
 
 module.exports = {
 	toJoin: [],
@@ -220,6 +221,14 @@ module.exports = {
 				}
 
 				res.ipStr = ips.join('|');
+
+				if (html.includes(`(Unregistered)`)) {
+					res.unregistered = true;
+				}
+
+				if (PROXY_REGEX.test(html)) {
+					res.isProxy = true;
+				}
 
 				ChatHandler.parseQueryResponse(`whois:${toId(res.username)}`, res);
 			}

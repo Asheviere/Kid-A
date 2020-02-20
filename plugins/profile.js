@@ -108,7 +108,7 @@ const allFields = {
 		validation: username => /(\/?u\/)?[a-zA-Z0-9_-]{3,20}/.test(username),
 		display: username => {
 			if (username.startsWith('/')) username = username.slice(1);
-			if (!username.startsWith('u/')) username = 'u/' + username;
+			if (!username.startsWith('u/')) username = 'u/' + username;""
 			return `<a href="https://reddit.com/${username}">${username}</a>`;
 		},
 		helptext: "Reddit Username",
@@ -405,6 +405,22 @@ const cloners = new List('cloners', {wificloneraddedtime: ''}, ["Avatar", "Usern
 	return data;
 }});
 
+const scammers = new List('scammer', {wifiscammeraddedtime: ''}, ["Username", "Alts", "IGN", "Reason", "Friend Code", "Added on"], {roomid: 'wifi', whitelist: "scammers", visibleFields: ["username", "wifiscammeralts", "wifiign", "wifiscammerinfo", "switchfc", "wifiscammeraddedtime"], addHandler: (data, tokenData) => {
+	data.wifiscammeraddedtime = Date.now();
+	data.wificscammeraddedby = tokenData.user;
+
+	const scammerId = toId(data.username);
+
+	ChatHandler.query('whois', scammerId).then(userinfo => {
+		ChatHandler.setProfileField(scammerId, 'wifiscammerfingerprint', userinfo.ipStr);
+		ChatHandler.setProfileField(scammerId, 'wifiscammeralts', userinfo.alts.join(', '));
+
+		ChatHandler.send(WIFI_ROOM, `/modnote ${data.username} was added to the scammers list.`);
+	});
+
+	return data;
+}});
+
 module.exports = {
 	commands: {
 		editprofile: {
@@ -522,6 +538,7 @@ module.exports = {
 					if (!this.getRoomAuth(WIFI_ROOM)) return;
 				}
 				if (!(this.canUse(5) || await this.settings.hexists('whitelist:cloners', this.userid))) return this.pmreply("Permission denied.");
+				if (!toId(message)) return this.reply("Please enter a username");
 
 				return this.reply(cloners.addpage.getUrl(WIFI_ROOM, this.username, true, {user: toId(message)}));
 			},
@@ -532,6 +549,7 @@ module.exports = {
 				if (!this.room) {
 					if (!this.getRoomAuth(WIFI_ROOM)) return;
 				}
+				if (!(this.canUse(5) || await this.settings.hexists('whitelist:cloners', this.userid))) return this.pmreply("Permission denied.");
 
 				const id = toId(message);
 
@@ -540,6 +558,35 @@ module.exports = {
 				await Promise.all([ChatHandler.setProfileField(id, 'wificloneraddedtime'), ChatHandler.setProfileField(id, 'wificlonerlastgatime'), ChatHandler.setProfileField(id, 'wificloneraddedtime')]);
 
 				return this.reply("User deleted from the cloners list");
+			},
+		},
+		editscammer: {
+			rooms: [WIFI_ROOM],
+			async action(message) {
+				if (!this.room) {
+					if (!this.getRoomAuth(WIFI_ROOM)) return;
+				}
+				if (!this.canUse(3)) return this.pmreply("Permission denied.");
+				if (!toId(message)) return this.reply("Please enter a username");
+
+				return this.reply(scammers.addpage.getUrl(WIFI_ROOM, this.username, true, {user: toId(message)}));
+			},
+		},
+		removescammer: {
+			rooms: [WIFI_ROOM],
+			async action(message) {
+				if (!this.room) {
+					if (!this.getRoomAuth(WIFI_ROOM)) return;
+				}
+				if (!this.canUse(3)) return this.pmreply("Permission denied.");
+
+				const id = toId(message);
+
+				if (!(await profileData.exists(id))) return this.reply("User not found on the scammers list.");
+
+				await Promise.all([ChatHandler.setProfileField(id, 'wifiscammeraddedtime'), ChatHandler.setProfileField(id, 'wifiscammeraddedby'), ChatHandler.setProfileField(id, 'wifiscammerinfo'), ChatHandler.setProfileField(id, 'wifiscammerfingerprint')]);
+
+				return this.reply("User deleted from the scammers list");
 			},
 		},
 	},

@@ -961,6 +961,135 @@ module.exports = {
 				return this.reply(hackmonList.update(this.username, params));
 			},
 		},
+		markscammer: {
+			rooms: [WIFI_ROOM],
+			async action(message) {
+				if (!this.room) {
+					if (!this.getRoomAuth(WIFI_ROOM)) return;
+				}
+				if (!this.canUse(3)) return this.pmreply("Permission denied.");
+
+				let [target, scammer] = message.split(',').map(param => param.trim());
+
+				if (!target || !scammer) return this.reply("Syntax: ``.markscammer user, asScammer``");
+
+				const scammerProfile = await ChatHandler.getProfile(toId(scammer));
+				if (!scammerProfile || !scammerProfile.wifiscammeraddedtime) return this.reply("Scammer not found.");
+
+				const userinfo = await ChatHandler.query('whois', toId(target));
+
+				ChatHandler.setProfileField(toId(scammer), 'wifiscammeralts', `${scammerProfile.wifiscammeralts}, ${target}`);
+				if (userinfo.ipStr) {
+					let fingerprintStr = userinfo.ipStr;
+					if (scammerProfile.wifiscammerfingerprint) fingerprintStr = scammerProfile.wifiscammerfingerprint + '|' + fingerprintStr;
+					ChatHandler.setProfileField(toId(scammer), 'wifiscammerfingerprint', fingerprintStr);
+				}
+
+				ChatHandler.send(WIFI_ROOM, `/modnote ${target} was marked as an alt of the scammer ${scammer}.`);
+			},
+		},
+		checkscammer: {
+			rooms: [WIFI_ROOM],
+			async action(message) {
+				if (this.userlists[WIFI_ROOM] && this.userlists[WIFI_ROOM][this.userid]) {
+					this.auth = this.userlists[WIFI_ROOM][this.userid][0];
+				}
+
+				if (!toId(message)) return this.reply("Please enter a username");
+
+				const showAll = this.canUse(3);
+
+				const rows = [];
+
+				const profile = await ChatHandler.getProfile(toId(message));
+
+				// Check if someone is a scammer directly. If someone is an exact match we can just say it and skip the rest of the queries.
+				if (profile) {
+					if (profile.wifiscammeraddedtime) {
+						rows.push(`This user is on the scammers list!`, `Reason: <code>${profile.wifiscammerinfo}</code>`);
+						if (showAll) rows.push(`Alts: ${profile.wifiscammeralts || 'None'}`);
+					}
+
+					if (profile.wificlonerinfo) {
+						rows.push(`This user is an approved cloner and trusted user.`);
+					}
+				}
+
+				let suspicion = 0;
+
+				if (!rows.length) {
+					// Get fingerprints and other info
+					const userinfo = await ChatHandler.query('whois', toId(message));
+
+					if (profile) {
+						if (profile.wifiign) {
+							// Check IGN
+							const res = await ChatHandler.queryProfile({wifiign: profile.wifiign, wifiscammeraddedtime: ''});
+							const num = Object.keys(res).length;
+							if (num) {
+								// If we match too many it's not really accurate identification.
+								if (num === 1) suspicion++;
+								if (showAll) rows.push(`IGN  match: ${Object.keys(res).join(', ')}`);
+							}
+						}
+
+						if (profile.switchfc) {
+							// Check FC
+							const res = await ChatHandler.queryProfile({switchfc: profile.switchfc, wifiscammeraddedtime: ''});
+							if (Object.keys(res).length) {
+								suspicion++;
+								if (showAll) rows.push(`FC match: ${Object.keys(res).join(', ')}`);
+							}
+						}
+					}
+
+					// Users on proxies are always suspicious, but we can't do much with IP checks.
+					if (userinfo.isProxy) {
+						// Especially unregistered users
+						if (userinfo.unregistered) suspicion += 2;
+						suspicion++;
+					} else if (userinfo.ipStr) {
+						// Check fingerprint
+						const ips = userinfo.ipStr.split('|');
+
+						for (const ip of ips) {
+							const res = await ChatHandler.queryProfile({wifiscammerfingerprint: ip});
+
+							if (res.length) {
+								suspicion += 3;
+								if (showAll) rows.push(`Fingerprint match: ${Object.keys(res).join(', ')}`);
+							}
+						}
+					}
+
+					// Check alts
+					if (userinfo.alts) {
+						for (const alt of userinfo.alts) {
+							const res = await ChatHandler.queryProfile({wifiscammeralts: alt});
+
+							if (res.length) {
+								suspicion += 3;
+								if (showAll) rows.push(`Alt match: ${Object.keys(res).join(', ')}`);
+							}
+						}
+					}
+
+					if (!showAll) {
+						if (!suspicion) {
+							rows.push("Nothing suspicious found for this user.");
+						} else if (suspicion < 3) {
+							rows.push("This user seems somewhat suspicious, be sure to know who you're trading with.");
+						} else if (suspicion < 5) {
+							rows.push("This user definitely seems suspicious, ask a Moderator to be sure before trading.");
+						} else {
+							rows.push("This user is very suspicious. Alert a Moderator!");
+						}
+					}
+				}
+
+				this.replyHTML(rows.join('<br/>'));
+			},
+		},
 	},
 	analyzer: {
 		rooms: [WIFI_ROOM],
