@@ -405,7 +405,7 @@ const cloners = new List('cloners', {wificloneraddedtime: ''}, ["Avatar", "Usern
 	return data;
 }});
 
-const scammers = new List('scammer', {wifiscammeraddedtime: ''}, ["Username", "Alts", "IGN", "Reason", "Friend Code", "Added on"], {roomid: 'wifi', whitelist: "scammers", visibleFields: ["username", "wifiscammeralts", "wifiign", "wifiscammerinfo", "switchfc", "wifiscammeraddedtime"], addHandler: (data, tokenData) => {
+const scammers = new List('scammers', {wifiscammeraddedtime: ''}, ["Username", "Alts", "IGN", "Reason", "Friend Code", "Added on"], {roomid: 'wifi', whitelist: "scammers", visibleFields: ["username", "wifiscammeralts", "wifiign", "wifiscammerinfo", "switchfc", "wifiscammeraddedtime"], addHandler: (data, tokenData) => {
 	data.wifiscammeraddedtime = Date.now();
 	data.wificscammeraddedby = tokenData.user;
 
