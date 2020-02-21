@@ -996,6 +996,7 @@ module.exports = {
 				}
 
 				if (!toId(message)) return this.reply("Please enter a username");
+				if (!this.userlists[WIFI_ROOM][toId(message)]) return this.reply("This user isn't in the Wi-Fi room.");
 
 				const showAll = this.canUse(3);
 

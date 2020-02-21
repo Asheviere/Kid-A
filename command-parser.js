@@ -522,7 +522,7 @@ class ChatHandler {
 			timer = setTimeout(() => {
 				this.pendingQueries[id] = this.pendingQueries[id].filter(val => val !== resolve);
 				reject();
-			}, 5 * 60 * 1000);
+			}, 30 * 1000);
 		});
 		const res = await promise;
 		clearTimeout(timer);
