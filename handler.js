@@ -16,7 +16,7 @@ const chatHandler = global.ChatHandler = commandParser.new(userlists, settings);
 
 // This regex is a work of art (html parsing is awful :( )
 const INFOBOX_REGEX = /<div class="infobox"><strong class="username"><small style="display:none">.<\/small>(.+?)<\/small>/;
-const IP_REGEX = /<a href="https:\/\/whatismyipaddress.com\/ip\/([0-9]{2,3}\.[0-9]{2,3}\.[0-9]{2,3}\.[0-9]{2,3})" target="_blank">\1<\/a>/;
+const IP_REGEX = /<a href="https:\/\/whatismyipaddress.com\/ip\/([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})" target="_blank">\1<\/a>/g;
 const ALT_REGEX = /Alt: <span class="username">(.+?)<\/span><br \/>/g;
 const PROXY_REGEX = /Host: (.+?)\[proxy\??\]/g;
 
