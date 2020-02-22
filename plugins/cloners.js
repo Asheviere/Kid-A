@@ -1085,6 +1085,8 @@ module.exports = {
 						} else {
 							rows.push("This user is very suspicious. Alert a Moderator!");
 						}
+					} else if (!suspicion) {
+						rows.push("Nothing suspicious found.");
 					}
 				}
 

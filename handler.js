@@ -232,6 +232,7 @@ module.exports = {
 
 				ChatHandler.parseQueryResponse(`whois:${roomid}`, res);
 			}
+			break;
 		case 'queryresponse':
 			let json;
 			try {
