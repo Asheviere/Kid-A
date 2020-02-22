@@ -411,7 +411,7 @@ const scammers = new List('scammers', {wifiscammeraddedtime: ''}, ["Username", "
 
 	const scammerId = toId(data.username);
 
-	ChatHandler.query('whois', scammerId).then(userinfo => {
+	ChatHandler.query('whois', scammerId, WIFI_ROOM).then(userinfo => {
 		ChatHandler.setProfileField(scammerId, 'wifiscammerfingerprint', userinfo.ipStr);
 		ChatHandler.setProfileField(scammerId, 'wifiscammeralts', userinfo.alts.join(', '));
 

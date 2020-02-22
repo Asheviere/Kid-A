@@ -484,7 +484,7 @@ module.exports = {
 						ChatHandler.send(WIFI_ROOM, `/rb ${user}, ${toId(scammer.wifiscammerinfo).startsWith('perma') ? 'Permabanned ' : ''}Scammer`);
 					}
 
-					const userinfo = await ChatHandler.query('whois', userid);
+					const userinfo = await ChatHandler.query('whois', userid, WIFI_ROOM);
 
 					ChatHandler.setProfileField(scammerId, 'wifiscammerfingerprint', `${scammer.wifiscammerfingerprint}${userinfo.ipStr.length && scammer.wifiscammerfingerprint.length ? '|' : ''}${userinfo.ipStr}`);
 					if (scammerId !== userid) {
@@ -976,7 +976,7 @@ module.exports = {
 				const scammerProfile = await ChatHandler.getProfile(toId(scammer));
 				if (!scammerProfile || !scammerProfile.wifiscammeraddedtime) return this.reply("Scammer not found.");
 
-				const userinfo = await ChatHandler.query('whois', toId(target));
+				const userinfo = await ChatHandler.query('whois', toId(target), WIFI_ROOM);
 
 				ChatHandler.setProfileField(toId(scammer), 'wifiscammeralts', `${scammerProfile.wifiscammeralts}, ${target}`);
 				if (userinfo.ipStr) {
@@ -1020,7 +1020,7 @@ module.exports = {
 
 				if (!rows.length) {
 					// Get fingerprints and other info
-					const userinfo = await ChatHandler.query('whois', toId(message));
+					const userinfo = await ChatHandler.query('whois', toId(message), WIFI_ROOM);
 
 					if (profile) {
 						if (profile.wifiign) {
