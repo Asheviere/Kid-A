@@ -230,7 +230,7 @@ module.exports = {
 					res.isProxy = true;
 				}
 
-				ChatHandler.parseQueryResponse(`whois:${toId(res.username)}`, res);
+				ChatHandler.parseQueryResponse(`whois:${roomid}`, res);
 			}
 		case 'queryresponse':
 			let json;

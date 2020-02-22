@@ -503,7 +503,7 @@ class ChatHandler {
 
 	parseQueryResponse(id, response) {
 		// failsafe
-		if (!this.pendingQueries[id].length) return;
+		if (!this.pendingQueries[id] || !this.pendingQueries[id].length) return;
 		this.pendingQueries[id].shift()(response);
 	}
 
@@ -513,6 +513,7 @@ class ChatHandler {
 			let queryStr;
 			if (id.startsWith('whois')) {
 				queryStr = `${room}|/ip ${query}`;
+				id += ':' + room;
 			} else {
 				queryStr = `|/query ${id} ${query}`;
 			}
