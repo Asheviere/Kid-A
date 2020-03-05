@@ -5,7 +5,7 @@ const EventEmitter = require('events');
 const Page = require('../page.js');
 const redis = require('../redis.js');
 
-const DECAY_CAP = 10;
+const DECAY_CAP = 15;
 const EXPIRATION_TIMER = 2 * 30 * 24 * 60 * 60 * 1000;
 const CURRENCY_NAME = 'Arbitrary Points';
 const LEFT_COLUMN = ['Points to Spend', 'Current Points'];
