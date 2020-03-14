@@ -108,7 +108,7 @@ const allFields = {
 		validation: username => /(\/?u\/)?[a-zA-Z0-9_-]{3,20}/.test(username),
 		display: username => {
 			if (username.startsWith('/')) username = username.slice(1);
-			if (!username.startsWith('u/')) username = 'u/' + username;""
+			if (!username.startsWith('u/')) username = 'u/' + username;
 			return `<a href="https://reddit.com/${username}">${username}</a>`;
 		},
 		helptext: "Reddit Username",
@@ -122,6 +122,13 @@ const allFields = {
 			return `<a href="https://twitter.com/${username}">@${username}</a>`;
 		},
 		edit: () => 2,
+	},
+	favoritegame: {
+		title: "Favorite Video Game",
+		validation: str => str.length < 50,
+		display: str => Utils.sanitize(str),
+		edit: () => 2,
+		hideFromCard: true,
 	},
 
 	//wifi fields
@@ -405,6 +412,8 @@ const cloners = new List('cloners', {wificloneraddedtime: ''}, ["Avatar", "Usern
 	return data;
 }});
 
+new List('gamers', {steam: "", switchfc: "", favoritegame: ""}, ["Avatar", "Username", "Steam Account", "Switch Friendcode", "Favorite Video Game"], {roomid: 'videogames', visibleFields: ["avatar", "username", "steam", "switchfc", "favoritegame"]});
+
 const scammers = new List('scammers', {wifiscammeraddedtime: ''}, ["Username", "Alts", "IGN", "Reason", "Friend Code", "Added on"], {roomid: 'wifi', whitelist: "scammers", visibleFields: ["username", "wifiscammeralts", "wifiign", "wifiscammerinfo", "switchfc", "wifiscammeraddedtime"], addHandler: (data, tokenData) => {
 	data.wifiscammeraddedtime = Date.now();
 	data.wificscammeraddedby = tokenData.user;
@@ -458,7 +467,7 @@ module.exports = {
 				if (!Object.keys(profile).length && !output.length) return this.reply("User not found.");
 
 				for (let field in allFields) {
-					if (allFields[field].edit(profile) > 0 && profile[field]) {
+					if (allFields[field].edit(profile) > 0 && profile[field] && !allFields[field].hideFromCard) {
 						output.push(`<b>${allFields[field].title}:</b> ${allFields[field].cardDisplay ? allFields[field].cardDisplay(profile[field], profile) : allFields[field].display ? allFields[field].display(profile[field]) : Utils.sanitize(profile[field])}`);
 					}
 				}
@@ -587,6 +596,24 @@ module.exports = {
 				await Promise.all([ChatHandler.setProfileField(id, 'wifiscammeraddedtime'), ChatHandler.setProfileField(id, 'wifiscammeraddedby'), ChatHandler.setProfileField(id, 'wifiscammerinfo'), ChatHandler.setProfileField(id, 'wifiscammerfingerprint')]);
 
 				return this.reply("User deleted from the scammers list");
+			},
+		},
+
+		removegamer: {
+			rooms: [WIFI_ROOM],
+			async action(message) {
+				if (!this.room) {
+					if (!this.getRoomAuth('videogames')) return;
+				}
+				if (!this.canUse(3)) return this.pmreply("Permission denied.");
+
+				const id = toId(message);
+
+				if (!(await profileData.exists(id))) return this.reply("User not found on the gamers list.");
+
+				await Promise.all([ChatHandler.setProfileField(id, 'steam'), ChatHandler.setProfileField(id, 'favoritegame'), ChatHandler.setProfileField(id, 'switchfc')]);
+
+				return this.reply("User deleted from the gamers list");
 			},
 		},
 	},
