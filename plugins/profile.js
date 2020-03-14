@@ -43,6 +43,7 @@ const allFields = {
 	},
 	username: {
 		title: "Username",
+		display: (username, key) => username || key,
 		edit: () => 0,
 	},
 	discord: {
@@ -332,7 +333,7 @@ class List {
 			for (const key in data) {
 				const entryOut = {};
 				for (const field in data[key]) {
-					entryOut[field] = allFields[field].display ? allFields[field].display(data[key][field]) : data[key][field];
+					entryOut[field] = allFields[field].display ? allFields[field].display(data[key][field], key) : data[key][field];
 				}
 				output.entries[key] = {online: (key in ChatHandler.userlists[this.roomid]), data: entryOut};
 			}
@@ -468,7 +469,7 @@ module.exports = {
 
 				for (let field in allFields) {
 					if (allFields[field].edit(profile) > 0 && profile[field] && !allFields[field].hideFromCard) {
-						output.push(`<b>${allFields[field].title}:</b> ${allFields[field].cardDisplay ? allFields[field].cardDisplay(profile[field], profile) : allFields[field].display ? allFields[field].display(profile[field]) : Utils.sanitize(profile[field])}`);
+						output.push(`<b>${allFields[field].title}:</b> ${allFields[field].cardDisplay ? allFields[field].cardDisplay(profile[field], profile) : allFields[field].display ? allFields[field].display(profile[field], key) : Utils.sanitize(profile[field])}`);
 					}
 				}
 

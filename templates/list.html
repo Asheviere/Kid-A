@@ -76,7 +76,11 @@
                                     {{#if_ends @key "info"}}
                                         {{{this}}}
                                     {{else}}
-                                        {{this}}
+                                        {{#if_eq @key "steam"}}
+                                            {{{this}}}
+                                        {{else}}
+                                            {{this}}
+                                        {{/if_eq}}
                                     {{/if_ends}}
                                 {{/if_ends}}
                             {{/if_eq}}
