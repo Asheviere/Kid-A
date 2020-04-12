@@ -193,7 +193,7 @@ module.exports = {
 				let userid = toId(message);
 				if (!userid) return this.pmreply("No username entered. Syntax: ``.removenotol <username>``");
 
-				if ((await notol.delete(`${this.room}:${userid}`))) {
+				if ((await notol.del(`${this.room}:${userid}`))) {
 					ChatHandler.send(this.room, `/modnote ${userid} was unmarked as zero tolerance by ${this.username}.`);
 				} else {
 					this.pmreply("This user isn't marked as zero tolerance.");
