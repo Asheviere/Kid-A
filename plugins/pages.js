@@ -52,7 +52,7 @@ function parseContent(rawContent) {
 				hasBlockElement = hasBlockElement || (rawContent.substr(i - elemLength - 1, elemLength + 1) === `</${element}>` || rawContent.substr(i + 1, elemLength) === `<${element}>`);
 			}
 			if (!hasBlockElement) {
-				parsedContent += '<br/>';
+				parsedContent += '<br>';
 				continue;
 			}
 		}
