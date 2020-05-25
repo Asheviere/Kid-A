@@ -64,7 +64,7 @@ module.exports = {
 						} else {
 							msg += " was last seen listening to: ";
 						}
-						if (htmlbox) msg += '<br/>';
+						if (htmlbox) msg += '<br>';
 						let trackname = '';
 						// Should always be the case but just in case.
 						if (track.artist && track.artist['#text']) {
@@ -147,7 +147,7 @@ module.exports = {
 								}
 							}
 							msg += '</td><td>';
-							msg += '<b><a href="' + track.artist.url + '">' + artist + '</a> - <a href="' + track.url + '">' + name + '</a></b><br/>';
+							msg += '<b><a href="' + track.artist.url + '">' + artist + '</a> - <a href="' + track.url + '">' + name + '</a></b><br>';
 						} else {
 							msg += trackname;
 						}
