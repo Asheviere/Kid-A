@@ -78,9 +78,9 @@ const lastLinked = new Map();
 
 async function draw(user, data, desc, self) {
 	if (data.title) {
-		return ChatHandler.send(this.room, `/addhtmlbox <table><tbody><tr><td style="padding-right: 5px"><img src="${data.thumbnail}" width="120" height="90"></td><td><b><a href=${VIDEO_ROOT}${data.id}>${data.title}</a></b><br/>Uploaded ${data.date.toDateString()} by <b><a href="${CHANNEL_ROOT}${data.channelUrl}">${data.channel}</a></b><br/><b>${data.views}</b> views, <b><span style="color:green">${data.likes}</span> | <span style="color:red">${data.dislikes}</span></b><br/>${desc ? `<i>${escapeHTML(desc)}</i><br/>` : ''}<details><summary>[Video Description]</summary><i>${escapeHTML(data.description).replace(/\n/g, '<br/>').replace(/click here/gi, 'go here')}</i></details></td></tr></tbody></table>`);
+		return ChatHandler.send(this.room, `/addhtmlbox <table><tbody><tr><td style="padding-right: 5px"><img src="${data.thumbnail}" width="120" height="90"></td><td><b><a href=${VIDEO_ROOT}${data.id}>${data.title}</a></b><br>Uploaded ${data.date.toDateString()} by <b><a href="${CHANNEL_ROOT}${data.channelUrl}">${data.channel}</a></b><br><b>${data.views}</b> views, <b><span style="color:green">${data.likes}</span> | <span style="color:red">${data.dislikes}</span></b><br>${desc ? `<i>${escapeHTML(desc)}</i><br>` : ''}<details><summary>[Video Description]</summary><i>${escapeHTML(data.description).replace(/\n/g, '<br>').replace(/click here/gi, 'go here')}</i></details></td></tr></tbody></table>`);
 	}
-	return ChatHandler.send(this.room, `/addhtmlbox <a href="${data.url}"><img src="${data.url}" width="${data.width}" height="${data.height}"/></a>${desc ? `<br/><i>${escapeHTML(desc)}</i>` : ""}${self ? "" : `<br/><small>(Image suggested by ${user} and approved by ${this.username})</small>`}`);
+	return ChatHandler.send(this.room, `/addhtmlbox <a href="${data.url}"><img src="${data.url}" width="${data.width}" height="${data.height}"/></a>${desc ? `<br><i>${escapeHTML(desc)}</i>` : ""}${self ? "" : `<br><small>(Image suggested by ${user} and approved by ${this.username})</small>`}`);
 }
 
 async function parse(room, url) {
@@ -141,7 +141,7 @@ module.exports = {
 				pendingApprovals.set(this.room, data);
 
 				ChatHandler.send(this.room, `${this.username} wishes to have a link approved!`);
-				ChatHandler.send(this.room, `/addrankhtmlbox %, ${this.username} wishes to get approval to post '<a href="${url}">${url}</a>' in the room${description ? ` (<i>${description}</i>)` : ''}.<br/> <button class="button" name="send" value="/pm ${Config.username}, .approve ${this.room}">Approve</button>&nbsp;<button class="button" name="send" value="/pm ${Config.username}, .reject ${this.room}">Reject</button>`);
+				ChatHandler.send(this.room, `/addrankhtmlbox %, ${this.username} wishes to get approval to post '<a href="${url}">${url}</a>' in the room${description ? ` (<i>${description}</i>)` : ''}.<br> <button class="button" name="send" value="/pm ${Config.username}, .approve ${this.room}">Approve</button>&nbsp;<button class="button" name="send" value="/pm ${Config.username}, .reject ${this.room}">Reject</button>`);
 			},
 		},
 		approve: {
