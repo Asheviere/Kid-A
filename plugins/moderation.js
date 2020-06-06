@@ -208,7 +208,7 @@ module.exports = {
 				// Old notol
 				const oldNotol = await this.settings.lrange(`${this.room}:notol`, 0, -1);
 				if (oldNotol.length) {
-					this.replyHTML(`Old notol list: ${oldNotol.join(', ')}<br/>`, true);
+					this.replyHTML(`Old notol list: ${oldNotol.join(', ')}<br>`, true);
 				}
 
 				const keys = await notol.keys(`${this.room}:*`);

@@ -157,9 +157,9 @@ const anime = new InfoBox(malRequest, properties => {
 		}
 	}
 	const scoreColor = properties.score > 7 ? 'green' : properties.score < 5.5 ? 'red' : 'orange';
-	buffer += `<br/><strong>Rated:</strong> ${properties.rated ? properties.rated.startsWith('R') ? `<span style="font-weight:bold;color:red;">${properties.rated}</span>` : properties.rated : `<span style="font-weight:bold;color:red;">Unrated</span>`} | <strong>User Score: <span style="color:${scoreColor};">${properties.score}/10</span></strong><br/>`;
+	buffer += `<br><strong>Rated:</strong> ${properties.rated ? properties.rated.startsWith('R') ? `<span style="font-weight:bold;color:red;">${properties.rated}</span>` : properties.rated : `<span style="font-weight:bold;color:red;">Unrated</span>`} | <strong>User Score: <span style="color:${scoreColor};">${properties.score}/10</span></strong><br>`;
 	if (properties.genres) {
-		buffer += `<strong>Genres:</strong> ${properties.genres.join(', ')}<br/>`;
+		buffer += `<strong>Genres:</strong> ${properties.genres.join(', ')}<br>`;
 	}
 
 	buffer += `<strong>Synopsis:</strong> ${properties.synopsis}`;
@@ -186,9 +186,9 @@ const manga = new InfoBox(query => malRequest(query, 'manga'), properties => {
 		}
 	}
 	const scoreColor = properties.score > 7 ? 'green' : properties.score < 5.5 ? 'red' : 'orange';
-	buffer += `<br/><strong>User Score: <span style="color:${scoreColor};">${properties.score}/10</span></strong><br/>`;
+	buffer += `<br><strong>User Score: <span style="color:${scoreColor};">${properties.score}/10</span></strong><br>`;
 	if (properties.genres) {
-		buffer += `<strong>Genres:</strong> ${properties.genres.join(', ')}<br/>`;
+		buffer += `<strong>Genres:</strong> ${properties.genres.join(', ')}<br>`;
 	}
 
 	buffer += `<strong>Synopsis:</strong> ${properties.synopsis}`;
@@ -201,16 +201,16 @@ const videogames = new InfoBox(igdbRequest, properties => {
 
 	if (properties.first_release_date) {
 		const date = new Date(properties.first_release_date * 1000);
-		buffer += `<strong>Released:</strong> ${leftpad(date.getDate())}-${leftpad(date.getMonth() + 1)}-${leftpad(date.getFullYear())}<br/>`;
+		buffer += `<strong>Released:</strong> ${leftpad(date.getDate())}-${leftpad(date.getMonth() + 1)}-${leftpad(date.getFullYear())}<br>`;
 	} else {
-		buffer += `<span style="font-weight:bold;color:red">Unreleased</span><br/>`;
+		buffer += `<span style="font-weight:bold;color:red">Unreleased</span><br>`;
 	}
 	if (properties.rating) {
 		const scoreColor = properties.rating > 70 ? 'green' : properties.rating < 55 ? 'red' : 'orange';
 		buffer += `<strong>Rating:  <span style="color: ${scoreColor}">${properties.rating.toFixed(1)}%</span></strong> from ${properties.rating_count} ratings. | `;
 	}
-	buffer += `<strong>Popularity:</strong> ${properties.popularity.toFixed(1)}%<br/>`;
-	if (properties.summary) buffer += `<strong>Summary:</strong> ${properties.summary.slice(0, 600).replace(/\n/g, '<br/>')}${properties.summary.length > 600 ? ' (...)' : ''}`;
+	buffer += `<strong>Popularity:</strong> ${properties.popularity.toFixed(1)}%<br>`;
+	if (properties.summary) buffer += `<strong>Summary:</strong> ${properties.summary.slice(0, 600).replace(/\n/g, '<br>')}${properties.summary.length > 600 ? ' (...)' : ''}`;
 
 	return buffer;
 });
@@ -218,9 +218,9 @@ const videogames = new InfoBox(igdbRequest, properties => {
 const books = new InfoBox(googleBooksRequest, properties => {
 	let buffer = '';
 
-	if (properties.authors) buffer += `<strong>Author${properties.authors.length > 1 ? 's' : ''}:</strong> ${properties.authors.join(', ')}<br/>`;
-	if (properties.publishedDate) buffer += `<strong>Published:</strong> ${properties.publishedDate}${properties.publisher ? ` by <i>${properties.publisher}</i>` : ''}<br/>`;
-	if (properties.categories) buffer += `<strong>Categories:</strong> ${properties.categories.join(', ')}<br/>`;
+	if (properties.authors) buffer += `<strong>Author${properties.authors.length > 1 ? 's' : ''}:</strong> ${properties.authors.join(', ')}<br>`;
+	if (properties.publishedDate) buffer += `<strong>Published:</strong> ${properties.publishedDate}${properties.publisher ? ` by <i>${properties.publisher}</i>` : ''}<br>`;
+	if (properties.categories) buffer += `<strong>Categories:</strong> ${properties.categories.join(', ')}<br>`;
 
 	let miscInfoLine = [];
 
@@ -230,8 +230,8 @@ const books = new InfoBox(googleBooksRequest, properties => {
 		const ratingColor = properties.averageRating > 3.5 ? 'green' : properties.averageRating < 2.5 ? 'red' : 'orange';
 		miscInfoLine.push(`<strong style="color:${ratingColor}">${properties.averageRating}/5</strong> (${properties.ratingsCount} ratings)`);
 	}
-	if (miscInfoLine.length) buffer += `${miscInfoLine.join(', ')}<br/>`;
-	if (properties.description) buffer += `<strong>Description: </strong> ${properties.description.slice(0, 500).replace(/\n/g, '<br/>')}${properties.description.length > 500 ? ' (...)' : ''}`;
+	if (miscInfoLine.length) buffer += `${miscInfoLine.join(', ')}<br>`;
+	if (properties.description) buffer += `<strong>Description: </strong> ${properties.description.slice(0, 500).replace(/\n/g, '<br>')}${properties.description.length > 500 ? ' (...)' : ''}`;
 
 	return buffer;
 });

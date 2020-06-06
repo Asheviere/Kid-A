@@ -168,7 +168,7 @@ module.exports = {
 						}
 						matchStrings.push(`<b>${i}</b>: ${strs.join(', ')}`);
 					}
-					output += matchStrings.join('<br/>');
+					output += matchStrings.join('<br>');
 					return this.replyHTML(output);
 				}
 

@@ -5,7 +5,7 @@ const QUERYURL = 'https://omgvamp-hearthstone-v1.p.mashape.com/cards/';
 const STANDARD_SETS = ['Basic', 'Classic', 'Journey to Un\'Goro', 'Knights of the Frozen Throne', 'Kobolds & Catacombs', 'The Witchwood'];
 
 function sanitizeCardText(text) {
-	return text.replace(/\[x\]/g, '').replace(/\\n/g, '<br/>').replace(/\n/g, '<br/>').replace(/_/g, ' ').replace(/\$/g, '');
+	return text.replace(/\[x\]/g, '').replace(/\\n/g, '<br>').replace(/\n/g, '<br>').replace(/_/g, ' ').replace(/\$/g, '');
 }
 
 function generateCardDisplay(card, useGold) {
