@@ -179,7 +179,7 @@ module.exports = {
 			if (toId(split[3]) === this.userid) return;
 			let msg = split.splice(4).join('|').trim().split('\n')[0];
 			// Check whether the message is a chat message or a modnote
-			if (msg.startsWith('/log') {
+			if (msg.startsWith('/log')) {
 			    	this.chatHandler.parseModnote(roomid, msg.slice(4));
 			} else {
 				ChatLogger.log(split[2], roomid, toId(split[3]), msg);
