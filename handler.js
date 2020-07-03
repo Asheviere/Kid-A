@@ -105,10 +105,6 @@ module.exports = {
 		let split = message.split('|');
 		let first = split[0].split('\n');
 		let roomid = first[0].toLowerCase().replace(/[^a-z0-9-]/g, '') || 'lobby';
-		if (split[0].startsWith('(') || (first.length > 1 && first[1].startsWith('('))) {
-			if (split[0].startsWith('(')) roomid = 'lobby';
-			this.chatHandler.parseModnote(roomid, first[first.length - 1].slice(1, -1));
-		}
 		switch (split[1]) {
 		case 'challstr':
 			Output.log('status', 'Received challstr, logging in...');
@@ -182,9 +178,14 @@ module.exports = {
 		case 'c:':
 			if (toId(split[3]) === this.userid) return;
 			let msg = split.splice(4).join('|').trim().split('\n')[0];
-			ChatLogger.log(split[2], roomid, toId(split[3]), msg);
-			this.chatHandler.parse(split[3], roomid, msg, parseInt(split[1]));
-			break;
+			// Check whether the message is a chat message or a modnote
+			if (msg.startsWith('/log') {
+			    	this.chatHandler.parseModnote(roomid, msg.slice(4));
+			} else {
+				ChatLogger.log(split[2], roomid, toId(split[3]), msg);
+				this.chatHandler.parse(split[3], roomid, msg, parseInt(split[1]));
+				break;
+			}
 		case 'tournament':
 			let cmds = ('|' + split.slice(1).join('|')).split('\n'); // This is very gross voodoo and there must be a better way to tackle this but I was lazy when writing this.
 			for (const cmd of cmds) {
