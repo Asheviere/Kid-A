@@ -105,6 +105,7 @@ module.exports = {
 		let split = message.split('|');
 		let first = split[0].split('\n');
 		let roomid = first[0].toLowerCase().replace(/[^a-z0-9-]/g, '') || 'lobby';
+		let msg = '';
 		switch (split[1]) {
 		case 'challstr':
 			Output.log('status', 'Received challstr, logging in...');
@@ -173,7 +174,7 @@ module.exports = {
 		case 'c':
 			if (toId(split[2]) === this.userid) return;
 				
-			let msg = split.splice(3).join('|').trim();
+			msg = split.splice(3).join('|').trim();
 			
 			// Check whether the message is a chat message or a modnote
 			if (msg.startsWith('/log')) {
@@ -184,7 +185,7 @@ module.exports = {
 			break;
 		case 'c:':
 			if (toId(split[3]) === this.userid) return;
-			let msg = split.splice(4).join('|').trim().split('\n')[0];
+			msg = split.splice(4).join('|').trim().split('\n')[0];
 			// Check whether the message is a chat message or a modnote
 			if (msg.startsWith('/log')) {
 			    	this.chatHandler.parseModnote(roomid, msg.slice(4));
