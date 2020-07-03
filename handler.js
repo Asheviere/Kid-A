@@ -172,8 +172,15 @@ module.exports = {
 			break;
 		case 'c':
 			if (toId(split[2]) === this.userid) return;
-
-			this.chatHandler.parse(split[2], roomid, split.splice(3).join('|').trim());
+				
+			let msg = split.splice(3).join('|').trim();
+			
+			// Check whether the message is a chat message or a modnote
+			if (msg.startsWith('/log')) {
+			    	this.chatHandler.parseModnote(roomid, msg.slice(4));
+			} else {
+				this.chatHandler.parse(split[2], roomid, msg);
+			}
 			break;
 		case 'c:':
 			if (toId(split[3]) === this.userid) return;
