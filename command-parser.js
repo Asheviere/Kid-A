@@ -448,7 +448,11 @@ class ChatHandler {
 				try {
 					ret = JSON.stringify(eval.bind(this)(input));
 					if (ret === undefined) return;
-					console.log(ret);
+					if (ret.then) { // Promise
+						ret.then(val => console.log(val));	
+					} else {
+						console.log(ret);
+					}
 				} catch (e) {
 					Output.errorMsg(e, 'Failed to eval:');
 				}
