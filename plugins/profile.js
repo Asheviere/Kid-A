@@ -98,10 +98,10 @@ const allFields = {
 		edit: () => 2,
 	},
 	github: {
-		title: "Github",
+		title: "GitHub",
 		validation: username => username,
 		display: username => `<a href="https://github.com/${username}">${Utils.sanitize(username)}</a>`,
-		helptext: "Github Username",
+		helptext: "GitHub Username",
 		edit: () => 2,
 	},
 	reddit: {
